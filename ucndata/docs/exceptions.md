@@ -9,13 +9,15 @@
   - [CycleWarning](#cyclewarning)
   - [DataError](#dataerror)
   - [DetectorError](#detectorerror)
+  - [MergeError](#mergeerror)
+  - [MergeWarning](#mergewarning)
   - [MissingDataError](#missingdataerror)
   - [NotImplementedError](#notimplementederror)
   - [ValveError](#valveerror)
 
 ## BeamError
 
-[Show source in exceptions.py:12](../exceptions.py#L12)
+[Show source in exceptions.py:13](../exceptions.py#L13)
 
 #### Signature
 
@@ -31,7 +33,7 @@ class BeamError(DataError): ...
 
 ## CycleWarning
 
-[Show source in exceptions.py:18](../exceptions.py#L18)
+[Show source in exceptions.py:19](../exceptions.py#L19)
 
 #### Signature
 
@@ -43,7 +45,7 @@ class CycleWarning(Warning): ...
 
 ## DataError
 
-[Show source in exceptions.py:10](../exceptions.py#L10)
+[Show source in exceptions.py:11](../exceptions.py#L11)
 
 #### Signature
 
@@ -55,7 +57,7 @@ class DataError(Exception): ...
 
 ## DetectorError
 
-[Show source in exceptions.py:13](../exceptions.py#L13)
+[Show source in exceptions.py:14](../exceptions.py#L14)
 
 #### Signature
 
@@ -66,6 +68,30 @@ class DetectorError(DataError): ...
 #### See also
 
 - [DataError](#dataerror)
+
+
+
+## MergeError
+
+[Show source in exceptions.py:8](../exceptions.py#L8)
+
+#### Signature
+
+```python
+class MergeError(Exception): ...
+```
+
+
+
+## MergeWarning
+
+[Show source in exceptions.py:20](../exceptions.py#L20)
+
+#### Signature
+
+```python
+class MergeWarning(Warning): ...
+```
 
 
 
@@ -95,7 +121,7 @@ class NotImplementedError(Exception): ...
 
 ## ValveError
 
-[Show source in exceptions.py:14](../exceptions.py#L14)
+[Show source in exceptions.py:15](../exceptions.py#L15)
 
 #### Signature
 
