@@ -7,7 +7,6 @@
 - [Merge](#merge)
   - [merge](#merge)
   - [merge_inlist](#merge_inlist)
-- [y now contains two entries: merged 1846+1847 and 1848](#y-now-contains-two-entries:-merged-1846+1847-and-1848)
 
 ## merge
 
@@ -44,10 +43,11 @@ Merge runs within a list and return a new list with the merged objects
 
 #### Examples
 
-x = [ucnrun(r) for r in (1846, 1847, 1848)]
-y = merge_inlist(x, (1846, 1847))
-
-# y now contains two entries: merged 1846+1847 and 1848
+```python
+>>> x = [ucnrun(r) for r in (1846, 1847, 1848)]
+>>> y = merge_inlist(x, (1846, 1847))
+    # y now contains two entries: merged 1846+1847 and 1848
+```
 
 #### Returns
 

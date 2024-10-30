@@ -183,10 +183,9 @@ def merge_inlist(ucnlist, mergeruns):
         mergeruns (list): iterable of run numbers to merge
 
     Example:
-        x = [ucnrun(r) for r in (1846, 1847, 1848)]
-        y = merge_inlist(x, (1846, 1847))
-
-        # y now contains two entries: merged 1846+1847 and 1848
+        >>> x = [ucnrun(r) for r in (1846, 1847, 1848)]
+        >>> y = merge_inlist(x, (1846, 1847))
+            # y now contains two entries: merged 1846+1847 and 1848
 
     Returns:
         applylist: of ucnruns, some are merged, as indicated
