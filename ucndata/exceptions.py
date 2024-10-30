@@ -5,6 +5,7 @@
 # General
 class MissingDataError(Exception): pass
 class NotImplementedError(Exception): pass
+class MergeError(Exception): pass
 
 # Data problems
 class DataError(Exception): pass
@@ -16,3 +17,4 @@ class ValveError(DataError): pass
 
 # warnings -----------------------------------
 class CycleWarning(Warning): pass
+class MergeWarning(Warning): pass

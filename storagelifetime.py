@@ -2,9 +2,8 @@
 # Derek Fujimoto
 # Oct 2024
 
-from ucndata import settings, read
+from ucndata import settings, read, merge_inlist
 import numpy as np
-import os
 import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
@@ -16,7 +15,7 @@ countperiod = 2
 backgroundperiod = 1
 detector = 'Li6'
 
-run_numbers = [1846] #, 1873, 1875, 1892, 1902, 1905, 1908, 1918, 1933, 1940, 1960, 1971, 1982, 1988, 1995, 2008, 2009, 2017, 2022, 2038, 2039]
+run_numbers = [1846, 1873, 1875]#, 1892]#, 1902, 1905, 1908, 1918, 1933, 1940, 1960, 1971, 1982, 1988, 1995, 2008, 2009, 2017, 2022, 2038, 2039]
 
 # get all runs
 runs = read(run_numbers)
@@ -59,6 +58,7 @@ for r in runs:
     std = np.diag(cov)**0.5
 
     # draw
+    plt.figure()
     plt.errorbar(storage_duration, counts[:, 0], counts[:, 1], fmt='.')
     plt.plot(storage_duration, fn(storage_duration, *par))
     plt.yscale('log')
