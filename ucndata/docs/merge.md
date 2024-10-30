@@ -18,6 +18,12 @@ Merge a list of ucndata objects into a single object
 
 - `ucnlist` *list* - iterable of ucndata objects
 
+#### Examples
+
+```python
+>>> merge([ucnrun(i) for i in (1846, 1847)])
+```
+
 #### Returns
 
 - [ucnrun](./ucnrun.md#ucnrun) - single object with all data inside of it
@@ -32,7 +38,7 @@ def merge(ucnlist): ...
 
 ## merge_inlist
 
-[Show source in merge.py:178](../merge.py#L178)
+[Show source in merge.py:181](../merge.py#L181)
 
 Merge runs within a list and return a new list with the merged objects
 

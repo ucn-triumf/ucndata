@@ -6,11 +6,11 @@
 
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
-    - [ucnrun.check_data](#ucnruncheck_data)
-    - [ucnrun.gen_cycle_filter](#ucnrungen_cycle_filter)
-    - [ucnrun.get_cycle](#ucnrunget_cycle)
-    - [ucnrun.set_cycle_filter](#ucnrunset_cycle_filter)
-    - [ucnrun.set_cycle_times](#ucnrunset_cycle_times)
+    - [ucnrun.check\_data](#ucnruncheck_data)
+    - [ucnrun.gen\_cycle\_filter](#ucnrungen_cycle_filter)
+    - [ucnrun.get\_cycle](#ucnrunget_cycle)
+    - [ucnrun.set\_cycle\_filter](#ucnrunset_cycle_filter)
+    - [ucnrun.set\_cycle\_times](#ucnrunset_cycle_times)
 
 ## ucnrun
 
@@ -42,10 +42,83 @@ UCN run data. Cleans data and performs analysis
 
 #### Notes
 
-Can access attributes of tfile directly from top-level object
-Need to define the values in ucndata.settings if you want non-default
+* Can access attributes of tfile directly from top-level object
+* Need to define the values in ucndata.settings if you want non-default
 behaviour
-Object is indexed as [cycle, period] for easy access to sub time frames
+* Object is indexed as [cycle, period] for easy access to sub time frames
+
+Cycle param contents
+
+- ``nperiods`` - Number of periods in each cycle
+- ``nsupercyc`` - Number of supercycles contained in the run
+- ``enable`` - Enable status of the sequencer
+- ``inf_cyc_enable`` - Enable status of infinite cycles
+- ``cycle`` - Cycle ID numbers
+- ``supercycle`` - Supercycle ID numbers
+- ``valve_states`` - Valve states in each period and cycle
+- ``period_end_times`` - End time of each period in each cycle in epoch time
+- ``period_durations_s`` - Duration in sections of each period in each cycle
+- ``ncycles`` - Number of total cycles contained in the run
+- ``filter`` - A list indicating how we should filter cycles. More on that in [filters](filters.md)
+- ``cycle_time`` - The start and end times of each cycle
+
+#### Examples
+
+Loading runs
+
+```python
+from ucndata import ucnrun, settings
+# load from filename
+ucnrun('/path/to/file/ucn_run_00001846.root')
+# load from run number
+settings.datadir = '/path/to/file/'
+ucnrun(1846)
+```
+
+Slicing
+
+```python
+from ucndata import ucnrun
+run = ucnrun(1846)
+run[0, 0]   # cycle 0, period 0
+run[:]      # all cycles, no distinction on period
+run[:, 0]   # get all cycles, period 0
+run[0, :]   # cycle 0, all periods
+run[4:7, 2] # cycles 4, 5, 6, period 2
+```
+
+Get beam properties
+
+```python
+from ucndata import ucnrun
+run = ucnrun(1846)
+run.beam_current_uA # beam current in uA
+run.beam_on_s       # beam duration on in s
+run.beam_off_s      # beam duration off in s
+```
+
+Draw hits
+
+```python
+import matplotlib.pyplot as plt
+from ucndata import ucnrun
+run = ucnrun(1846)
+
+# draw all hits in the file
+plt.plot(*run.get_hits_histogram('Li6'))
+
+# draw hits in each cycle (some differences due to binning)
+for cycle in run:
+    plt.plot(*cycle.get_hits_histogram('Li6'))
+```
+
+Get hits as a pandas dataframe
+
+```python
+from ucndata import ucnrun
+run = ucnrun(1846)
+hits = run.get_hits('Li6')
+```
 
 #### Signature
 
@@ -60,7 +133,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:253](../ucnrun.py#L253)
+[Show source in ucnrun.py:321](../ucnrun.py#L321)
 
 Run some checks to determine if the data is ok.
 
@@ -84,7 +157,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:310](../ucnrun.py#L310)
+[Show source in ucnrun.py:378](../ucnrun.py#L378)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -113,7 +186,7 @@ def gen_cycle_filter(
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:335](../ucnrun.py#L335)
+[Show source in ucnrun.py:403](../ucnrun.py#L403)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -137,13 +210,13 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:355](../ucnrun.py#L355)
+[Show source in ucnrun.py:423](../ucnrun.py#L423)
 
 Set filter for which cycles to fetch when slicing or iterating
 
 #### Notes
 
-Filter is ONLY applied when fetching cycles as a slice or as an iterator. ucnrun.get_cycle always returns unfiltered cycles.
+Filter is ONLY applied when fetching cycles as a slice or as an iterator. ucnrun.get_cycle() always returns unfiltered cycles.
 
 Examples where the filter is applied:
     * run[:]
@@ -153,7 +226,7 @@ Examples where the filter is applied:
 
 Examples where the filter is not applied:
     * run[2]
-    * run.get_cycle
+    * run.get_cycle()
     * run.get_cycle(2)
 
 #### Arguments
@@ -173,7 +246,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:389](../ucnrun.py#L389)
+[Show source in ucnrun.py:457](../ucnrun.py#L457)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times

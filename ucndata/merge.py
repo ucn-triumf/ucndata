@@ -16,6 +16,9 @@ def merge(ucnlist):
     Args:
         ucnlist (list): iterable of ucndata objects
 
+    Example:
+        >>> merge([ucnrun(i) for i in (1846, 1847)])
+
     Returns:
         ucnrun: single object with all data inside of it
     """

@@ -10,7 +10,28 @@ class applylist(list):
     * An apply function: like in pandas, apply takes a function handle and applies it to every element in the list. This acts recursively, if the list has a depth of more than 1
     * Element access: accessing attributes, if not an attribute of the applylist, instead try to fetch attributes of the contained objects. The same for functions. This also works recursively.
     * Numpy-like array slicing: slicing with a np.ndarray first converts this object to an array, then does the slice, then converts back. This allows slicing on arrays of indices for re-ordering or booleans for selection based on criteria
+    * Arithmetic works element-wise as in numpy arrays
 
+    Examples:
+
+        >>> # Slicing
+        >>> x = applylist(range(10))
+        >>> print(x[3:7])
+        [3, 4, 5, 6]
+
+        >>> # Element access
+        >>> x = applylist([ucnrun(1846), ucnrun(1847)])
+        >>> print(x.run_number)
+        [1846, 1847]
+        >>> print(x.beam_current_uA.mean())
+        [np.float64(0.16612837637441483), np.float64(0.18927602913972205)]
+
+        >>> # Arithmetic and comparisons
+        >>> x = applylist([1,2,3])
+        >>> print(x*2)
+        [np.int64(2), np.int64(4), np.int64(6)]
+        >>> print(x>2)
+        [np.False_, np.False_, np.True_]
     """
 
     def __call__(self, *args, **kwargs):
@@ -77,7 +98,23 @@ class applylist(list):
             return super().__getitem__(key)
 
     def astype(self, typecast):
-        """Convert datatypes in self to typecast"""
+        """Convert datatypes in self to typecast
+
+        Args:
+            typecase (type): type to convert to
+
+        Returns:
+            None, works in-place
+
+        Example:
+
+            >>> x = applylist(np.arange(5))
+            >>> print(x)
+            [np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]
+            >>> x.astype(int)
+            >>> print(x)
+            [0, 1, 2, 3, 4]
+        """
         for i in range(len(self)):
             self[i] = typecast(self[i])
 
@@ -90,6 +127,22 @@ class applylist(list):
 
         Returns:
             ucnarray|None: depending on the value of inplace
+
+        Examples:
+
+            >>> # With return value
+            >>> x = applylist(np.arange(5))
+            >>> y = x.apply(lambda a: a**2)
+            >>> print(x)
+            [np.int64(0), np.int64(1), np.int64(2), np.int64(3), np.int64(4)]
+            >>> print(y)
+            [np.int64(0), np.int64(1), np.int64(4), np.int64(9), np.int64(16)]
+
+            >>> # Inplace
+            >>> x = applylist(np.arange(5))
+            >>> x.apply(lambda a: a**2, inplace=True)
+            >>> print(x)
+            [np.int64(0), np.int64(1), np.int64(4), np.int64(9), np.int64(16)]
         """
 
         # decide if inplace
@@ -107,5 +160,20 @@ class applylist(list):
         if not inplace: return copy
 
     def transpose(self):
-        """Transpose by conversion to np.array and back"""
+        """Transpose by conversion to np.array and back
+
+        Args:
+            None
+
+        Returns:
+            applylist: transposed
+
+        Example:
+
+            >>> x = applylist([[1,2,3], [4,5,6]])
+            >>> print(x)
+            [[1, 2, 3], [4, 5, 6]]
+            >>> print(x.transpose())
+            [array([1, 4]), array([2, 5]), array([3, 6])]
+        """
         return applylist(np.array(self).transpose())

@@ -6,15 +6,15 @@
 
 - [ucnbase](#ucnbase)
   - [ucnbase](#ucnbase-1)
-    - [ucnbase.apply](#ucnbaseapply)
-    - [ucnbase.beam_current_uA](#ucnbasebeam_current_ua)
-    - [ucnbase.beam_off_s](#ucnbasebeam_off_s)
-    - [ucnbase.beam_on_s](#ucnbasebeam_on_s)
-    - [ucnbase.copy](#ucnbasecopy)
-    - [ucnbase.from_dataframe](#ucnbasefrom_dataframe)
-    - [ucnbase.get_hits](#ucnbaseget_hits)
-    - [ucnbase.get_hits_histogram](#ucnbaseget_hits_histogram)
-    - [ucnbase.to_dataframe](#ucnbaseto_dataframe)
+    - [ucnbase().apply](#ucnbase()apply)
+    - [ucnbase().beam_current_uA](#ucnbase()beam_current_ua)
+    - [ucnbase().beam_off_s](#ucnbase()beam_off_s)
+    - [ucnbase().beam_on_s](#ucnbase()beam_on_s)
+    - [ucnbase().copy](#ucnbase()copy)
+    - [ucnbase().from_dataframe](#ucnbase()from_dataframe)
+    - [ucnbase().get_hits](#ucnbase()get_hits)
+    - [ucnbase().get_hits_histogram](#ucnbase()get_hits_histogram)
+    - [ucnbase().to_dataframe](#ucnbase()to_dataframe)
 
 ## ucnbase
 
@@ -57,7 +57,7 @@ Object is indexed as [cycle, period] for easy access to sub time frames
 class ucnbase(object): ...
 ```
 
-### ucnbase.apply
+### ucnbase().apply
 
 [Show source in ucnbase.py:106](../ucnbase.py#L106)
 
@@ -77,7 +77,7 @@ fn_handle (function handle): function to be applied to each cycle
 def apply(self, fn_handle): ...
 ```
 
-### ucnbase.beam_current_uA
+### ucnbase().beam_current_uA
 
 [Show source in ucnbase.py:197](../ucnbase.py#L197)
 
@@ -88,7 +88,7 @@ def apply(self, fn_handle): ...
 def beam_current_uA(self): ...
 ```
 
-### ucnbase.beam_off_s
+### ucnbase().beam_off_s
 
 [Show source in ucnbase.py:222](../ucnbase.py#L222)
 
@@ -99,7 +99,7 @@ def beam_current_uA(self): ...
 def beam_off_s(self): ...
 ```
 
-### ucnbase.beam_on_s
+### ucnbase().beam_on_s
 
 [Show source in ucnbase.py:219](../ucnbase.py#L219)
 
@@ -110,7 +110,7 @@ def beam_off_s(self): ...
 def beam_on_s(self): ...
 ```
 
-### ucnbase.copy
+### ucnbase().copy
 
 [Show source in ucnbase.py:117](../ucnbase.py#L117)
 
@@ -122,7 +122,7 @@ Return a copy of this objet
 def copy(self): ...
 ```
 
-### ucnbase.from_dataframe
+### ucnbase().from_dataframe
 
 [Show source in ucnbase.py:188](../ucnbase.py#L188)
 
@@ -134,7 +134,7 @@ Convert self.tfile contents to rootfile struture types
 def from_dataframe(self): ...
 ```
 
-### ucnbase.get_hits
+### ucnbase().get_hits
 
 [Show source in ucnbase.py:128](../ucnbase.py#L128)
 
@@ -154,7 +154,7 @@ Get times of ucn hits
 def get_hits(self, detector): ...
 ```
 
-### ucnbase.get_hits_histogram
+### ucnbase().get_hits_histogram
 
 [Show source in ucnbase.py:148](../ucnbase.py#L148)
 
@@ -175,7 +175,7 @@ Get histogram of UCNHits ttree times
 def get_hits_histogram(self, detector, bin_ms=100): ...
 ```
 
-### ucnbase.to_dataframe
+### ucnbase().to_dataframe
 
 [Show source in ucnbase.py:192](../ucnbase.py#L192)
 

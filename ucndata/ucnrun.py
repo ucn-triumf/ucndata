@@ -48,10 +48,78 @@ class ucnrun(ucnbase):
         year (int): year of run start
 
     Notes:
-        Can access attributes of tfile directly from top-level object
-        Need to define the values in ucndata.settings if you want non-default
+        * Can access attributes of tfile directly from top-level object
+        * Need to define the values in ucndata.settings if you want non-default
         behaviour
-        Object is indexed as [cycle, period] for easy access to sub time frames
+        * Object is indexed as [cycle, period] for easy access to sub time frames
+
+        Cycle param contents
+
+        `nperiods`: Number of periods in each cycle
+        `nsupercyc`: Number of supercycles contained in the run
+        `enable`: Enable status of the sequencer
+        `inf_cyc_enable`: Enable status of infinite cycles
+        `cycle`: Cycle ID numbers
+        `supercycle`: Supercycle ID numbers
+        `valve_states`: Valve states in each period and cycle
+        `period_end_times`: End time of each period in each cycle in epoch time
+        `period_durations_s`: Duration in sections of each period in each cycle
+        `ncycles`: Number of total cycles contained in the run
+        `filter`: A list indicating how we should filter cycles. More on that in [filters](filters.md)
+        `cycle_time`: The start and end times of each cycle
+
+    Examples:
+
+        Loading runs
+        ```python
+        from ucndata import ucnrun, settings
+        # load from filename
+        ucnrun('/path/to/file/ucn_run_00001846.root')
+        # load from run number
+        settings.datadir = '/path/to/file/'
+        ucnrun(1846)
+        ```
+
+        Slicing
+        ```python
+        from ucndata import ucnrun
+        run = ucnrun(1846)
+        run[0, 0]   # cycle 0, period 0
+        run[:]      # all cycles, no distinction on period
+        run[:, 0]   # get all cycles, period 0
+        run[0, :]   # cycle 0, all periods
+        run[4:7, 2] # cycles 4, 5, 6, period 2
+        ```
+
+        Get beam properties
+        ```python
+        from ucndata import ucnrun
+        run = ucnrun(1846)
+        run.beam_current_uA # beam current in uA
+        run.beam_on_s       # beam duration on in s
+        run.beam_off_s      # beam duration off in s
+        ```
+
+        Draw hits
+        ```python
+        import matplotlib.pyplot as plt
+        from ucndata import ucnrun
+        run = ucnrun(1846)
+
+        # draw all hits in the file
+        plt.plot(*run.get_hits_histogram('Li6'))
+
+        # draw hits in each cycle (some differences due to binning)
+        for cycle in run:
+            plt.plot(*cycle.get_hits_histogram('Li6'))
+        ```
+
+        Get hits as a pandas dataframe
+        ```python
+        from ucndata import ucnrun
+        run = ucnrun(1846)
+        hits = run.get_hits('Li6')
+        ```
     """
 
     def __init__(self, run, header_only=False):

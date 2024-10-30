@@ -6,9 +6,9 @@
 
 - [ucnperiod](#ucnperiod)
   - [ucnperiod](#ucnperiod-1)
-    - [ucnperiod.get_counts](#ucnperiodget_counts)
-    - [ucnperiod.get_hits](#ucnperiodget_hits)
-    - [ucnperiod.get_rate](#ucnperiodget_rate)
+    - [ucnperiod().get_counts](#ucnperiod()get_counts)
+    - [ucnperiod().get_hits](#ucnperiod()get_hits)
+    - [ucnperiod().get_rate](#ucnperiod()get_rate)
 
 ## ucnperiod
 
@@ -32,7 +32,7 @@ class ucnperiod(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucnperiod.get_counts
+### ucnperiod().get_counts
 
 [Show source in ucnperiod.py:84](../ucnperiod.py#L84)
 
@@ -56,7 +56,7 @@ Get sum of ucn hits
 def get_counts(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None): ...
 ```
 
-### ucnperiod.get_hits
+### ucnperiod().get_hits
 
 [Show source in ucnperiod.py:146](../ucnperiod.py#L146)
 
@@ -76,7 +76,7 @@ Get times of ucn hits
 def get_hits(self, detector): ...
 ```
 
-### ucnperiod.get_rate
+### ucnperiod().get_rate
 
 [Show source in ucnperiod.py:182](../ucnperiod.py#L182)
 
