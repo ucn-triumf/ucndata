@@ -6,6 +6,7 @@ import glob
 from multiprocessing import cpu_count, Pool
 from .ucnrun import ucnrun
 from .applylist import applylist
+from collections.abc import Iterable
 from tqdm import tqdm
 import numpy as np
 from functools import partial
@@ -30,11 +31,11 @@ def read(path, nproc=-1, header_only=False):
     """
 
     # normalize input
-    if type(path) is str:
+    if not isinstance(path, Iterable):
         path = [path]
 
     # expand wildcards
-    if type(path[0]) is str:
+    if isinstance(path[0], str):
         pathlist = []
         for p in path:
             pathlist.extend(glob.glob(p))
