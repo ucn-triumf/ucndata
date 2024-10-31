@@ -143,14 +143,16 @@ class ucnperiod(ucnbase):
 
         return (counts, dcounts)
 
-    def get_hits(self, detector):
-        """Get times of ucn hits
+    def is_pileup(self, detector):
+        """Check if pileup may be an issue in this period.
+
+        Histograms the first `pileup_within_first_s` seconds of data in 1 ms bins and checks if any of those bins are greater than the `pileup_cnt_per_ms` threshold. Set these settings in the [settings.py](../settings.py) file.
 
         Args:
             detector (str): one of the keys to settings.DET_NAMES
 
         Returns:
-            pd.DataFrame: hits tree as a dataframe, only the values when a hit is registered
+            bool: true if pileup detected
         """
 
         # get the tree
@@ -164,20 +166,13 @@ class ucnperiod(ucnbase):
 
         # make histogram
         t = hit_tree.index.values
-        counts, edges = np.histogram(t, bins=int(1/0.001),
+        counts, _ = np.histogram(t, bins=int(1/0.001*dt),
                                         range=(min(t), min(t)+dt))
 
-        # delete bad count ranges
-        ncounts_total = len(t)
-        for i, count in enumerate(counts):
-            if count > count_thresh:
-                hit_tree = hit_tree.loc[(hit_tree.index < edges[i]) | (hit_tree.index > edges[i+1])]
-        ncounts_removed = ncounts_total - len(hit_tree.index)
+        # look for pileup
+        piled_up = counts > count_thresh
 
-        if ncounts_removed > 0:
-            print(f'Removed {ncounts_removed} pileup counts ({int(ncounts_removed/ncounts_total*100):d}%) from run{self.run_number} (cycle {self.cycle}, period {self.period})')
-
-        return hit_tree
+        return any(piled_up)
 
     def get_rate(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None):
         """Get sum of ucn hits per unit time of period

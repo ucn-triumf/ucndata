@@ -113,19 +113,37 @@ class ucncycle(ucnbase):
             period_production (int): index of period where the beam should be stable. Enables checks of beam stability
             period_count (int): index of period where we count ucn. Enables checks of data quantity
             period_background (int): index of period where we do not count ucn. Enables checks of background
-            raise_error (bool): if true, raise an error if check fails, else return false
+            raise_error (bool): if true, raise an error if check fails, else return false. Inactive if quiet=True
             quiet (bool): if true don't print or raise exception
 
         Returns:
             bool: true if check passes, else false.
 
-        Checks:
-            Do the following trees exist and have entries?
-                BeamlineEpics
-                UCN2Epics
-                SequencerTree
-                LNDDetectorTree
-            Are there nonzero counts in UCNHits?
+        Note:
+
+            Checks performed
+
+            * is there BeamlineEpics data?
+            * is the cycle duration greater than 0?
+            * is at least one valve opened during at least one period?
+            * are there counts in each detector?
+
+            If production period specified:
+
+                * beam data exists during production
+                * beam doesn't drop too low (`beam_min_current`)
+                * beam current stable (`beam_max_current_std`)
+
+            If background period specified:
+
+                * background count rate too high (`max_bkgd_count_rate`)
+                * no background counts at all
+
+            If count period specified:
+
+                * check too few counts (`min_total_counts`)
+                * does pileup exist? (>`pileup_cnt_per_ms` in the first `pileup_within_first_s`)
+
         """
         # setup error message
         msg = f'Run {self.run_number}, cycle {self.cycle}:'
@@ -161,7 +179,7 @@ class ucncycle(ucnbase):
 
         # has counts
         if not any([self.tfile[settings.DET_NAMES[det]['hits']].tIsUCN.sum() > 1 for det in settings.DET_NAMES.keys()]):
-            return warn(DataError, f'{msg} No counts detected')
+            return warn(DataError, f'{msg} No counts detected in {det} detector')
 
         ## production period checks ------------------------------------------
         if period_production is not None:
@@ -202,10 +220,15 @@ class ucncycle(ucnbase):
 
             period = self.get_period(period_count)
             for det in settings.DET_NAMES.keys():
+
+                # check too few counts
                 counts = period.get_counts(det)[0]
                 if counts < settings.DATA_CHECK_THRESH['min_total_counts']:
                     return warn(DataError, f'{msg} Too few counts in {det} detector during counting period ({counts} counts)')
 
+                # check if pileup
+                if period.is_pileup(det):
+                    return warn(DataError, f'{msg} Detected pileup in period {period.period} of detector {det}')
 
         return True
 

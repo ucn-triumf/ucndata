@@ -6,10 +6,10 @@
 
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
-    - [ucncycle().check_data](#ucncycle()check_data)
-    - [ucncycle().get_counts](#ucncycle()get_counts)
-    - [ucncycle().get_period](#ucncycle()get_period)
-    - [ucncycle().get_rate](#ucncycle()get_rate)
+    - [ucncycle.check\_data](#ucncyclecheck_data)
+    - [ucncycle.get\_counts](#ucncycleget_counts)
+    - [ucncycle.get\_period](#ucncycleget_period)
+    - [ucncycle.get\_rate](#ucncycleget_rate)
 
 ## ucncycle
 
@@ -38,7 +38,7 @@ class ucncycle(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucncycle().check_data
+### ucncycle.check_data
 
 [Show source in ucncycle.py:108](../ucncycle.py#L108)
 
@@ -49,20 +49,37 @@ Run some checks to determine if the data is ok.
 - `period_production` *int* - index of period where the beam should be stable. Enables checks of beam stability
 - `period_count` *int* - index of period where we count ucn. Enables checks of data quantity
 - `period_background` *int* - index of period where we do not count ucn. Enables checks of background
-- `raise_error` *bool* - if true, raise an error if check fails, else return false
+- `raise_error` *bool* - if true, raise an error if check fails, else return false. Inactive if quiet=True
 - `quiet` *bool* - if true don't print or raise exception
 
 #### Returns
 
 - `bool` - true if check passes, else false.
 
-Checks:
-    Do the following trees exist and have entries?
-        BeamlineEpics
-        UCN2Epics
-        SequencerTree
-        LNDDetectorTree
-    Are there nonzero counts in UCNHits?
+#### Notes
+
+Checks performed
+
+* is there BeamlineEpics data?
+* is the cycle duration greater than 0?
+* is at least one valve opened during at least one period?
+* are there counts in each detector?
+
+If production period specified:
+
+* beam data exists during production
+* beam doesn't drop too low (`beam_min_current`)
+* beam current stable (`beam_max_current_std`)
+
+If background period specified:
+
+* background count rate too high (`max_bkgd_count_rate`)
+* no background counts at all
+
+If count period specified:
+
+* check too few counts (`min_total_counts`)
+* does pileup exist? (>`pileup_cnt_per_ms` in the first `pileup_within_first_s`)
 
 #### Signature
 
@@ -77,9 +94,9 @@ def check_data(
 ): ...
 ```
 
-### ucncycle().get_counts
+### ucncycle.get_counts
 
-[Show source in ucncycle.py:212](../ucncycle.py#L212)
+[Show source in ucncycle.py:235](../ucncycle.py#L235)
 
 Get counts for a/each period
 
@@ -106,9 +123,9 @@ def get_counts(
 ): ...
 ```
 
-### ucncycle().get_period
+### ucncycle.get_period
 
-[Show source in ucncycle.py:276](../ucncycle.py#L276)
+[Show source in ucncycle.py:299](../ucncycle.py#L299)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -134,9 +151,9 @@ run:
 def get_period(self, period=None): ...
 ```
 
-### ucncycle().get_rate
+### ucncycle.get_rate
 
-[Show source in ucncycle.py:300](../ucncycle.py#L300)
+[Show source in ucncycle.py:323](../ucncycle.py#L323)
 
 Get count rate for each period
 

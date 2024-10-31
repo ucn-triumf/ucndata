@@ -6,9 +6,9 @@
 
 - [ucnperiod](#ucnperiod)
   - [ucnperiod](#ucnperiod-1)
-    - [ucnperiod().get_counts](#ucnperiod()get_counts)
-    - [ucnperiod().get_hits](#ucnperiod()get_hits)
-    - [ucnperiod().get_rate](#ucnperiod()get_rate)
+    - [ucnperiod.get\_counts](#ucnperiodget_counts)
+    - [ucnperiod.get\_rate](#ucnperiodget_rate)
+    - [ucnperiod.is\_pileup](#ucnperiodis_pileup)
 
 ## ucnperiod
 
@@ -32,7 +32,7 @@ class ucnperiod(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucnperiod().get_counts
+### ucnperiod.get_counts
 
 [Show source in ucnperiod.py:84](../ucnperiod.py#L84)
 
@@ -56,29 +56,9 @@ Get sum of ucn hits
 def get_counts(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None): ...
 ```
 
-### ucnperiod().get_hits
+### ucnperiod.get_rate
 
-[Show source in ucnperiod.py:146](../ucnperiod.py#L146)
-
-Get times of ucn hits
-
-#### Arguments
-
-- `detector` *str* - one of the keys to settings.DET_NAMES
-
-#### Returns
-
-- `pd.DataFrame` - hits tree as a dataframe, only the values when a hit is registered
-
-#### Signature
-
-```python
-def get_hits(self, detector): ...
-```
-
-### ucnperiod().get_rate
-
-[Show source in ucnperiod.py:182](../ucnperiod.py#L182)
+[Show source in ucnperiod.py:177](../ucnperiod.py#L177)
 
 Get sum of ucn hits per unit time of period
 
@@ -98,4 +78,26 @@ Get sum of ucn hits per unit time of period
 
 ```python
 def get_rate(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None): ...
+```
+
+### ucnperiod.is_pileup
+
+[Show source in ucnperiod.py:146](../ucnperiod.py#L146)
+
+Check if pileup may be an issue in this period.
+
+Histograms the first `pileup_within_first_s` seconds of data in 1 ms bins and checks if any of those bins are greater than the `pileup_cnt_per_ms` threshold. Set these settings in the [settings.py](../settings.py) file.
+
+#### Arguments
+
+- `detector` *str* - one of the keys to settings.DET_NAMES
+
+#### Returns
+
+- `bool` - true if pileup detected
+
+#### Signature
+
+```python
+def is_pileup(self, detector): ...
 ```
