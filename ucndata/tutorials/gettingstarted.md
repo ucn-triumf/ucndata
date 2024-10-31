@@ -9,9 +9,11 @@ The `ucndata` package is based around the [ucnrun] object. This object reads a r
 
 ### Table of Contents
 
-* [Basics](#basics)
-* [`ucnrun.cycle_param`](#cycle_param)
-* [`ucnrun.tfile`](#tfile)
+- [Getting Started](#getting-started)
+    - [Table of Contents](#table-of-contents)
+  - [Basics](#basics)
+  - [`cycle_param`](#cycle_param)
+  - [`tfile`](#tfile)
 
 ## Basics
 
@@ -131,6 +133,30 @@ timestamp                                       ...
 1572461017          0.000000           0.00000  ...                  0.0          2.1514
 
 [5 rows x 49 columns]
+```
+
+It is often the case that we want to index on datetime objects. In that case we can instead to the following:
+
+```python
+In [7]: run.to_dataframe(datetime=True)
+
+In [8]: run.tfile.BeamlineEpics
+Out[8]:
+                           B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
+timestamp                                                      ...
+2019-10-30 11:43:17-07:00          0.018750           0.00000  ...                  0.0        0.000000
+2019-10-30 11:43:22-07:00          0.000000           0.01875  ...                  0.0        2.151400
+2019-10-30 11:43:27-07:00          0.021875           0.01250  ...                  0.0        2.151400
+2019-10-30 11:43:32-07:00          0.012500           0.00000  ...                  0.0        2.151400
+2019-10-30 11:43:37-07:00          0.000000           0.00000  ...                  0.0        2.151400
+...                                     ...               ...  ...                  ...             ...
+2019-10-30 13:14:23-07:00          0.000000           0.01250  ...                  0.0       38.294899
+2019-10-30 13:14:28-07:00          0.000000           0.00000  ...                  0.0       38.294899
+2019-10-30 13:14:33-07:00          0.018750           0.00000  ...                  0.0       37.864700
+2019-10-30 13:14:38-07:00          0.034375           0.00000  ...                  0.0       37.864700
+2019-10-30 13:14:39-07:00          0.000000           0.01250  ...                  0.0       38.294899
+
+[1093 rows x 49 columns]
 ```
 
 In general if each [ttree] structure is simple enough to convert to a [DataFrame] it is recommended that one does so.
