@@ -83,11 +83,15 @@ def merge(ucnlist):
 
         # series
         elif isinstance(param[0], pd.Series):
-            ucnmerged.cycle_param[name] = pd.concat(param)
+            ucnmerged.cycle_param[name] = pd.concat(param).reset_index(drop=True)
 
         # none
         elif param[0] is None:
             ucnmerged.cycle_param[name] = None
+
+        # filter
+        elif name == 'filter':
+            ucnmerged.cycle_param[name] = param[0]
 
         # else
         else:

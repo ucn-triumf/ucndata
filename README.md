@@ -4,9 +4,23 @@ This repository defines the [ucndata] package and a few scripts which utilize th
 
 ## ucndata quick links
 
-* [API reference](ucndata/docs/README.md)
-* [Tutorial](ucndata/tutorials/index.md)
+* [Installation](ucndata/tutorials/installation.md)
 * [Getting Started](ucndata/tutorials/gettingstarted.md)
+* [Tutorial](ucndata/tutorials/index.md)
+* [Full API reference](ucndata/docs/README.md)
+
+## Quick API Reference
+
+These are the main workhorses of the ucndata project:
+
+* [applylist](ucndata/docs/applylist.md) - for working with sets of runs or cycles or periods. Does element-wise attribute access and operators
+* [merge](ucndata/docs/merge.md#merge) - function for merging runs into a single run
+* [merge_inlist](ucndata/docs/merge.md#merge_inlist) - function for merging runs within a list
+* [read](ucndata/docs/read.md) - convenience function for reading ucnruns from file
+* [settings](ucndata/docs/settings.md) - change behaviour of ucnrun objects
+* [ucnrun](ucndata/docs/ucnrun.md) - workhorse object representing a single run
+
+
 
 ## storagelifetime.py
 
