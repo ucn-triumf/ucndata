@@ -52,9 +52,10 @@ def read(path, nproc=-1, header_only=False):
         iterable = tqdm(pool.imap_unordered(fn, pathlist),
                         leave=False,
                         total=len(pathlist),
-                        desc='Reading',
+                        desc='Reading run data',
                         position=1)
         data = np.fromiter(iterable, dtype=object)
+    print()
 
     # sort result
     run_numbers = [d.run_number for d in data]

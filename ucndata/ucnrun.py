@@ -493,6 +493,7 @@ class ucnrun(ucnbase):
         # get mode
         if mode in 'default':
             mode = settings.cycle_times_mode
+        mode = mode.lower()
 
         # get data
         df = self.tfile.SequencerTree
@@ -619,6 +620,10 @@ class ucnrun(ucnbase):
                     }
             times['stop'] = times['start'] + times['duration (s)']
             times['supercycle'] = self.tfile[settings.DET_NAMES['Li6']['transitions']].superCycleIndex
+
+        ## bad mode
+        else:
+            raise RuntimeError(f"Bad mode input {mode}")
 
         # convert to dataframe
         times = pd.DataFrame(times)
