@@ -8,6 +8,10 @@
 
 - `datadir` - path to the directory which contains the root files: '/data3/ucn/root_files'
 
+- `timezone` - timezone for datetime conversion: 'America/Vancouver'
+
+- `cycle_times_mode` - cycle times finding mode: 'matched'
+
 - `DET_NAMES` - detector tree names: {'He3': {'hits': 'UCNHits_He3', 'charge': 'He3_Charge', 'rate': 'He3_Rate', 'transitions': 'RunTransitions_He3', 'hitsseq': 'hitsinsequence_he3', 'hitsseqcumul': 'hitsinsequencecumul_he3'}, 'Li6': {'hits': 'UCNHits_Li-6', 'charge': 'Li6_Charge', 'rate': 'Li6_Rate', 'transitions': 'RunTransitions_Li-6', 'hitsseq': 'hitsinsequence_li6', 'hitsseqcumul': 'hitsinsequencecumul_li6'}}
 
 - `SLOW_TREES` - needed slow control trees: for checking data quality: ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
@@ -22,7 +26,7 @@
 
 ## keyfilter
 
-[Show source in settings.py:43](../settings.py#L43)
+[Show source in settings.py:49](../settings.py#L49)
 
 Don't load all the data in each file, only that which is needed
 

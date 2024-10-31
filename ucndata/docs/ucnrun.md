@@ -255,7 +255,7 @@ Run this if you want to change how cycle start times are calculated
 
 #### Arguments
 
-- `mode` *str* - matched|sequencer|he3|li6
+- `mode` *str* - default|matched|sequencer|he3|li6
     - `if` *matched* - look for identical timestamps in RunTransitions from detectors
     - `if` *sequencer* - look for inCycle timestamps in SequencerTree
     - `if` *he3* - use He3 detector cycle start times
@@ -279,5 +279,5 @@ Run this if you want to change how cycle start times are calculated
 #### Signature
 
 ```python
-def set_cycle_times(self, mode="matched"): ...
+def set_cycle_times(self, mode="default"): ...
 ```

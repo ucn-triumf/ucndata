@@ -454,14 +454,14 @@ class ucnrun(ucnbase):
         # set
         self.cycle_param.filter = cfilter
 
-    def set_cycle_times(self, mode='matched'):
+    def set_cycle_times(self, mode='default'):
         """Get start and end times of each cycle from the sequencer and save
         into self.cycle_param.cycle_times
 
         Run this if you want to change how cycle start times are calculated
 
         Args:
-            mode (str): matched|sequencer|he3|li6
+            mode (str): default|matched|sequencer|he3|li6
                 if matched: look for identical timestamps in RunTransitions from detectors
                 if sequencer: look for inCycle timestamps in SequencerTree
                 if he3: use He3 detector cycle start times
@@ -489,6 +489,10 @@ class ucnrun(ucnbase):
                                  'offset (s)': [0.0],
                                  'supercycle': [self.supercycle]},
                                  index=[self.cycle])
+
+        # get mode
+        if mode in 'default':
+            mode = settings.cycle_times_mode
 
         # get data
         df = self.tfile.SequencerTree

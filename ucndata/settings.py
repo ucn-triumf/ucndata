@@ -8,6 +8,9 @@ datadir = "/data3/ucn/root_files"
 # timezone for datetime conversion
 timezone = 'America/Vancouver'
 
+# cycle times finding mode
+cycle_times_mode = 'matched'
+
 # detector tree names
 DET_NAMES = {'He3':{'hits':         'UCNHits_He3',
                     'charge':       'He3_Charge',
