@@ -189,9 +189,31 @@ class ucnbase(object):
         """Convert self.tfile contents to rootfile struture types"""
         self.tfile.from_dataframe()
 
-    def to_dataframe(self):
-        """Convert self.tfile contents to pd.DataFrame"""
+    def to_dataframe(self, datetime=False):
+        """Convert self.tfile contents to pd.DataFrame
+
+        Args:
+            datetime (bool): if true, convert all timestamps into datetimes
+
+        Returns:
+            None: converts in-place
+        """
+
+        # convert to dataframes
         self.tfile.to_dataframe()
+
+        # Convert to datetime
+        if datetime:
+            for key, item in self.tfile.items():
+
+                # only convert dataframes whose index has time in the name
+                if isinstance(item, pd.DataFrame):
+                    name = item.index.name
+                    if name is not None and 'time' in name.lower():
+                        item.index = pd.to_datetime(item.index, unit='s')
+                        self.tfile[key] = item.tz_localize('UTC').tz_convert(settings.timezone)
+
+
 
     # quick access properties
     @property

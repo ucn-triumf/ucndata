@@ -5,6 +5,9 @@
 # path to the directory which contains the root files
 datadir = "/data3/ucn/root_files"
 
+# timezone for datetime conversion
+timezone = 'America/Vancouver'
+
 # detector tree names
 DET_NAMES = {'He3':{'hits':         'UCNHits_He3',
                     'charge':       'He3_Charge',

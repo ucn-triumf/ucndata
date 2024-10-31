@@ -1,7 +1,7 @@
 # Merging Runs
 
 [**Back to Index**](index.md)\
-[**Next page: Tips and FAQ**](tips.md)
+[**Next page: Examples**](examples.md)
 
 ## Table of Contents
 
@@ -122,7 +122,7 @@ Note that these objects are not converted back, but left as [DataFrame]s, since 
 
 
 [**Back to Index**](index.md)\
-[**Next page: Tips and FAQ**](tips.md)
+[**Next page: Examples**](examples.md)
 
 [concatenated]: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.concat.html#pandas.concat
 [re-indexed]: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.reset_index.html
