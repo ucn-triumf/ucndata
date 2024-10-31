@@ -3,7 +3,7 @@
 # Aug 2024
 
 import glob
-from multiprocessing import cpu_count, Pool
+from multiprocessing import cpu_count, Pool, RLock
 from .ucnrun import ucnrun
 from .applylist import applylist
 from collections.abc import Iterable
@@ -52,12 +52,21 @@ def read(path, nproc=-1, header_only=False):
         iterable = tqdm(pool.imap_unordered(fn, pathlist),
                         leave=False,
                         total=len(pathlist),
-                        desc='Reading')
-
+                        desc='Reading',
+                        position=1)
         data = np.fromiter(iterable, dtype=object)
 
     # sort result
     run_numbers = [d.run_number for d in data]
     idx = np.argsort(run_numbers)
 
-    return applylist(data[idx])
+    output = applylist(data[idx])
+
+    # return single run
+    if len(output) == 1:
+        return output[0]
+
+    # return run list
+    else:
+        return output
+
