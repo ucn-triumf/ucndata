@@ -6,10 +6,10 @@
 
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
-    - [ucncycle.check\_data](#ucncyclecheck_data)
-    - [ucncycle.get\_counts](#ucncycleget_counts)
-    - [ucncycle.get\_period](#ucncycleget_period)
-    - [ucncycle.get\_rate](#ucncycleget_rate)
+    - [ucncycle.check_data](#ucncycle()check_data)
+    - [ucncycle.get_counts](#ucncycle()get_counts)
+    - [ucncycle.get_period](#ucncycle()get_period)
+    - [ucncycle.get_rate](#ucncycle()get_rate)
 
 ## ucncycle
 
