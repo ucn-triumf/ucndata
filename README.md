@@ -14,13 +14,9 @@ This repository defines the [ucndata] package and a few scripts which utilize th
 These are the main workhorses of the ucndata project:
 
 * [applylist](ucndata/docs/applylist.md) - for working with sets of runs or cycles or periods. Does element-wise attribute access and operators
-* [merge](ucndata/docs/merge.md#merge) - function for merging runs into a single run
-* [merge_inlist](ucndata/docs/merge.md#merge_inlist) - function for merging runs within a list
 * [read](ucndata/docs/read.md) - convenience function for reading ucnruns from file
 * [settings](ucndata/docs/settings.md) - change behaviour of ucnrun objects
 * [ucnrun](ucndata/docs/ucnrun.md) - workhorse object representing a single run
-
-
 
 ## storagelifetime.py
 
