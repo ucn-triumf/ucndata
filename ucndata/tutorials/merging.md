@@ -25,6 +25,20 @@ The first does the actual merging, whereas the second is a convenience function 
 
 ## Brief Examples
 
+### Using Read to merge runs
+
+This is perhaps the easiest manner to merge runs. Simply use a `+` between the run number you want to merge as in the following example:
+
+```python
+from ucndata import read
+
+# read two runs and merge them
+runs = read('1846+1847')
+
+# read a list of runs, some of which are merged, extra spaces are ignored
+runs = read([1845, '1846 +1847', '1848'])
+```
+
 ### Merging directly
 
 First let's load the data and merge, assuming the data is on the default path in settings:
@@ -38,7 +52,7 @@ merged_run = merge(runs)
 If we run this, we can see that the result shows the runs merged:
 ```python
 >>> merged_run
-run [1846 1847 1848]:
+run 1846+1847+1848:
   comment            month              shifters           tfile
   cycle_param        run_number         start_time         year
   experiment_number  run_title          stop_time
@@ -85,7 +99,11 @@ array(['Source Storage Lifetime 3rd try',
       dtype='<U51')
 ```
 
-The exception is the `cycle_param` attribute:
+There are a few exceptions.
+
+* `run_number`: becomes a string of the format `run1+run2+...`
+* `experiment_number`: if all the same, then just keep the experiment number the same. Otherwise, concatenate with `+` as with the `run_number`
+* `cycle_param`: see next section
 
 #### Cycle Parameters
 
@@ -101,7 +119,7 @@ The `cycle_param` dictionary is merged in the following way ([recall the definit
 * `period_end_times`: [concatenated] along the column axis and [re-indexed]
 * `period_durations_s`: [concatenated] along the column axis and [re-indexed]
 * `ncycles`: summed
-* `filter`: Only the value from the first run is kept. **No warning is raised if they do not all match. You must verify this yourself.**
+* `filter`: [concatenated]
 * `cycle_times`: [concatenated] along the index axis and [re-indexed]
 
 #### tfile
