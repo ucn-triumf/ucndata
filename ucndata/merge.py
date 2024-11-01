@@ -43,6 +43,15 @@ def merge(ucnlist):
         values = np.array([getattr(data, key) for data in ucnlist])
         setattr(ucnmerged, key, values)
 
+    # set run number
+    ucnmerged.run_number = '+'.join([str(i) for i in ucnmerged.run_number])
+
+    # set exp number
+    if all([e==ucnmerged.experiment_number[0] for e in ucnmerged.experiment_number]):
+        ucnmerged.experiment_number = ucnmerged.experiment_number[0]
+    else:
+        ucnmerged.experiment_number = '+'.join(ucnmerged.experiment_number)
+
     # merge cycle_param
     ucnmerged.cycle_param = attrdict()
     names = tuple(ucnlist[0].cycle_param.keys())
