@@ -11,6 +11,7 @@ from iminuit import Minuit
 from iminuit.cost import LeastSquares
 import os
 from datetime import datetime
+from fitting import global_fitter
 
 # settings
 settings.datadir = 'root_files'     # path to root data
@@ -212,6 +213,88 @@ def get_lifetime(run, filename, fitfn=None, p0=None):
         fid.write('\n')
     df.to_csv(filename, mode='a')
 
+def get_global_lifetime(filename, fitfn, p0=None):
+    """Fit all runs with a shared lifetime
+
+    Args:
+        filename (str): path to file with the counts (output of get_counts_storagetimes)
+        fitfn (fn handle|None): if none, don't do fit. else fit this function
+        p0 (iterable): initial fit paramters
+
+    Retruns
+    """
+
+    # get data
+    df = pd.read_csv(filename, comment='#', index_col=0)
+
+    # get data
+    df.sort_values('storage duration (s)', inplace=True)
+    df.reset_index(inplace=True)
+
+    run = []
+    storage_duration = []
+    counts = []
+    dcounts = []
+
+    for r, g in df.groupby('run'):
+        run.append(r)
+        storage_duration.append(g['storage duration (s)'].values)
+        counts.append(g['counts (1/uA)'].values)
+        dcounts.append(g['dcounts (1/uA)'].values)
+
+    # get lifetime index
+    life_idx = None
+    for i, arg in enumerate(fitfn.__code__.co_varnames[1:]):
+        if arg.lower() == 'tau':
+            life_idx = i
+            break
+
+    # do the fit
+    shared = [i == life_idx for i in range(fitfn.__code__.co_argcount-1)]
+    g = global_fitter(fitfn, storage_duration, counts, dcounts,
+                      shared = shared)
+
+    if p0 is not None:
+        g.fit(p0=p0)
+    else:
+        g.fit()
+
+    par, std, _, _ = g.get_par()
+
+    # draw data and fits
+    plt.figure()
+
+    for i in range(len(run)):
+        plt.errorbar(storage_duration[i], counts[i], dcounts[i], fmt='.', label=f'Run {run[i]}')
+        plt.plot(storage_duration[i], fitfn(storage_duration[i], *par[i]))
+
+    plt.yscale('log')
+    plt.xlabel('Storage Duration (s)')
+    plt.ylabel('Normalized Number of Counts (uA$^{-1}$)')
+    plt.title(f'Global Fit: background-subtracted and normalized by beam current',
+              fontsize='xx-small')
+
+    plt.text(0.95, 0.95, f'Global lifetime: {par[0][life_idx]:.5g} $\\pm$ {std[0][life_idx]:.5g} s',
+        ha='right',
+        va='top',
+        transform=plt.gca().transAxes,
+        fontsize='x-small',
+        backgroundcolor='w',
+        multialignment='left')
+
+    plt.legend(fontsize='xx-small', loc='lower left')
+
+    plt.tight_layout()
+
+    # get save location
+    dirname = os.path.dirname(filename)
+    dirname = dirname if dirname else '.'
+
+    # save results - figure
+    plt.savefig(os.path.join(dirname, 'global_fit.pdf'))
+
+    return (par, std)
+
 # RUN ============================================
 
 # setup runs
@@ -223,3 +306,5 @@ for run in runs:
 
 for run in run_numbers:
     get_lifetime(run, filename, fitfn)
+
+par, std = get_global_lifetime(filename, fitfn)
