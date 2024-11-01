@@ -19,6 +19,7 @@ settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle
 settings.DET_NAMES.pop('He3')       # don't check He3 detector data
 detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
 filename = 'storagelifetime/storagecounts.csv'      # save counts output
+run_numbers = [1846, '1847+1848']
 
 # periods settings
 periods = {'production':  0,
@@ -302,13 +303,15 @@ def get_global_lifetime(filename, fitfn, p0=None):
 # RUN ============================================
 
 # setup runs
-run_numbers = [1846, '1847+1848']
 runs = read(run_numbers)
 
+# get counts
 for run in runs:
     get_counts_storagetimes(run)
 
+# calculate lifetimes for each run
 for run in run_numbers:
     get_lifetime(run, filename, fitfn)
 
+# get global lifetime
 par, std = get_global_lifetime(filename, fitfn)
