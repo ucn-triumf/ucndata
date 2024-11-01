@@ -221,7 +221,11 @@ def get_global_lifetime(filename, fitfn, p0=None):
         fitfn (fn handle|None): if none, don't do fit. else fit this function
         p0 (iterable): initial fit paramters
 
-    Retruns
+    Returns:
+        tuple: (par, std) output of global_fitter
+
+    Notes:
+        too much copy/paste from get_lifetime... but too lazy to properly combine these two
     """
 
     # get data
