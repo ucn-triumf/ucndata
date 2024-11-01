@@ -25,9 +25,9 @@ These are the main workhorses of the ucndata project:
 ## storagelifetime.py
 
 This script takes storage-lifetime experiments with three periods per cycle (irradiation, storage, counting) that were performed without a monitor detector available during irradiation.
-It takes the counts in either the He3 or the Li6 detector (whichever was used for counting) and determines the storage lifetime in two ways:
-1. Subtract a fixed background rate and divide the background-corrected detector counts by the average beam current for ach cycle. Plot against duration of the storage period. A single-exponential fit determines the storage lifetime.
-2. Plot the uncorrected and unnormalized counts against duration of the storage period and fit a single-exponential with background.
+It takes the counts in either the the Li6 detector and determines the storage lifetime in the following way:
+
+Subtract a fixed background rate and divide the background-corrected detector counts by the average beam current for each cycle. Plot against duration of the storage period. A single-exponential fit determines the storage lifetime.
 
 Results are saved to the storagelifetime directory.
 
