@@ -216,10 +216,10 @@ def get_lifetime(run, filename, fitfn=None, p0=None):
 
 # setup runs
 run_numbers = [1846, '1847+1848']
-# runs = read(run_numbers)
+runs = read(run_numbers)
 
-# for run in runs:
-#     get_counts_storagetimes(run)
+for run in runs:
+    get_counts_storagetimes(run)
 
 for run in run_numbers:
     get_lifetime(run, filename, fitfn)
