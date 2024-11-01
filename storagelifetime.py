@@ -3,67 +3,223 @@
 # Oct 2024
 
 from ucndata import settings, read, merge_inlist
+from tools import *
 import numpy as np
+import pandas as pd
 import matplotlib.pyplot as plt
-from scipy.optimize import curve_fit
+from iminuit import Minuit
+from iminuit.cost import LeastSquares
+import os
+from datetime import datetime
 
 # settings
-settings.datadir = 'root_files'
-production_period = 0
-storageperiod = 1
-countperiod = 2
-backgroundperiod = 1
-detector = 'Li6'
+settings.datadir = 'root_files'     # path to root data
+settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
+settings.DET_NAMES.pop('He3')       # don't check He3 detector data
+detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
+filename = 'storagelifetime/storagecounts.csv'      # save counts output
 
-run_numbers = [1846, 1873, 1875]#, 1892]#, 1902, 1905, 1908, 1918, 1933, 1940, 1960, 1971, 1982, 1988, 1995, 2008, 2009, 2017, 2022, 2038, 2039]
+# periods settings
+periods = {'production':  0,
+           'storage':     1,
+           'count':       2,
+           'background':  1}
 
-# get all runs
-runs = read(run_numbers)
-for r in runs:
+# fit function to counts vs lifetimes
+@prettyprint(r'$p_0 \exp(-t/\tau)$', '$p_0$', r'$\tau$')
+def fitfn(t, p0, tau):
+    return p0*np.exp(-t/tau)
+
+def get_counts_storagetimes(run):
+    """Get counts needed for a storage lifetime calculation for a single run.
+    Save this to file.
+
+    Args:
+        r (ucnrun): run data to calculate lifetime for
+
+    Returns:
+        pd.DataFrame: with counts needed for lifetime calculation
+    """
+
+    # print status
+    print(f'Run {run.run_number} ' + '='*40 )
 
     # convert to dataframe
-    r.to_dataframe()
+    run.to_dataframe()
 
     # filter cycles
-    r.set_cycle_filter(r.gen_cycle_filter(period_production=production_period,
-                                          period_count=countperiod))#,
-                                        #   period_background=backgroundperiod))
+    run.set_cycle_filter(run.gen_cycle_filter(period_production=periods['production'],
+                                          period_count=periods['count'],
+                                          period_background=periods['background']))
 
     # get beam current and means
-    beam_currents = r[:, production_period].beam_current_uA
+    beam_currents = run[:, periods['production']].beam_current_uA
 
     dbeam_currents = beam_currents.std()
     beam_currents = beam_currents.mean()
 
     # get storage durations and associated counts
-    storage_duration = r[:, storageperiod].cycle_param.period_durations_s
-    counts_bkgd = r[:, backgroundperiod].get_counts(detector)
+    storage_duration = run[:, periods['storage']].cycle_param.period_durations_s
+    counts_bkgd = run[:, periods['background']].get_counts(detector)
     counts_bkgd = counts_bkgd.transpose()
 
-    counts = r[:, countperiod].get_counts(detector,
+    counts = run[:, periods['count']].get_counts(detector,
                                         bkgd=counts_bkgd[0],
                                         dbkgd=counts_bkgd[1],
                                         norm=beam_currents,
                                         dnorm=dbeam_currents)
 
-    # sort
-    idx = np.argsort(storage_duration)
-    storage_duration = storage_duration[idx]
-    counts = counts[idx]
+    # make into a dataframe
+    df = pd.DataFrame({'run': run.run_number,
+                       'experiment': run.experiment_number,
+                       'storage duration (s)': storage_duration,
+                       'counts (1/uA)': counts[:, 0],
+                       'bkgd (counts)': counts_bkgd[0],
+                       'normalization (uA)': beam_currents,
+                       'dcounts (1/uA)': counts[:, 1],
+                       'dbkgd (counts)': counts_bkgd[1],
+                       'dnormalization (uA)': dbeam_currents,
+                       })
 
-    # fit
-    fn = lambda x, p0, tau: p0*np.exp(-x/tau)
-    par, cov = curve_fit(fn, storage_duration, counts[:,0], sigma=counts[:,1], absolute_sigma=True,
-                         p0=(counts[0][0], 40))
-    std = np.diag(cov)**0.5
+    # save file
+    if filename:
+        dirname = os.path.dirname(filename)
+        if dirname:
+            os.makedirs(dirname, exist_ok=True)
 
-    # draw
+        # read file if exists
+        try:
+            df_old = pd.read_csv(filename, comment='#')
+        except FileNotFoundError:
+            df_old = pd.DataFrame()
+
+        # remove data from this run
+        else:
+            idx = df_old['run'] != run.run_number
+            df_old = df_old.loc[idx]
+
+        # add this to the old data
+        df = pd.concat((df, df_old), axis='index')
+
+        # write to file
+        header = ['# Normalized counts and storage times for lifetime measurement',
+                  '# Written by storagelifetime.py',
+                  f'# Last updated: {str(datetime.now())}']
+        with open(filename, 'w') as fid:
+            fid.write('\n'.join(header))
+            fid.write('\n')
+        df.to_csv(filename, index=False, mode='a')
+
+    return df
+
+def get_lifetime(run, filename, fitfn=None, p0=None):
+    """Draw and fit counts for a run or set of runs
+
+    Args:
+        run (int): run number to fit and draw.
+        filename (str): path to file with the counts (output of get_counts_storagetimes)
+        fitfn (fn handle|None): if none, don't do fit. else fit this function
+        p0 (iterable): initial fit paramters
+    """
+
+    run = str(run)
+
+    # get data
+    df = pd.read_csv(filename, comment='#', index_col=0)
+    df = df.loc[run]
+
+    # get data
+    df.sort_values('storage duration (s)', inplace=True)
+    storage_duration = df['storage duration (s)'].values
+    counts = df['counts (1/uA)'].values
+    dcounts = df['dcounts (1/uA)'].values
+
+    # draw data
     plt.figure()
-    plt.errorbar(storage_duration, counts[:, 0], counts[:, 1], fmt='.')
-    plt.plot(storage_duration, fn(storage_duration, *par))
+    plt.errorbar(storage_duration, counts, dcounts, fmt='.')
     plt.yscale('log')
     plt.xlabel('Storage Duration (s)')
     plt.ylabel('Normalized Number of Counts (uA$^{-1}$)')
+    plt.title(f'Run {run}: background-subtracted and normalized by beam current',
+              fontsize='xx-small')
+
+    # do the fit
+    if fitfn is not None:
+
+        # default p0
+        if p0 is None:
+            p0 = np.ones(fitfn.__code__.co_argcount-1)
+
+        # fit
+        m = Minuit(LeastSquares(x = storage_duration,
+                                y = counts,
+                                yerror = dcounts,
+                                model = fitfn), *p0)
+        m.migrad()
+        par = m.values
+        std = m.errors
+
+        # draw
+        plt.plot(storage_duration, fitfn(storage_duration, **par.to_dict()))
+
+        if hasattr(fitfn, 'print'):
+            plt.text(0.95, 0.95, fitfn.print(par, std),
+                    ha='right',
+                    va='top',
+                    transform=plt.gca().transAxes,
+                    fontsize='x-small',
+                    backgroundcolor='w',
+                    multialignment='left')
+
     plt.tight_layout()
 
-    print(f'intercept: {par[0]}, lifetime: {par[1]} (s)')
+    # get save location
+    dirname = os.path.dirname(filename)
+    dirname = dirname if dirname else '.'
+
+    # save results - figure
+    plt.savefig(os.path.join(dirname, f'{df.iloc[0]["experiment"]}_run{run}.pdf'))
+
+    # load old fit results
+    filename = os.path.join(dirname, 'lifetimes.csv')
+    try:
+        df_old = pd.read_csv(filename, comment='#', index_col=0)
+    except FileNotFoundError:
+        df_old = pd.DataFrame()
+
+    # remove data from this run
+    else:
+       df_old = df_old.drop(index=run, errors='ignore')
+
+    # make dataframe for new data
+    values = m.values.to_dict()
+    errors = m.errors.to_dict()
+    errors = {f'd{key}':val for key, val in errors.items()}
+    df = pd.DataFrame({**values, **errors}, index=[run])
+    df.index.name = 'run'
+
+    # save result
+    df = pd.concat((df, df_old), axis='index')
+
+    header = ['# Storage Lifetimes',
+              f'# Fit function: {fitfn.name if hasattr(fitfn, "name") else ""}',
+              '# Written by storagelifetime.py',
+              f'# Last updated: {str(datetime.now())}',
+              ]
+
+    with open(filename, 'w') as fid:
+        fid.write('\n'.join(header))
+        fid.write('\n')
+    df.to_csv(filename, mode='a')
+
+# RUN ============================================
+
+# setup runs
+run_numbers = [1846, '1847+1848']
+# runs = read(run_numbers)
+
+# for run in runs:
+#     get_counts_storagetimes(run)
+
+for run in run_numbers:
+    get_lifetime(run, filename, fitfn)
