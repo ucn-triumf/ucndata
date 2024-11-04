@@ -270,8 +270,10 @@ def get_global_lifetime(filename, fitfn, p0=None):
     plt.figure()
 
     for i in range(len(run)):
-        plt.errorbar(storage_duration[i], counts[i], dcounts[i], fmt='.', label=f'Run {run[i]}')
-        plt.plot(storage_duration[i], fitfn(storage_duration[i], *par[i]))
+        line = plt.errorbar(storage_duration[i], counts[i], dcounts[i], fmt='.',
+                            label=f'Run {run[i]}')
+        plt.plot(storage_duration[i], fitfn(storage_duration[i], *par[i]),
+                 color=line[0].get_color())
 
     plt.yscale('log')
     plt.xlabel('Storage Duration (s)')
