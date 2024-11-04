@@ -133,7 +133,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:324](../ucnrun.py#L324)
+[Show source in ucnrun.py:325](../ucnrun.py#L325)
 
 Run some checks to determine if the data is ok.
 
@@ -157,7 +157,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:381](../ucnrun.py#L381)
+[Show source in ucnrun.py:382](../ucnrun.py#L382)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -186,7 +186,7 @@ def gen_cycle_filter(
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:406](../ucnrun.py#L406)
+[Show source in ucnrun.py:407](../ucnrun.py#L407)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -210,7 +210,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:426](../ucnrun.py#L426)
+[Show source in ucnrun.py:427](../ucnrun.py#L427)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -246,7 +246,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:460](../ucnrun.py#L460)
+[Show source in ucnrun.py:461](../ucnrun.py#L461)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times

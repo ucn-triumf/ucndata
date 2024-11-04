@@ -184,7 +184,8 @@ class ucnrun(ucnbase):
         try:
             self.set_cycle_times()
         except AttributeError:
-            warnings.warn(f'Run {self.run_number}: Unable to set cycle times. SequencerTree must exist and have entries.')
+            warnings.warn(f'Run {self.run_number}: Unable to set cycle times. SequencerTree must exist and have entries.',
+                          MissingDataWarning)
 
     def __repr__(self):
         klist = [d for d in self.__dict__.keys() if d[0] != '_']
