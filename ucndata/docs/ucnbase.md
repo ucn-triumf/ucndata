@@ -81,7 +81,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam_current_uA
 
-[Show source in ucnbase.py:257](../ucnbase.py#L257)
+[Show source in ucnbase.py:256](../ucnbase.py#L256)
 
 #### Signature
 
@@ -92,7 +92,7 @@ def beam_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:282](../ucnbase.py#L282)
+[Show source in ucnbase.py:281](../ucnbase.py#L281)
 
 #### Signature
 
@@ -103,7 +103,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:279](../ucnbase.py#L279)
+[Show source in ucnbase.py:278](../ucnbase.py#L278)
 
 #### Signature
 
@@ -195,7 +195,7 @@ def get_hits_histogram(self, detector, bin_ms=100): ...
 
 ### ucnbase.to_dataframe
 
-[Show source in ucnbase.py:218](../ucnbase.py#L218)
+[Show source in ucnbase.py:217](../ucnbase.py#L217)
 
 Convert self.tfile contents to pd.DataFrame
 
@@ -215,7 +215,7 @@ def to_dataframe(self, datetime=False): ...
 
 ### ucnbase.to_datetime
 
-[Show source in ucnbase.py:235](../ucnbase.py#L235)
+[Show source in ucnbase.py:234](../ucnbase.py#L234)
 
 Convert self.tfile contents index to datetime objects if dataframe
 

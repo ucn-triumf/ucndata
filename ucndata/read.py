@@ -13,7 +13,7 @@ import numpy as np
 from functools import partial
 import os
 
-def read(path, nproc=-1, header_only=False):
+def read(path, as_dataframe=True, nproc=-1, header_only=False):
     """Read out single or multiple UCN run files from ROOT
 
     Args:
@@ -21,6 +21,7 @@ def read(path, nproc=-1, header_only=False):
             may be a list of paths which may include wildcards
             OR list of ints to specify run numbers
             OR list of mixed ints and strings either of run numbers or of the format 'x+y' to denote merged runs, where x and y are ints
+        as_dataframe (bool): if true, convert to dataframes
         nproc (int): number of processors used in read. If <= 0, use total - nproc. If > 0 use nproc.
         header_only (bool): if true, read only the header
 
@@ -103,6 +104,10 @@ def read(path, nproc=-1, header_only=False):
     # do the merging
     for to_merge in items_to_merge:
         output = merge_inlist(output, to_merge)
+
+    # to dataframe
+    if as_dataframe:
+        output.to_dataframe()
 
     # return single run
     if len(output) == 1:

@@ -5,7 +5,7 @@
 
 ---
 
-## Specification
+## Run Specification
 
 There are two main ways to specify which run to load:
 
@@ -36,7 +36,18 @@ settings.datadir = '/data3/ucn/root_files'
 run = ucnrun(2050)
 ```
 
-By default, the data directory is `/data3/ucn/root_files`, which should be the case on the `daq01.ucn.triumf.ca` machine.
+By default, the data directory is `/data3/ucn/root_files`, which should be the case on the `daq01.ucn.triumf.ca` and `daq04.ucn.triumf.ca` machines.
+
+## Loading Multiple Files
+
+In general, it is recommended that one uses the [read] function:
+
+```python
+from ucndata import read
+runlist = read([2050, 2051, 2052])
+```
+
+This automatically parallelizes the reading and should decrease runtimes significantly. By default this also converts all [tfile] entries to [DataFrame]s. This returns an [applylist] which allows for easy processing of files.
 
 ## Efficient Loading
 
@@ -71,22 +82,12 @@ settings.keyfilter = lambda x: True
 
 Note that by default empty trees and histograms are not loaded into memory.
 
-If one needs to read many runs it is recommended that one uses the [read] function:
-
-```python
-from ucndata import read
-
-runlist = read([2050, 2051, 2052])
-```
-
-This automatically parallelizes the reading and should decrease runtimes significantly.
-
 ---
 
 [**Back to Index**](index.md)\
 [**Next Page: Accessing Cycles and Periods**](cycandperiods.md)
 
-[tfile]: #tfile
+[tfile]: gettingstarted.md#tfile
 [DataFrame]: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html
 [ttree]:https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md
 [attrdict]:https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/attrdict.md

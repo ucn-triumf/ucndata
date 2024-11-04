@@ -1,7 +1,7 @@
 # Getting Started
 
 [**Back to Index**](index.md)\
-[**Next Page: Loading Runs Efficiently in an Environment**](read.md)
+[**Next Page: Contents of the ucnrun Object**](read.md)
 
 ---
 
@@ -11,20 +11,23 @@ The `ucndata` package is based around the [ucnrun] object. This object reads a r
 
 - [Getting Started](#getting-started)
     - [Table of Contents](#table-of-contents)
-  - [Basics](#basics)
-  - [`cycle_param`](#cycle_param)
-  - [`tfile`](#tfile)
+  - [The Very Basics](#the-very-basics)
+  - [Getting Counts and Values](#getting-counts-and-values)
+  - [Periods and Cycles](#periods-and-cycles)
+  - [Lists of Runs (or cycles or periods)](#lists-of-runs-or-cycles-or-periods)
 
-## Basics
+On this page we quickly work through what will be covered in more detail later in this tutorial.
+
+## The Very Basics
 
 Here is a minimum working example, assuming we have the file `ucn_run_00001846.root` in our current working directory.
 
 ```python
-In [1]: from ucndata import ucnrun
-In [2]: run = ucnrun('ucn_run_00001846.root')
+In [1]: from ucndata import read
+In [2]: run = read('ucn_run_00001846.root')
 ```
 
-This prompts a loading bar showing the progress of the file load. File inspection is easy: in the interpreter, simply type out the loaded run and it will print its contents to screen:
+The [read] function returns either a [ucnrun] object or an [applylist] of [ucnrun] objects. Note that [ucnrun] objects inherit from a [base class](../docs/ucnbase.md). File inspection is easy: in the interpreter, simply type out the loaded run and it will print its contents to screen:
 
 ```python
 In [3]: run
@@ -35,146 +38,183 @@ run 1846:
   experiment_number  run_title          stop_time
 ```
 
-Most of these variables are simple strings or integers but there are two important attributes you should pay attention to: `cycle_param` and `tfile`.
+The same with the contents of the run. Run contents are explained more [here](ucnrun_contents.md). See also [this page](read.md) for more info on how to read runs efficiently and how this works. Note that by default [read] converts the tfile contents to pandas [DataFrame]s.
 
-## `cycle_param`
+## Getting Counts and Values
 
-This object is an [attrdict] defined in the [rootloader] package. This is simply a dictionary whose contents can be accessed either in the normal way, or as an attribute. This allows for tab-completion in the interpreter.
+Here are some common operations on a run to get values of interest:
 
-Let's inspect the contents of this attribute:
+#### Beam current
+
+The calculation is based on value saved in the BeamlineEpics tree.
 
 ```python
-In [4]: run.cycle_param
-Out[4]: attrdict: {'nperiods', 'nsupercyc', 'enable', 'inf_cyc_enable', 'cycle', 'supercycle', 'valve_states', 'period_end_times', 'period_durations_s', 'ncycles', 'filter', 'cycle_times'}
+In [4] run.beam_current_uA
+Out [4]:
+timestamp
+1572460997    0.0
+1572461002    0.0
+1572461007    0.0
+1572461012    0.0
+1572461017    0.0
+             ...
+1572466463    0.0
+1572466468    0.0
+1572466473    0.0
+1572466478    0.0
+1572466479    0.0
+Length: 1093, dtype: float64
 ```
 
-These are the various settings and properties of each cycle and period.
+#### EPICS values or similar
 
-* `nperiods`: Number of periods in each cycle
-* `nsupercyc`: Number of supercycles contained in the run
-* `enable`: Enable status of the sequencer
-* `inf_cyc_enable`: Enable status of infinite cycles
-* `cycle`: Cycle ID numbers
-* `supercycle`: Supercycle ID numbers
-* `valve_states`: Valve states in each period and cycle
-* `period_end_times`: End time of each period in each cycle in epoch time
-* `period_durations_s`: Duration in sections of each period in each cycle
-* `ncycles`: Number of total cycles contained in the run
-* `filter`: A list indicating how we should filter cycles. More on that in [filters](filters.md)
-* `cycle_time`: The start and end times of each cycle
-
-## `tfile`
-
-This is a [tfile](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/tfile.md) object from the [rootloader] package. It is effectively an [attrdict] with some embellishment for reading root files. This is the object which contains all your data read from the file. Its contents can be either [ttree] objects (again, based on the [attrdict] object) or a pandas [DataFrame]. These can be converted relatively easily. First, inspecting with its contents as [ttree]s:
+These are saved as [ttree], [th1], [th2] or [DataFrame] objects.
 
 ```python
-In [5]: run.tfile
-Out[5]:
-contents:
-    BeamlineEpics            RunTransitions_Li-6      hitsinsequence_he3
-    CycleParamTree           SequencerTree            hitsinsequence_li6
-    LNDDetectorTree          UCNHits_He3              hitsinsequencecumul_he3
-    RunTransitions_He3       UCNHits_Li-6             hitsinsequencecumul_li6
-    RunTransitions_He3Det2   header
+# get the whole dataframe
+df = run.tfile.BeamlineEpics
 
-In [6]: run.tfile.BeamlineEpics
+# get a single column
+df = run.tfile.BeamlineEpics.B1V_KICK_RDHICUR
+
+# this is an equivalent statement should the key contain an inappropriate character
+df = run.tfile.BeamlineEpics['B1V_KICK_RDHICUR']
+
+# get the mean value
+avg = run.tfile.BeamlineEpics.B1V_KICK_RDHICUR.mean()
+```
+
+#### Drawing UCN Hits as a Histogram
+
+Since this is a common operation, this is built into the ucnrun object via the [`get_hits_histogram`](../docs/ucnbase.md#ucnbaseget_hits_histogram) function.
+
+```python
+import matplotlib.pyplot as plt
+plt.plot(*run.get_hits_histogram(detector='Li6'))
+```
+
+You need to tell it what detector to use. Detectors are defined in the [settings] file (`DET_NAMES`).
+
+#### Getting Hits and Counts
+
+There are two versions: "hits" refers to all the data when there is a positive UCN detection. "Counts" refers to the sum of these hits during a specific time window. To get the [DataFrame] of hits:
+
+```python
+hits = run.get_hits('Li6')
+```
+
+This then produces a [DataFrame] with the following columns, matching the UCN hits tree:
+
+```python
+'tUnixTimePrecise', 'tBaseline', 'tChannel', 'tChargeL', 'tChargeS',
+'tEntry', 'tIsUCN', 'tLength', 'tPSD', 'tTimeE', 'tTimeStamp',
+'tUnixTime'
+```
+
+You can only get counts for Cycles or Periods.
+
+## Periods and Cycles
+
+You can access these via indexing (more on that [here](cycandperiods.md)):
+
+Get cycle #5:
+```python
+In [5]: run[5]
+Out [5]:
+run 1846 (cycle 5):
+  comment            cycle_start        month              shifters           supercycle
+  cycle              cycle_stop         run_number         start_time         tfile
+  cycle_param        experiment_number  run_title          stop_time          year
+```
+
+Get cycle #5, period #0:
+```python
+In [6]: run[5,0]
 Out[6]:
-ttree branches:
-    B1UT_CM01_RDCOND        B1U_HARP2_RDUPDATE      B1U_TNIM2_10MINAVG      B1U_YCB1_RDCUR
-    B1UT_CM02_RDCOND        B1U_IV0_STATON          B1U_TNIM2_10MINTRIP     B1V_KICK_RDHICUR
-    B1UT_LM50_RDLVL         B1U_IV2_STATON          B1U_TNIM2_10SECAVG      B1V_KSM_BONPRD
-    B1UT_PT01_RDPRESS       B1U_PNG0_RDVAC          B1U_TNIM2_10SECTRIP     B1V_KSM_INSEQ
-    B1UT_PT02_RDPRESS       B1U_PNG2_RDVAC          B1U_TNIM2_1SECAVG       B1V_KSM_PREDCUR
-    B1UT_PT50_RDPRESS       B1U_Q1_STATON           B1U_TNIM2_1SECTRIP      B1V_KSM_RDBEAMOFF_VAL1
-    B1U_B0_RDCUR            B1U_Q1_VT_RDCUR         B1U_TNIM2_5MINAVG       B1V_KSM_RDBEAMON_VAL1
-    B1U_B0_STATON           B1U_Q2_RDCUR            B1U_TNIM2_RAW           B1V_KSM_RDFRCTN_VAL1
-    B1U_COL2DOWN_RDTEMP     B1U_Q2_STATON           B1U_WTEMP1_RDTEMP       B1V_KSM_RDMODE_VAL1
-    B1U_COL2LEFT_RDTEMP     B1U_SEPT_RDCUR          B1U_WTEMP2_RDTEMP       B1_FOIL_ADJCUR
-    B1U_COL2RIGHT_RDTEMP    B1U_SEPT_STATON         B1U_XCB1_RDCUR          timestamp
-    B1U_COL2UP_RDTEMP       B1U_TGTTEMP1_RDTEMP     B1U_YCB0_RDCUR
-    B1U_HARP0_RDUPDATE      B1U_TGTTEMP2_RDTEMP     B1U_YCB0_STATON
+run 1846 (cycle 5, period 0):
+  comment            cycle_stop         period_start       shifters           tfile
+  cycle              experiment_number  period_stop        start_time         year
+  cycle_param        month              run_number         stop_time
+  cycle_start        period             run_title          supercycle
 ```
 
-Then converting to [DataFrame]s in-place:
+Get all cycles, period 0:
+```python
+In [7]: x = run[:,0]
+```
+
+Note that the [ucncycle] and [ucnperiod] objects that are returned as a result of these slicing operations also inherit from the same [base class](../docs/ucnbase.md) as [ucnrun]. Thus, they behave very similarly, and everything we've done above can be done on these objects as well, but their data is specific only to that cycle or period.
+
+## Lists of Runs (or cycles or periods)
+
+The [read] function, as with slicing, returns an [applylist]. This list allows one to get properties of the contained objects as if they were properties of the list. [More on that here](applylist.md). To get the cycle number of all cycles:
 
 ```python
-In [7]: run.to_dataframe()
-
-In [8]: run.tfile.BeamlineEpics
-Out[8]:
-            B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
-timestamp                                       ...
-1572460997          0.018750           0.00000  ...                  0.0        0.000000
-1572461002          0.000000           0.01875  ...                  0.0        2.151400
-1572461007          0.021875           0.01250  ...                  0.0        2.151400
-1572461012          0.012500           0.00000  ...                  0.0        2.151400
-1572461017          0.000000           0.00000  ...                  0.0        2.151400
-...                      ...               ...  ...                  ...             ...
-1572466463          0.000000           0.01250  ...                  0.0       38.294899
-1572466468          0.000000           0.00000  ...                  0.0       38.294899
-1572466473          0.018750           0.00000  ...                  0.0       37.864700
-1572466478          0.034375           0.00000  ...                  0.0       37.864700
-1572466479          0.000000           0.01250  ...                  0.0       38.294899
-
-[1093 rows x 49 columns]
+In [8]: run[:].cycle
+Out [8]:
+[0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 ```
 
-We see that the [ucnrun] object knows to set the `timestamp` as the index. Thus, one can access values directly from their timestamp:
+Or to get the average beam current of period 0:
 
 ```python
-In [9]: run.tfile.BeamlineEpics.loc[1572460997:1572461017]
-Out[9]:
-            B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
-timestamp                                       ...
-1572460997          0.018750           0.00000  ...                  0.0          0.0000
-1572461002          0.000000           0.01875  ...                  0.0          2.1514
-1572461007          0.021875           0.01250  ...                  0.0          2.1514
-1572461012          0.012500           0.00000  ...                  0.0          2.1514
-1572461017          0.000000           0.00000  ...                  0.0          2.1514
+In [9]: x = run[:, 0].beam_current_uA.mean()
+In [10]: x
+Out [10]:
+[np.float64(0.8348174370252169),
+ np.float64(0.907572403550148),
+ np.float64(0.9051820337772369),
+ np.float64(0.9075725873311361),
+ np.float64(0.9051825851202011),
+ np.float64(0.9027922203143438),
+ np.float64(0.9027920365333557),
+ np.float64(0.9035888860623041),
+ np.float64(0.9004018505414327),
+ np.float64(0.8996049960454305),
+ np.float64(0.8980118532975515),
+ np.float64(0.827094629406929),
+ np.float64(0.8948242564996084),
+ np.float64(0.8502016713221868),
+ np.float64(0.8494050006071726),
+ np.float64(0.8525918622811636),
+ np.float64(0.845421110590299)]
 
-[5 rows x 49 columns]
+# convert to regular floats
+In [11]: x.astype(float)
+In [12]: x
+Out[12]:
+[0.8348174370252169,
+ 0.907572403550148,
+ 0.9051820337772369,
+ 0.9075725873311361,
+ 0.9051825851202011,
+ 0.9027922203143438,
+ 0.9027920365333557,
+ 0.9035888860623041,
+ 0.9004018505414327,
+ 0.8996049960454305,
+ 0.8980118532975515,
+ 0.827094629406929,
+ 0.8948242564996084,
+ 0.8502016713221868,
+ 0.8494050006071726,
+ 0.8525918622811636,
+ 0.845421110590299]
 ```
-
-It is often the case that we want to index on datetime objects. In that case we can instead to the following:
-
-```python
-In [7]: run.to_dataframe(datetime=True)
-
-In [8]: run.tfile.BeamlineEpics
-Out[8]:
-                           B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
-timestamp                                                      ...
-2019-10-30 11:43:17-07:00          0.018750           0.00000  ...                  0.0        0.000000
-2019-10-30 11:43:22-07:00          0.000000           0.01875  ...                  0.0        2.151400
-2019-10-30 11:43:27-07:00          0.021875           0.01250  ...                  0.0        2.151400
-2019-10-30 11:43:32-07:00          0.012500           0.00000  ...                  0.0        2.151400
-2019-10-30 11:43:37-07:00          0.000000           0.00000  ...                  0.0        2.151400
-...                                     ...               ...  ...                  ...             ...
-2019-10-30 13:14:23-07:00          0.000000           0.01250  ...                  0.0       38.294899
-2019-10-30 13:14:28-07:00          0.000000           0.00000  ...                  0.0       38.294899
-2019-10-30 13:14:33-07:00          0.018750           0.00000  ...                  0.0       37.864700
-2019-10-30 13:14:38-07:00          0.034375           0.00000  ...                  0.0       37.864700
-2019-10-30 13:14:39-07:00          0.000000           0.01250  ...                  0.0       38.294899
-
-[1093 rows x 49 columns]
-```
-
-In general if each [ttree] structure is simple enough to convert to a [DataFrame] it is recommended that one does so.
-
----
 
 [**Back to Index**](index.md)\
-[**Next Page: Loading Runs Efficiently in an Environment**](read.md)
+[**Next Page: Contents of the ucnrun Object**](ucnrun_contents.md)
 
-
-[tfile]: #tfile
 [DataFrame]: https://pandas.pydata.org/pandas-docs/stable/reference/api/pandas.DataFrame.html
 [ttree]:https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md
+[th1]:https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/th1.md
+[th2]:https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/th2.md
 [attrdict]:https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/attrdict.md
 [rootloader]: https://github.com/ucn-triumf/rootloader
 [ucnrun]: ../docs/ucnrun.md
 [ucncycle]: ../docs/ucncycle.md
 [ucnperiod]: ../docs/ucnperiod.md
 [applylist]: ../docs/applylist.md
+[settings]: ../docs/settings.md
 [read]: ../docs/read.md
 [merge]: ../docs/merge.md

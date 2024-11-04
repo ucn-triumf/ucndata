@@ -19,6 +19,7 @@ Read out single or multiple UCN run files from ROOT
     may be a list of paths which may include wildcards
     OR list of ints to specify run numbers
     OR list of mixed ints and strings either of run numbers or of the format 'x+y' to denote merged runs, where x and y are ints
+- `as_dataframe` *bool* - if true, convert to dataframes
 - `nproc` *int* - number of processors used in read. If <= 0, use total - nproc. If > 0 use nproc.
 - `header_only` *bool* - if true, read only the header
 
@@ -42,5 +43,5 @@ runs = read([1846, '1847+1848', '1849', '/path/datadir/ucn_run_0000185*'])
 #### Signature
 
 ```python
-def read(path, nproc=-1, header_only=False): ...
+def read(path, as_dataframe=True, nproc=-1, header_only=False): ...
 ```

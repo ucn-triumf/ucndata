@@ -2,7 +2,7 @@
 # Derek Fujimoto
 # Oct 2024
 
-from ucndata import settings, read, merge_inlist
+from ucndata import settings, read
 from tools import *
 import numpy as np
 import pandas as pd
@@ -45,9 +45,6 @@ def get_counts_storagetimes(run):
 
     # print status
     print(f'Run {run.run_number} ' + '='*40 )
-
-    # convert to dataframe
-    run.to_dataframe()
 
     # filter cycles
     run.set_cycle_filter(run.gen_cycle_filter(period_production=periods['production'],

@@ -12,6 +12,7 @@
   - [MergeError](#mergeerror)
   - [MergeWarning](#mergewarning)
   - [MissingDataError](#missingdataerror)
+  - [MissingDataWarning](#missingdatawarning)
   - [NotImplementedError](#notimplementederror)
   - [ValveError](#valveerror)
 
@@ -85,7 +86,7 @@ class MergeError(Exception): ...
 
 ## MergeWarning
 
-[Show source in exceptions.py:20](../exceptions.py#L20)
+[Show source in exceptions.py:21](../exceptions.py#L21)
 
 #### Signature
 
@@ -103,6 +104,18 @@ class MergeWarning(Warning): ...
 
 ```python
 class MissingDataError(Exception): ...
+```
+
+
+
+## MissingDataWarning
+
+[Show source in exceptions.py:20](../exceptions.py#L20)
+
+#### Signature
+
+```python
+class MissingDataWarning(Warning): ...
 ```
 
 

@@ -6,10 +6,10 @@
 
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
-    - [ucncycle.check_data](#ucncycle()check_data)
-    - [ucncycle.get_counts](#ucncycle()get_counts)
-    - [ucncycle.get_period](#ucncycle()get_period)
-    - [ucncycle.get_rate](#ucncycle()get_rate)
+    - [ucncycle().check_data](#ucncycle()check_data)
+    - [ucncycle().get_counts](#ucncycle()get_counts)
+    - [ucncycle().get_period](#ucncycle()get_period)
+    - [ucncycle().get_rate](#ucncycle()get_rate)
 
 ## ucncycle
 
@@ -38,7 +38,7 @@ class ucncycle(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucncycle.check_data
+### ucncycle().check_data
 
 [Show source in ucncycle.py:108](../ucncycle.py#L108)
 
@@ -94,7 +94,7 @@ def check_data(
 ): ...
 ```
 
-### ucncycle.get_counts
+### ucncycle().get_counts
 
 [Show source in ucncycle.py:235](../ucncycle.py#L235)
 
@@ -123,7 +123,7 @@ def get_counts(
 ): ...
 ```
 
-### ucncycle.get_period
+### ucncycle().get_period
 
 [Show source in ucncycle.py:299](../ucncycle.py#L299)
 
@@ -151,7 +151,7 @@ run:
 def get_period(self, period=None): ...
 ```
 
-### ucncycle.get_rate
+### ucncycle().get_rate
 
 [Show source in ucncycle.py:323](../ucncycle.py#L323)
 

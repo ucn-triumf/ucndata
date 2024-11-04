@@ -209,11 +209,10 @@ class ucnbase(object):
                     # index must be a datetime object
                     if isinstance(item.index[0], datetime.date):
 
-                        item.index = item.index.tz_convert('UTC').astype(int)
-                        item.index /= 1e9 # to s
 
+                        item.index = item.index.tz_convert('UTC')
                         item.index.name = name
-                        self.tfile[key] = item
+                        self.tfile[key] = item.tz_convert(settings.timezone)
 
     def to_dataframe(self, datetime=False):
         """Convert self.tfile contents to pd.DataFrame

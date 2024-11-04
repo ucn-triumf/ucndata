@@ -6,11 +6,11 @@
 
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
-    - [ucnrun.check\_data](#ucnruncheck_data)
-    - [ucnrun.gen\_cycle\_filter](#ucnrungen_cycle_filter)
-    - [ucnrun.get\_cycle](#ucnrunget_cycle)
-    - [ucnrun.set\_cycle\_filter](#ucnrunset_cycle_filter)
-    - [ucnrun.set\_cycle\_times](#ucnrunset_cycle_times)
+    - [ucnrun().check_data](#ucnrun()check_data)
+    - [ucnrun().gen_cycle_filter](#ucnrun()gen_cycle_filter)
+    - [ucnrun().get_cycle](#ucnrun()get_cycle)
+    - [ucnrun().set_cycle_filter](#ucnrun()set_cycle_filter)
+    - [ucnrun().set_cycle_times](#ucnrun()set_cycle_times)
 
 ## ucnrun
 
@@ -131,7 +131,7 @@ class ucnrun(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucnrun.check_data
+### ucnrun().check_data
 
 [Show source in ucnrun.py:325](../ucnrun.py#L325)
 
@@ -155,7 +155,7 @@ Checks:
 def check_data(self, raise_error=False): ...
 ```
 
-### ucnrun.gen_cycle_filter
+### ucnrun().gen_cycle_filter
 
 [Show source in ucnrun.py:382](../ucnrun.py#L382)
 
@@ -184,7 +184,7 @@ def gen_cycle_filter(
 ): ...
 ```
 
-### ucnrun.get_cycle
+### ucnrun().get_cycle
 
 [Show source in ucnrun.py:407](../ucnrun.py#L407)
 
@@ -208,7 +208,7 @@ ucncycle:
 def get_cycle(self, cycle=None): ...
 ```
 
-### ucnrun.set_cycle_filter
+### ucnrun().set_cycle_filter
 
 [Show source in ucnrun.py:427](../ucnrun.py#L427)
 
@@ -244,7 +244,7 @@ Examples where the filter is not applied:
 def set_cycle_filter(self, cfilter=None): ...
 ```
 
-### ucnrun.set_cycle_times
+### ucnrun().set_cycle_times
 
 [Show source in ucnrun.py:461](../ucnrun.py#L461)
 

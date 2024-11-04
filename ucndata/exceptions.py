@@ -17,4 +17,5 @@ class ValveError(DataError): pass
 
 # warnings -----------------------------------
 class CycleWarning(Warning): pass
+class MissingDataWarning(Warning): pass
 class MergeWarning(Warning): pass
