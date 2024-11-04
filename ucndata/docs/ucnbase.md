@@ -18,7 +18,7 @@
 
 ## ucnbase
 
-[Show source in ucnbase.py:12](../ucnbase.py#L12)
+[Show source in ucnbase.py:13](../ucnbase.py#L13)
 
 UCN run data. Cleans data and performs analysis
 
@@ -59,7 +59,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:106](../ucnbase.py#L106)
+[Show source in ucnbase.py:107](../ucnbase.py#L107)
 
 Apply function to each cycle
 
@@ -79,7 +79,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam_current_uA
 
-[Show source in ucnbase.py:205](../ucnbase.py#L205)
+[Show source in ucnbase.py:211](../ucnbase.py#L211)
 
 #### Signature
 
@@ -90,7 +90,7 @@ def beam_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:230](../ucnbase.py#L230)
+[Show source in ucnbase.py:236](../ucnbase.py#L236)
 
 #### Signature
 
@@ -101,7 +101,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:227](../ucnbase.py#L227)
+[Show source in ucnbase.py:233](../ucnbase.py#L233)
 
 #### Signature
 
@@ -112,7 +112,7 @@ def beam_on_s(self): ...
 
 ### ucnbase.copy
 
-[Show source in ucnbase.py:117](../ucnbase.py#L117)
+[Show source in ucnbase.py:118](../ucnbase.py#L118)
 
 Return a copy of this objet
 
@@ -124,7 +124,7 @@ def copy(self): ...
 
 ### ucnbase.from_dataframe
 
-[Show source in ucnbase.py:190](../ucnbase.py#L190)
+[Show source in ucnbase.py:196](../ucnbase.py#L196)
 
 Convert self.tfile contents to rootfile struture types
 
@@ -136,7 +136,7 @@ def from_dataframe(self): ...
 
 ### ucnbase.get_hits
 
-[Show source in ucnbase.py:128](../ucnbase.py#L128)
+[Show source in ucnbase.py:129](../ucnbase.py#L129)
 
 Get times of ucn hits
 
@@ -156,7 +156,7 @@ def get_hits(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:148](../ucnbase.py#L148)
+[Show source in ucnbase.py:149](../ucnbase.py#L149)
 
 Get histogram of UCNHits ttree times
 
@@ -164,6 +164,7 @@ Get histogram of UCNHits ttree times
 
 - `detector` *str* - Li6|He3
 - `bin_ms` *int* - histogram bin size in milliseconds
+- `as_datetime` *bool* - if true, convert bin_centers to datetime objects
 
 #### Returns
 
@@ -172,12 +173,12 @@ Get histogram of UCNHits ttree times
 #### Signature
 
 ```python
-def get_hits_histogram(self, detector, bin_ms=100): ...
+def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 ```
 
 ### ucnbase.to_dataframe
 
-[Show source in ucnbase.py:194](../ucnbase.py#L194)
+[Show source in ucnbase.py:200](../ucnbase.py#L200)
 
 Convert self.tfile contents to pd.DataFrame
 

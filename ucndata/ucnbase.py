@@ -5,6 +5,7 @@
 from rootloader import ttree
 from .exceptions import *
 from . import settings
+from .datetime import to_datetime
 import ucndata.constants as const
 import numpy as np
 import pandas as pd
@@ -145,19 +146,20 @@ class ucnbase(object):
 
         return hit_tree
 
-    def get_hits_histogram(self, detector, bin_ms=100):
+    def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False):
         """Get histogram of UCNHits ttree times
 
         Args:
             detector (str): Li6|He3
             bin_ms (int): histogram bin size in milliseconds
+            as_datetime (bool): if true, convert bin_centers to datetime objects
 
         Returns:
             tuple: (bin_centers, histogram counts)
         """
 
         # get data
-        df = self.tfile[settings.DET_NAMES[detector]['hits']]
+        df = self.tfile[settings.DET_NAMES[detector]['hits']].copy()
 
         # to dataframe
         if not isinstance(df, pd.DataFrame):
@@ -184,6 +186,10 @@ class ucnbase(object):
         # histogram
         hist, bins = np.histogram(times, bins=bins)
         bin_centers = (bins[1:] + bins[:-1])/2
+
+        # to datetime
+        if as_datetime:
+            bin_centers = to_datetime(bin_centers)
 
         return (bin_centers, hist)
 
