@@ -93,7 +93,12 @@ import matplotlib.pyplot as plt
 plt.plot(*run.get_hits_histogram(detector='Li6'))
 ```
 
-You need to tell it what detector to use. Detectors are defined in the [settings] file (`DET_NAMES`).
+You need to tell it what detector to use. Detectors are defined in the [settings] file (`DET_NAMES`). We may also want to draw with proper datetimes on the x axis:
+
+```python
+plt.plot(*run.get_hits_histogram(detector='Li6', as_datetime=True))
+```
+
 
 #### Getting Hits and Counts
 
