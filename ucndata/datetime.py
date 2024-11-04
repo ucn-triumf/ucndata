@@ -19,7 +19,7 @@ def from_datetime(item):
     # dataframe conversion
     df = None
     if isinstance(item, pd.DataFrame):
-        df = item
+        df = item.copy()
         item = df.index
         name = df.index.name
 
@@ -57,7 +57,7 @@ def to_datetime(item):
     # dataframe conversion
     df = None
     if isinstance(item, pd.DataFrame):
-        df = item
+        df = item.copy()
         item = df.index
         name = df.index.name
 
