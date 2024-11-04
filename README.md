@@ -17,6 +17,8 @@ These are the main workhorses of the ucndata project:
 * [read](ucndata/docs/read.md) - convenience function for reading ucnruns from file
 * [settings](ucndata/docs/settings.md) - change behaviour of ucnrun objects
 * [ucnrun](ucndata/docs/ucnrun.md) - workhorse object representing a single run
+* [ucncycle](ucndata/docs/ucncycle.md) - workhorse object representing a single cycle within a run
+* [ucnperiod](ucndata/docs/ucnperiod.md) - workhorse object representing a single period within a cycle
 
 ## storagelifetime.py
 
