@@ -6,9 +6,9 @@
 
 - [applylist](#applylist)
   - [applylist](#applylist-1)
-    - [applylist().apply](#applylist()apply)
-    - [applylist().astype](#applylist()astype)
-    - [applylist().transpose](#applylist()transpose)
+    - [applylist.apply](#applylistapply)
+    - [applylist.astype](#applylistastype)
+    - [applylist.transpose](#applylisttranspose)
 
 ## applylist
 
@@ -54,7 +54,7 @@ A list object with the following enhancements:
 class applylist(list): ...
 ```
 
-### applylist().apply
+### applylist.apply
 
 [Show source in applylist.py:121](../applylist.py#L121)
 
@@ -95,7 +95,7 @@ fn (function handle): function to apply to each element
 def apply(self, fn, inplace=False): ...
 ```
 
-### applylist().astype
+### applylist.astype
 
 [Show source in applylist.py:100](../applylist.py#L100)
 
@@ -126,7 +126,7 @@ None, works in-place
 def astype(self, typecast): ...
 ```
 
-### applylist().transpose
+### applylist.transpose
 
 [Show source in applylist.py:162](../applylist.py#L162)
 

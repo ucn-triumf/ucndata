@@ -6,9 +6,9 @@
 
 - [ucnperiod](#ucnperiod)
   - [ucnperiod](#ucnperiod-1)
-    - [ucnperiod().get_counts](#ucnperiod()get_counts)
-    - [ucnperiod().get_rate](#ucnperiod()get_rate)
-    - [ucnperiod().is_pileup](#ucnperiod()is_pileup)
+    - [ucnperiod.get\_counts](#ucnperiodget_counts)
+    - [ucnperiod.get\_rate](#ucnperiodget_rate)
+    - [ucnperiod.is\_pileup](#ucnperiodis_pileup)
 
 ## ucnperiod
 
@@ -32,7 +32,7 @@ class ucnperiod(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucnperiod().get_counts
+### ucnperiod.get_counts
 
 [Show source in ucnperiod.py:84](../ucnperiod.py#L84)
 
@@ -56,7 +56,7 @@ Get sum of ucn hits
 def get_counts(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None): ...
 ```
 
-### ucnperiod().get_rate
+### ucnperiod.get_rate
 
 [Show source in ucnperiod.py:177](../ucnperiod.py#L177)
 
@@ -80,7 +80,7 @@ Get sum of ucn hits per unit time of period
 def get_rate(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None): ...
 ```
 
-### ucnperiod().is_pileup
+### ucnperiod.is_pileup
 
 [Show source in ucnperiod.py:146](../ucnperiod.py#L146)
 
