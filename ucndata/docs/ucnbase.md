@@ -12,15 +12,13 @@
     - [ucnbase.beam\_on\_s](#ucnbasebeam_on_s)
     - [ucnbase.copy](#ucnbasecopy)
     - [ucnbase.from\_dataframe](#ucnbasefrom_dataframe)
-    - [ucnbase.from\_datetime](#ucnbasefrom_datetime)
     - [ucnbase.get\_hits](#ucnbaseget_hits)
     - [ucnbase.get\_hits\_histogram](#ucnbaseget_hits_histogram)
     - [ucnbase.to\_dataframe](#ucnbaseto_dataframe)
-    - [ucnbase.to\_datetime](#ucnbaseto_datetime)
 
 ## ucnbase
 
-[Show source in ucnbase.py:13](../ucnbase.py#L13)
+[Show source in ucnbase.py:12](../ucnbase.py#L12)
 
 UCN run data. Cleans data and performs analysis
 
@@ -61,7 +59,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:107](../ucnbase.py#L107)
+[Show source in ucnbase.py:106](../ucnbase.py#L106)
 
 Apply function to each cycle
 
@@ -81,7 +79,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam_current_uA
 
-[Show source in ucnbase.py:256](../ucnbase.py#L256)
+[Show source in ucnbase.py:205](../ucnbase.py#L205)
 
 #### Signature
 
@@ -92,7 +90,7 @@ def beam_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:281](../ucnbase.py#L281)
+[Show source in ucnbase.py:230](../ucnbase.py#L230)
 
 #### Signature
 
@@ -103,7 +101,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:278](../ucnbase.py#L278)
+[Show source in ucnbase.py:227](../ucnbase.py#L227)
 
 #### Signature
 
@@ -114,7 +112,7 @@ def beam_on_s(self): ...
 
 ### ucnbase.copy
 
-[Show source in ucnbase.py:118](../ucnbase.py#L118)
+[Show source in ucnbase.py:117](../ucnbase.py#L117)
 
 Return a copy of this objet
 
@@ -126,7 +124,7 @@ def copy(self): ...
 
 ### ucnbase.from_dataframe
 
-[Show source in ucnbase.py:189](../ucnbase.py#L189)
+[Show source in ucnbase.py:190](../ucnbase.py#L190)
 
 Convert self.tfile contents to rootfile struture types
 
@@ -136,25 +134,9 @@ Convert self.tfile contents to rootfile struture types
 def from_dataframe(self): ...
 ```
 
-### ucnbase.from_datetime
-
-[Show source in ucnbase.py:193](../ucnbase.py#L193)
-
-Convert self.tfile contents index to epoch time if dataframe
-
-#### Returns
-
-- `None` - converts in-place
-
-#### Signature
-
-```python
-def from_datetime(self): ...
-```
-
 ### ucnbase.get_hits
 
-[Show source in ucnbase.py:129](../ucnbase.py#L129)
+[Show source in ucnbase.py:128](../ucnbase.py#L128)
 
 Get times of ucn hits
 
@@ -174,7 +156,7 @@ def get_hits(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:149](../ucnbase.py#L149)
+[Show source in ucnbase.py:148](../ucnbase.py#L148)
 
 Get histogram of UCNHits ttree times
 
@@ -195,14 +177,10 @@ def get_hits_histogram(self, detector, bin_ms=100): ...
 
 ### ucnbase.to_dataframe
 
-[Show source in ucnbase.py:217](../ucnbase.py#L217)
+[Show source in ucnbase.py:194](../ucnbase.py#L194)
 
 Convert self.tfile contents to pd.DataFrame
 
-#### Arguments
-
-- `datetime` *bool* - if true, convert all timestamps into datetimes
-
 #### Returns
 
 - `None` - converts in-place
@@ -210,21 +188,5 @@ Convert self.tfile contents to pd.DataFrame
 #### Signature
 
 ```python
-def to_dataframe(self, datetime=False): ...
-```
-
-### ucnbase.to_datetime
-
-[Show source in ucnbase.py:234](../ucnbase.py#L234)
-
-Convert self.tfile contents index to datetime objects if dataframe
-
-#### Returns
-
-- `None` - converts in-place
-
-#### Signature
-
-```python
-def to_datetime(self): ...
+def to_dataframe(self): ...
 ```

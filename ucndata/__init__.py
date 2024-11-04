@@ -10,3 +10,4 @@ from .read import read
 from .merge import merge, merge_inlist
 from .applylist import applylist
 from .exceptions import *
+from .datetime import to_datetime, from_datetime

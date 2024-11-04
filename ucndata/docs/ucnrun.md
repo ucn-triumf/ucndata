@@ -6,11 +6,11 @@
 
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
-    - [ucnrun.check\_data](#ucnruncheck_data)
-    - [ucnrun.gen\_cycle\_filter](#ucnrungen_cycle_filter)
-    - [ucnrun.get\_cycle](#ucnrunget_cycle)
-    - [ucnrun.set\_cycle\_filter](#ucnrunset_cycle_filter)
-    - [ucnrun.set\_cycle\_times](#ucnrunset_cycle_times)
+    - [ucnrun.check_data](#ucnrun()check_data)
+    - [ucnrun.gen_cycle_filter](#ucnrun()gen_cycle_filter)
+    - [ucnrun.get_cycle](#ucnrun()get_cycle)
+    - [ucnrun.set_cycle_filter](#ucnrun()set_cycle_filter)
+    - [ucnrun.set_cycle_times](#ucnrun()set_cycle_times)
 
 ## ucnrun
 

@@ -6,6 +6,7 @@ A full list of `Ucndata` project modules.
 
 - [applylist](./applylist.md#applylist)
 - [Constants](./constants.md#constants)
+- [Datetime](./datetime.md#datetime)
 - [Exceptions](./exceptions.md#exceptions)
 - [Merge](./merge.md#merge)
 - [Read](./read.md#read)

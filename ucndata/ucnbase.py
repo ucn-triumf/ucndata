@@ -8,7 +8,6 @@ from . import settings
 import ucndata.constants as const
 import numpy as np
 import pandas as pd
-import datetime
 
 class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
@@ -160,9 +159,11 @@ class ucnbase(object):
         # get data
         df = self.tfile[settings.DET_NAMES[detector]['hits']]
 
+        # to dataframe
         if not isinstance(df, pd.DataFrame):
             df = df.to_dataframe()
 
+        # get new index
         index_col = df.index.name
         df.reset_index(inplace=True)
 
@@ -190,35 +191,8 @@ class ucnbase(object):
         """Convert self.tfile contents to rootfile struture types"""
         self.tfile.from_dataframe()
 
-    def from_datetime(self):
-        """Convert self.tfile contents index to epoch time if dataframe
-
-        Returns:
-            None: converts in-place
-        """
-
-        for key, item in self.tfile.items():
-
-            # only convert dataframes
-            if isinstance(item, pd.DataFrame):
-                name = item.index.name
-
-                # must be indexed by time
-                if name is not None and 'time' in name.lower():
-
-                    # index must be a datetime object
-                    if isinstance(item.index[0], datetime.date):
-
-
-                        item.index = item.index.tz_convert('UTC')
-                        item.index.name = name
-                        self.tfile[key] = item.tz_convert(settings.timezone)
-
-    def to_dataframe(self, datetime=False):
+    def to_dataframe(self):
         """Convert self.tfile contents to pd.DataFrame
-
-        Args:
-            datetime (bool): if true, convert all timestamps into datetimes
 
         Returns:
             None: converts in-place
@@ -226,31 +200,6 @@ class ucnbase(object):
 
         # convert to dataframes
         self.tfile.to_dataframe()
-
-        # Convert to datetime
-        if datetime:
-            self.to_datetime()
-
-    def to_datetime(self):
-        """Convert self.tfile contents index to datetime objects if dataframe
-
-        Returns:
-            None: converts in-place
-        """
-        for key, item in self.tfile.items():
-
-            # only convert dataframes
-            if isinstance(item, pd.DataFrame):
-                name = item.index.name
-
-                # must be indexed by time
-                if name is not None and 'time' in name.lower():
-
-                    # index must be a float or int
-                    if isinstance(item.index[0], (np.number, float, int)):
-                        item.index = pd.to_datetime(item.index, unit='s', utc=True)
-                        item.index.name = name
-                        self.tfile[key] = item.tz_convert(settings.timezone)
 
     # quick access properties
     @property
