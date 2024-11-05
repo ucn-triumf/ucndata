@@ -2,7 +2,7 @@
 # Derek Fujimoto
 # Oct 2024
 
-from ucndata import settings, read
+from ucndata import settings, read, ucnrun
 from tools import *
 import numpy as np
 import pandas as pd
@@ -14,12 +14,12 @@ from datetime import datetime
 from fitting import global_fitter
 
 # settings
-settings.datadir = 'root_files'     # path to root data
+# settings.datadir = 'root_files'     # path to root data
 settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
 settings.DET_NAMES.pop('He3')       # don't check He3 detector data
 detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
 filename = 'storagelifetime/storagecounts.csv'      # save counts output
-run_numbers = [1846, '1847+1848']
+run_numbers = [1846]   # example: [1846, '1847+1848']
 
 # periods settings
 periods = {'production':  0,
@@ -177,7 +177,7 @@ def get_lifetime(run, filename, fitfn=None, p0=None):
     dirname = dirname if dirname else '.'
 
     # save results - figure
-    plt.savefig(os.path.join(dirname, f'{df.iloc[0]["experiment"]}_run{run}.pdf'))
+    plt.savefig(os.path.join(dirname, f'{df.iloc[0]["experiment"]}_run{run}_lifetime.pdf'))
 
     # load old fit results
     filename = os.path.join(dirname, 'lifetimes.csv')
@@ -299,14 +299,61 @@ def get_global_lifetime(filename, fitfn, p0=None):
 
     return (par, std)
 
+def draw_hits(run):
+    """Draw hits histogram for each run
+
+    Args:
+        run (ucnrun): run data
+    """
+
+    plt.figure(figsize=(6,6))
+
+    # force iteration over all cycles
+    for i in range(run.cycle_param.ncycles):
+
+        # get cycle and check if it passed filter
+        cycle = run[i]
+        is_good = run.cycle_param.filter[i]
+
+        # plot histogram
+        bins, hist = cycle.get_hits_histogram(detector, as_datetime=True)
+        line = plt.plot(bins, hist, label=f'Cycle {cycle.cycle}',
+                        color=None if is_good else 'k')
+
+        # get cycle text - strikeout if not good
+        text = f'Cycle {cycle.cycle}'
+        if not is_good:
+            text = '\u0336'.join(text) + '\u0336'
+        plt.text(bins[0], -1, text,
+                 va='top',
+                 ha='left',
+                 fontsize='xx-small',
+                 color=line[0].get_color(),
+                 rotation='vertical')
+
+    # plot elements
+    plt.ylabel('Number of Hits')
+    plt.ylim(-30, None)
+    plt.xticks(rotation=90)
+    plt.gca().tick_params(axis='x', which='major', labelsize='x-small')
+    plt.tight_layout()
+
+    # save file
+    savefile = os.path.dirname(filename)
+    savefile = os.path.join(savefile, f'{run.experiment_number}_run{run.run_number}_hits.pdf')
+    plt.savefig(savefile)
+
 # RUN ============================================
 
 # setup runs
 runs = read(run_numbers)
+if isinstance(runs, ucnrun):
+    runs = [runs]
 
-# get counts
+# counts and hits
 for run in runs:
     get_counts_storagetimes(run)
+    draw_hits(run)
 
 # calculate lifetimes for each run
 for run in run_numbers:
