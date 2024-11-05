@@ -1,0 +1,41 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ucndata"
+authors = [
+  { name="Derek Fujimoto", email="dfujimoto@triumf.ca" },
+]
+description = "Python class for reading UCN runs converted to ROOT with midas2root"
+readme = "README.md"
+requires-python = ">=3.5"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+keywords = [
+    "UCN",
+    "PyRoot",
+    "Analysis",
+    "TUCAN",
+    "TRIUMF",
+]
+dependencies = [
+    "numpy",
+    "matplotlib",
+    "datetime",
+    "tqdm",
+    "pandas",
+    "rootloader",
+]
+dynamic = ["version"]
+
+[project.urls]
+"Homepage" = "https://github.com/ucn-triumf/UCNanalysis/tree/2024"
+"Bug Tracker" = "https://github.com/ucn-triumf/UCNanalysis/issues"
+
+# set version
+[tool.hatch.version]
+path = "ucndata/version.py"

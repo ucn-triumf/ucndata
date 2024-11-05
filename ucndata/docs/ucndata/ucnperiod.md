@@ -1,18 +1,18 @@
 # ucnperiod
 
-[Ucndata Index](./README.md#ucndata-index) / ucnperiod
+[Ucndata Index](../README.md#ucndata-index) / [Ucndata](./index.md#ucndata) / ucnperiod
 
-> Auto-generated documentation for [ucnperiod](../ucnperiod.py) module.
+> Auto-generated documentation for [ucndata.ucnperiod](../../ucndata/ucnperiod.py) module.
 
 - [ucnperiod](#ucnperiod)
   - [ucnperiod](#ucnperiod-1)
-    - [ucnperiod.get_counts](#ucnperiod()get_counts)
-    - [ucnperiod.get_rate](#ucnperiod()get_rate)
-    - [ucnperiod.is_pileup](#ucnperiod()is_pileup)
+    - [ucnperiod().get_counts](#ucnperiod()get_counts)
+    - [ucnperiod().get_rate](#ucnperiod()get_rate)
+    - [ucnperiod().is_pileup](#ucnperiod()is_pileup)
 
 ## ucnperiod
 
-[Show source in ucnperiod.py:22](../ucnperiod.py#L22)
+[Show source in ucnperiod.py:22](../../ucndata/ucnperiod.py#L22)
 
 Stores the data from a single UCN period from a single cycle
 
@@ -28,13 +28,9 @@ class ucnperiod(ucnbase):
     def __init__(self, ucycle, period): ...
 ```
 
-#### See also
+### ucnperiod().get_counts
 
-- [ucnbase](./ucnbase.md#ucnbase)
-
-### ucnperiod.get_counts
-
-[Show source in ucnperiod.py:84](../ucnperiod.py#L84)
+[Show source in ucnperiod.py:84](../../ucndata/ucnperiod.py#L84)
 
 Get sum of ucn hits
 
@@ -56,9 +52,9 @@ Get sum of ucn hits
 def get_counts(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None): ...
 ```
 
-### ucnperiod.get_rate
+### ucnperiod().get_rate
 
-[Show source in ucnperiod.py:177](../ucnperiod.py#L177)
+[Show source in ucnperiod.py:177](../../ucndata/ucnperiod.py#L177)
 
 Get sum of ucn hits per unit time of period
 
@@ -80,9 +76,9 @@ Get sum of ucn hits per unit time of period
 def get_rate(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None): ...
 ```
 
-### ucnperiod.is_pileup
+### ucnperiod().is_pileup
 
-[Show source in ucnperiod.py:146](../ucnperiod.py#L146)
+[Show source in ucnperiod.py:146](../../ucndata/ucnperiod.py#L146)
 
 Check if pileup may be an issue in this period.
 

@@ -275,7 +275,7 @@ class ucnrun(ucnbase):
 
         # check if tree exists
         if tree is None:
-            warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot set up cycle_param', MissingDataWarning)
+            warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot fully set up cycle_param', MissingDataWarning)
             return
         tree = tree.to_dataframe()
 

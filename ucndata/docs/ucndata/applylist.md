@@ -1,18 +1,18 @@
 # applylist
 
-[Ucndata Index](./README.md#ucndata-index) / applylist
+[Ucndata Index](../README.md#ucndata-index) / [Ucndata](./index.md#ucndata) / applylist
 
-> Auto-generated documentation for [applylist](../applylist.py) module.
+> Auto-generated documentation for [ucndata.applylist](../../ucndata/applylist.py) module.
 
 - [applylist](#applylist)
   - [applylist](#applylist-1)
-    - [applylist.apply](#applylist()apply)
-    - [applylist.astype](#applylist()astype)
-    - [applylist.transpose](#applylist()transpose)
+    - [applylist().apply](#applylist()apply)
+    - [applylist().astype](#applylist()astype)
+    - [applylist().transpose](#applylist()transpose)
 
 ## applylist
 
-[Show source in applylist.py:7](../applylist.py#L7)
+[Show source in applylist.py:7](../../ucndata/applylist.py#L7)
 
 A list object with the following enhancements:
 
@@ -54,9 +54,9 @@ A list object with the following enhancements:
 class applylist(list): ...
 ```
 
-### applylist.apply
+### applylist().apply
 
-[Show source in applylist.py:121](../applylist.py#L121)
+[Show source in applylist.py:121](../../ucndata/applylist.py#L121)
 
 Apply function to each element contained, similar to pandas functionality
 
@@ -95,9 +95,9 @@ fn (function handle): function to apply to each element
 def apply(self, fn, inplace=False): ...
 ```
 
-### applylist.astype
+### applylist().astype
 
-[Show source in applylist.py:100](../applylist.py#L100)
+[Show source in applylist.py:100](../../ucndata/applylist.py#L100)
 
 Convert datatypes in self to typecast
 
@@ -126,9 +126,9 @@ None, works in-place
 def astype(self, typecast): ...
 ```
 
-### applylist.transpose
+### applylist().transpose
 
-[Show source in applylist.py:162](../applylist.py#L162)
+[Show source in applylist.py:162](../../ucndata/applylist.py#L162)
 
 Transpose by conversion to np.array and back
 
