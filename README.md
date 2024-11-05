@@ -2,6 +2,8 @@
 
 This repository defines the [ucndata] package and a few scripts which utilize this package to analyze data from the 2024 run.
 
+The `ucndata` package contained within has been installed system-wide on daq04. You will therefore be able to import it from any directory. 
+
 ## ucndata quick links
 
 * [Installation](ucndata/tutorials/installation.md)
