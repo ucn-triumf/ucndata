@@ -267,10 +267,16 @@ class ucnrun(ucnbase):
         self.cycle_param = attrdict(self.cycle_param)
 
         # setup cycle paramtree array outputs from transition trees
+        tree = None
         for detector in settings.DET_NAMES.values():
             if detector['transitions'] in self.tfile.keys():
                 tree = self.tfile[detector['transitions']]
                 break
+
+        # check if tree exists
+        if tree is None:
+            warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot set up cycle_param', MissingDataWarning)
+            return
         tree = tree.to_dataframe()
 
         # cycle and supercycle indices
