@@ -14,6 +14,12 @@ cd ../docs
 for file in *;
 do
     if [ -f "$file" ];  then
+
+        # replace bad empty parentheses
         sed -i 's/()././' $file
+
+        # repace broken table of contents links
+        name=$(basename $file .md)
+        sed -i "s/#${name}()/#${name}/" $file
     fi
 done

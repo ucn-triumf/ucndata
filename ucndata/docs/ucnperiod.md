@@ -6,9 +6,9 @@
 
 - [ucnperiod](#ucnperiod)
   - [ucnperiod](#ucnperiod-1)
-    - [ucnperiod.get_counts](#ucnperiod()get_counts)
-    - [ucnperiod.get_rate](#ucnperiod()get_rate)
-    - [ucnperiod.is_pileup](#ucnperiod()is_pileup)
+    - [ucnperiod.get_counts](#ucnperiodget_counts)
+    - [ucnperiod.get_rate](#ucnperiodget_rate)
+    - [ucnperiod.is_pileup](#ucnperiodis_pileup)
 
 ## ucnperiod
 

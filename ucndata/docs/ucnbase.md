@@ -6,14 +6,14 @@
 
 - [ucnbase](#ucnbase)
   - [ucnbase](#ucnbase-1)
-    - [ucnbase.apply](#ucnbase()apply)
-    - [ucnbase.beam_current_uA](#ucnbase()beam_current_ua)
-    - [ucnbase.beam_off_s](#ucnbase()beam_off_s)
-    - [ucnbase.beam_on_s](#ucnbase()beam_on_s)
-    - [ucnbase.from_dataframe](#ucnbase()from_dataframe)
-    - [ucnbase.get_hits](#ucnbase()get_hits)
-    - [ucnbase.get_hits_histogram](#ucnbase()get_hits_histogram)
-    - [ucnbase.to_dataframe](#ucnbase()to_dataframe)
+    - [ucnbase.apply](#ucnbaseapply)
+    - [ucnbase.beam_current_uA](#ucnbasebeam_current_ua)
+    - [ucnbase.beam_off_s](#ucnbasebeam_off_s)
+    - [ucnbase.beam_on_s](#ucnbasebeam_on_s)
+    - [ucnbase.from_dataframe](#ucnbasefrom_dataframe)
+    - [ucnbase.get_hits](#ucnbaseget_hits)
+    - [ucnbase.get_hits_histogram](#ucnbaseget_hits_histogram)
+    - [ucnbase.to_dataframe](#ucnbaseto_dataframe)
 
 ## ucnbase
 
