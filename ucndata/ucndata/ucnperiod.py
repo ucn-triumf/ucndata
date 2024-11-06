@@ -93,6 +93,13 @@ class ucnperiod(ucnbase):
 
         Returns:
             tuple: (count, error) number of hits
+
+        Example:
+            ```python
+            >>> p = run[0,0]
+            >>> p.get_counts('Li6')
+            (347, np.float64(18.627936010197157))
+            ```
         """
         hit_tree = self.get_hits(detector)
         counts = len(hit_tree.index)
@@ -153,6 +160,13 @@ class ucnperiod(ucnbase):
 
         Returns:
             bool: true if pileup detected
+
+        Example:
+            ```python
+            >>> p = run[0, 0]
+            >>> p.is_pileup('Li6')
+            False
+            ```
         """
 
         # get the tree
@@ -186,6 +200,13 @@ class ucnperiod(ucnbase):
 
         Returns:
             tuple: (count rate, error)
+
+        Example:
+            ```python
+            >>> p = run[0,0]
+            >>> p.get_rate('Li6')
+            (np.float64(5.783333333333333), np.float64(0.3104656001699526))
+            ```
         """
         # get counts
         counts, dcounts = self.get_counts(detector=detector,

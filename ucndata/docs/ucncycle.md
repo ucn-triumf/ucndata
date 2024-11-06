@@ -81,6 +81,16 @@ If count period specified:
 * check too few counts (`min_total_counts`)
 * does pileup exist? (>`pileup_cnt_per_ms` in the first `pileup_within_first_s`)
 
+#### Examples
+
+```python
+>>> cycle = run[0]
+>>> x = cycle.check_data(period_production=0)
+Run 1846, cycle 0: Beam current dropped to 0.0 uA
+>>> x
+False
+```
+
 #### Signature
 
 ```python
@@ -96,7 +106,7 @@ def check_data(
 
 ### ucncycle.get_counts
 
-[Show source in ucncycle.py:235](../../ucncycle.py#L235)
+[Show source in ucncycle.py:243](../../ucncycle.py#L243)
 
 Get counts for a/each period
 
@@ -113,7 +123,26 @@ Get counts for a/each period
 
 #### Returns
 
-- `tuple` - number of hits for each period and error
+- `tuple` - (value, error) number of hits
+
+#### Examples
+
+```python
+>>> cycle = run[0]
+
+# counts for full cycle
+>>> cycle.get_counts('Li6')
+(25397, np.float64(159.3643623900902))
+
+# counts for all periods
+>>> cycle.get_counts('Li6', -1)
+(array([  352,     5, 24720]),
+ array([ 18.76166304,   2.23606798, 157.22595206]))
+
+# counts for single period (in this case period 0)
+>>> cycle.get_counts('Li6', 0)
+(np.int64(352), np.float64(18.76166303929372))
+```
 
 #### Signature
 
@@ -125,14 +154,15 @@ def get_counts(
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:299](../../ucncycle.py#L299)
+[Show source in ucncycle.py:325](../../ucncycle.py#L325)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
 #### Notes
 
-This process converts all objects to dataframes
-Must be called for a single cycle only
+* This process converts all objects to dataframes
+* Must be called for a single cycle only
+* Equivalent to indexing style: `cycle[period]`
 
 #### Arguments
 
@@ -145,6 +175,18 @@ run:
     if period > 0: a copy of this object but with data from only one period.
     if period < 0 | None: a list of copies of this object for all periods for a single cycle
 
+#### Examples
+
+```python
+>>> cycle = run[0]
+>>> cycle.get_period(0)
+run 1846 (cycle 0, period 0):
+    comment            cycle_stop         period_start       shifters           tfile
+    cycle              experiment_number  period_stop        start_time         year
+    cycle_param        month              run_number         stop_time
+    cycle_start        period             run_title          supercycle
+```
+
 #### Signature
 
 ```python
@@ -153,7 +195,7 @@ def get_period(self, period=None): ...
 
 ### ucncycle.get_rate
 
-[Show source in ucncycle.py:323](../../ucncycle.py#L323)
+[Show source in ucncycle.py:361](../../ucncycle.py#L361)
 
 Get count rate for each period
 
@@ -167,7 +209,21 @@ Get count rate for each period
 
 #### Returns
 
-- `np.ndarray` - count rate each period and error
+- [applylist](./applylist.md#applylist) - count rate each period and error
+    [(period0_value, period0_error),
+     (period1_value, period1_error),
+     ...
+    ]
+
+#### Examples
+
+```python
+>>> cycle = run[0]
+>>> cycle.get_rate('Li6')
+[(np.float64(5.783333333333333), np.float64(0.3104656001699526)),
+ (np.float64(4.0), np.float64(1.4142135623730951)),
+ (np.float64(247.07), np.float64(1.5718460484411316))]
+```
 
 #### Signature
 

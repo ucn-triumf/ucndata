@@ -144,6 +144,14 @@ class ucncycle(ucnbase):
                 * check too few counts (`min_total_counts`)
                 * does pileup exist? (>`pileup_cnt_per_ms` in the first `pileup_within_first_s`)
 
+        Example:
+            ```python
+            >>> cycle = run[0]
+            >>> x = cycle.check_data(period_production=0)
+            Run 1846, cycle 0: Beam current dropped to 0.0 uA
+            >>> x
+            False
+            ```
         """
         # setup error message
         msg = f'Run {self.run_number}, cycle {self.cycle}:'
@@ -245,7 +253,25 @@ class ucncycle(ucnbase):
             dnorm (float|None): error in normalization
 
         Returns:
-            tuple: number of hits for each period and error
+            tuple: (value, error) number of hits
+
+        Example:
+            ```python
+            >>> cycle = run[0]
+
+            # counts for full cycle
+            >>> cycle.get_counts('Li6')
+            (25397, np.float64(159.3643623900902))
+
+            # counts for all periods
+            >>> cycle.get_counts('Li6', -1)
+            (array([  352,     5, 24720]),
+             array([ 18.76166304,   2.23606798, 157.22595206]))
+
+            # counts for single period (in this case period 0)
+            >>> cycle.get_counts('Li6', 0)
+            (np.int64(352), np.float64(18.76166303929372))
+            ```
         """
 
         # check input
@@ -300,8 +326,9 @@ class ucncycle(ucnbase):
         """Return a copy of this object, but trees are trimmed to only one period.
 
         Notes:
-            This process converts all objects to dataframes
-            Must be called for a single cycle only
+            * This process converts all objects to dataframes
+            * Must be called for a single cycle only
+            * Equivalent to indexing style: `cycle[period]`
 
         Args:
             period (int): period number, if None, get all periods
@@ -311,6 +338,17 @@ class ucncycle(ucnbase):
             run:
                 if period > 0: a copy of this object but with data from only one period.
                 if period < 0 | None: a list of copies of this object for all periods for a single cycle
+
+        Example:
+            ```python
+            >>> cycle = run[0]
+            >>> cycle.get_period(0)
+            run 1846 (cycle 0, period 0):
+                comment            cycle_stop         period_start       shifters           tfile
+                cycle              experiment_number  period_stop        start_time         year
+                cycle_param        month              run_number         stop_time
+                cycle_start        period             run_title          supercycle
+            ```
         """
 
         # get all periods
@@ -330,7 +368,20 @@ class ucncycle(ucnbase):
             dnorm (float|None): error in normalization
 
         Returns:
-            np.ndarray: count rate each period and error
+            applylist: count rate each period and error
+                [(period0_value, period0_error),
+                 (period1_value, period1_error),
+                 ...
+                ]
+
+        Example:
+            ```python
+            >>> cycle = run[0]
+            >>> cycle.get_rate('Li6')
+            [(np.float64(5.783333333333333), np.float64(0.3104656001699526)),
+             (np.float64(4.0), np.float64(1.4142135623730951)),
+             (np.float64(247.07), np.float64(1.5718460484411316))]
+            ```
         """
-        rate = [p.get_rate(detector, bkgd=bkgd, dbkgd=dbkgd, norm=norm, dnorm=dnorm) for p in self.periods()]
-        return np.array(rate)
+        rate = [p.get_rate(detector, bkgd=bkgd, dbkgd=dbkgd, norm=norm, dnorm=dnorm) for p in self.get_period()]
+        return applylist(rate)
