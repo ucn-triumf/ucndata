@@ -124,10 +124,14 @@ def regen_database(path=None):
 
     # backup the database
     bkup = datasettings.filename + '.bkup'
-    shutil.copy(datasettings.filename, bkup)
+    try:
+        shutil.copy(datasettings.filename, bkup)
+    except FileNotFoundError:
+        pass
 
-    # delete the database
-    os.remove(datasettings.filename)
+    # delete the database if exists
+    else:
+        os.remove(datasettings.filename)
 
     # get those files
     add_runs_to_database(paths)
