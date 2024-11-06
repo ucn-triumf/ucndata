@@ -2,14 +2,14 @@
 
 [Ucndata Index](./README.md#ucndata-index) / Read
 
-> Auto-generated documentation for [read](../read.py) module.
+> Auto-generated documentation for [read](../../read.py) module.
 
 - [Read](#read)
   - [read](#read)
 
 ## read
 
-[Show source in read.py:16](../read.py#L16)
+[Show source in read.py:16](../../read.py#L16)
 
 Read out single or multiple UCN run files from ROOT
 

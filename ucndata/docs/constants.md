@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / Constants
 
-> Auto-generated documentation for [constants](../constants.py) module.
+> Auto-generated documentation for [constants](../../constants.py) module.
 
 #### Attributes
 

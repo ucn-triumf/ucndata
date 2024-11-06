@@ -29,11 +29,9 @@ These are the main workhorses of the ucndata project:
 Run the following:
 
 ```bash
-cd ucndata
-handsdown -o ../docs
+./gen_documentation.bash
 ```
 
-Then fix broken links by deleting all `()` in the documentation files.
 
 [rootloader]: https://github.com/ucn-triumf/rootloader
 [midas2root]: https://github.com/ucn-triumf/ucn_detector_analyzer/tree/2024

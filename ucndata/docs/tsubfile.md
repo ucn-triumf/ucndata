@@ -2,14 +2,14 @@
 
 [Ucndata Index](./README.md#ucndata-index) / tsubfile
 
-> Auto-generated documentation for [tsubfile](../tsubfile.py) module.
+> Auto-generated documentation for [tsubfile](../../tsubfile.py) module.
 
 - [tsubfile](#tsubfile)
   - [tsubfile](#tsubfile-1)
 
 ## tsubfile
 
-[Show source in tsubfile.py:10](../tsubfile.py#L10)
+[Show source in tsubfile.py:10](../../tsubfile.py#L10)
 
 Wrapper for tfile which restricts access to values only within given times
 

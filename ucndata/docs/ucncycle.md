@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / ucncycle
 
-> Auto-generated documentation for [ucncycle](../ucncycle.py) module.
+> Auto-generated documentation for [ucncycle](../../ucncycle.py) module.
 
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
@@ -13,7 +13,7 @@
 
 ## ucncycle
 
-[Show source in ucncycle.py:24](../ucncycle.py#L24)
+[Show source in ucncycle.py:24](../../ucncycle.py#L24)
 
 View for the data from a single UCN cycle
 
@@ -40,7 +40,7 @@ class ucncycle(ucnbase):
 
 ### ucncycle.check_data
 
-[Show source in ucncycle.py:108](../ucncycle.py#L108)
+[Show source in ucncycle.py:108](../../ucncycle.py#L108)
 
 Run some checks to determine if the data is ok.
 
@@ -96,7 +96,7 @@ def check_data(
 
 ### ucncycle.get_counts
 
-[Show source in ucncycle.py:235](../ucncycle.py#L235)
+[Show source in ucncycle.py:235](../../ucncycle.py#L235)
 
 Get counts for a/each period
 
@@ -125,7 +125,7 @@ def get_counts(
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:299](../ucncycle.py#L299)
+[Show source in ucncycle.py:299](../../ucncycle.py#L299)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -153,7 +153,7 @@ def get_period(self, period=None): ...
 
 ### ucncycle.get_rate
 
-[Show source in ucncycle.py:323](../ucncycle.py#L323)
+[Show source in ucncycle.py:323](../../ucncycle.py#L323)
 
 Get count rate for each period
 

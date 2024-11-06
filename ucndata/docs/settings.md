@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / Settings
 
-> Auto-generated documentation for [settings](../settings.py) module.
+> Auto-generated documentation for [settings](../../settings.py) module.
 
 #### Attributes
 
@@ -26,7 +26,7 @@
 
 ## keyfilter
 
-[Show source in settings.py:49](../settings.py#L49)
+[Show source in settings.py:49](../../settings.py#L49)
 
 Don't load all the data in each file, only that which is needed
 

@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / Merge
 
-> Auto-generated documentation for [merge](../merge.py) module.
+> Auto-generated documentation for [merge](../../merge.py) module.
 
 - [Merge](#merge)
   - [merge](#merge)
@@ -10,7 +10,7 @@
 
 ## merge
 
-[Show source in merge.py:13](../merge.py#L13)
+[Show source in merge.py:13](../../merge.py#L13)
 
 Merge a list of ucndata objects into a single object
 
@@ -38,7 +38,7 @@ def merge(ucnlist): ...
 
 ## merge_inlist
 
-[Show source in merge.py:194](../merge.py#L194)
+[Show source in merge.py:194](../../merge.py#L194)
 
 Merge runs within a list and return a new list with the merged objects
 
