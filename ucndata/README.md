@@ -24,5 +24,16 @@ These are the main workhorses of the ucndata project:
 * [settings](docs/settings.md) - change behaviour of ucnrun objects
 * [ucnrun](docs/ucnrun.md) - workhorse object representing a single run
 
+## Generate documentation
+
+Run the following:
+
+```bash
+cd ucndata
+handsdown -o ../docs
+```
+
+Then fix broken links by deleting all `()` in the documentation files.
+
 [rootloader]: https://github.com/ucn-triumf/rootloader
 [midas2root]: https://github.com/ucn-triumf/ucn_detector_analyzer/tree/2024

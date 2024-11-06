@@ -337,9 +337,15 @@ class ucnrun(ucnbase):
         Returns:
             bool: true if check passes, else false.
 
-        Checks:
-            Do the settings.SLOW_TREES exist and have entries?
-            Are there nonzero counts in UCNHits?
+        Notes:
+            * Do the settings.SLOW_TREES exist and have entries?
+            * Are there nonzero counts in UCNHits?
+
+        Example:
+            ```python
+            >>> run.check_data()
+            True
+            ```
         """
 
         # check some necessary data trees
@@ -396,10 +402,23 @@ class ucnrun(ucnbase):
             quiet (bool): if true don't print or raise exception
 
         Returns:
-            np.array: of bool, true if keep cycle, false if discard
+            np.array(bool): true if keep cycle, false if discard
 
         Notes:
-            calls ucncycle.check_data on each cycle
+            calls `ucncycle.check_data` on each cycle
+
+        Example:
+            ```python
+            >>> run.cycle_param.ncycles
+            17
+            >>> x = run.gen_cycle_filter(period_production=0, period_count=2)
+            Run 1846, cycle 0: Beam current dropped to 0.0 uA
+            Run 1846, cycle 11: Beam current dropped to 0.0 uA
+            Run 1846, cycle 16: Detected pileup in period 2 of detector Li6
+            >>> x
+            array([False,  True,  True,  True,  True,  True,  True,  True,  True,
+                    True,  True, False,  True,  True,  True,  True, False])
+            ```
         """
 
         cycles = self.get_cycle()
@@ -422,6 +441,20 @@ class ucnrun(ucnbase):
             ucncycle:
                 if cycle > 0:  ucncycle object
                 if cycle < 0 | None: a list ucncycle objects for all cycles
+
+        Examples:
+            ```python
+            # get single cycle
+            >>> run.get_cycle(0)
+            run 1846 (cycle 0):
+                comment            cycle_start        month              shifters           supercycle
+                cycle              cycle_stop         run_number         start_time         tfile
+                cycle_param        experiment_number  run_title          stop_time          year
+
+            # get all cycles
+            >>> len(run.get_cycle())
+            17
+            ```
         """
 
         if cycle is None or cycle < 0:
@@ -433,26 +466,61 @@ class ucnrun(ucnbase):
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating
 
-        Notes:
-            Filter is ONLY applied when fetching cycles as a slice or as an iterator. ucnrun.get_cycle() always returns unfiltered cycles.
-
-        Examples where the filter is applied:
-            * run[:]
-            * run[3:10]
-            * run[:3]
-            * for c in run: print(c)
-
-        Examples where the filter is not applied:
-            * run[2]
-            * run.get_cycle()
-            * run.get_cycle(2)
-
         Args:
             cfilter (None|iterable): list of bool, True if keep cycle, False if reject.
                 if None then same as if all True
 
         Returns:
             None: sets self.cycle_param.filter
+
+        Notes:
+            Filter is ONLY applied when fetching cycles as a slice or as an iterator. ucnrun.get_cycle() always returns unfiltered cycles.
+
+            Examples where the filter is applied:
+                * run[:]
+                * run[3:10]
+                * run[:3]
+                * for c in run: print(c)
+
+            Examples where the filter is not applied:
+                * run[2]
+                * run.get_cycle()
+                * run.get_cycle(2)
+
+        Example:
+
+            ```python
+            # check how many cycles are fetched without filter
+            >>> len(run[:])
+            17
+
+            # apply a filter
+            >>> filter = np.full(17, True)
+            >>> filter[2] = False
+            >>> run.set_cycle_filter(filter)
+
+            # check that cycle 2 is filtered out
+            >>> len(run[:])
+            16
+            >>> for c in run:
+                    print(c.cycle)
+            0
+            1
+            3
+            4
+            5
+            6
+            7
+            8
+            9
+            10
+            11
+            12
+            13
+            14
+            15
+            16
+            ```
         """
 
         # check input
@@ -477,6 +545,10 @@ class ucnrun(ucnbase):
                 if he3: use He3 detector cycle start times
                 if li6: use Li6 detector cycle start times
 
+        Returns:
+            pd.DataFrame: with columns "start", "stop", "offset" and "duration (s)". Values are in epoch time. Indexed by cycle id. Offset is the difference in detector start times: he3_start-li6_start
+
+
         Notes:
             - If run ends before sequencer stop is called, a stop is set to final timestamp.
             - If the sequencer is disabled mid-run, a stop is set when disable ocurrs.
@@ -487,8 +559,11 @@ class ucnrun(ucnbase):
                 - set start/stop/duration based on start_He3
             - If the object reflects a single cycle, return from cycle_start, cycle_stop
 
-        Returns:
-            pd.DataFrame: with columns "start", "stop", "offset" and "duration (s)". Values are in epoch time. Indexed by cycle id. Offset is the difference in detector start times: he3_start-li6_start
+        Example:
+            ```python
+            # this calculates new cycle start and end times based on the selected method
+            >>> run.set_cycle_times('li6')
+            ```
         """
 
         # check if single cycle

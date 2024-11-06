@@ -1,20 +1,20 @@
 # ucnrun
 
-[Ucndata Index](./README.md#ucndata-index) / ucnrun
+[Ucndata Index](../README.md#ucndata-index) / [Ucndata](./index.md#ucndata) / ucnrun
 
-> Auto-generated documentation for [ucnrun](../ucnrun.py) module.
+> Auto-generated documentation for [ucndata.ucnrun](../../ucndata/ucnrun.py) module.
 
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
-    - [ucnrun.check_data](#ucnrun()check_data)
-    - [ucnrun.gen_cycle_filter](#ucnrun()gen_cycle_filter)
-    - [ucnrun.get_cycle](#ucnrun()get_cycle)
-    - [ucnrun.set_cycle_filter](#ucnrun()set_cycle_filter)
-    - [ucnrun.set_cycle_times](#ucnrun()set_cycle_times)
+    - [ucnrun.check\_data](#ucnruncheck_data)
+    - [ucnrun.gen\_cycle\_filter](#ucnrungen_cycle_filter)
+    - [ucnrun.get\_cycle](#ucnrunget_cycle)
+    - [ucnrun.set\_cycle\_filter](#ucnrunset_cycle_filter)
+    - [ucnrun.set\_cycle\_times](#ucnrunset_cycle_times)
 
 ## ucnrun
 
-[Show source in ucnrun.py:27](../ucnrun.py#L27)
+[Show source in ucnrun.py:27](../../ucndata/ucnrun.py#L27)
 
 UCN run data. Cleans data and performs analysis
 
@@ -127,13 +127,9 @@ class ucnrun(ucnbase):
     def __init__(self, run, header_only=False): ...
 ```
 
-#### See also
-
-- [ucnbase](./ucnbase.md#ucnbase)
-
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:325](../ucnrun.py#L325)
+[Show source in ucnrun.py:331](../../ucndata/ucnrun.py#L331)
 
 Run some checks to determine if the data is ok.
 
@@ -145,9 +141,17 @@ Run some checks to determine if the data is ok.
 
 - `bool` - true if check passes, else false.
 
-Checks:
-    Do the settings.SLOW_TREES exist and have entries?
-    Are there nonzero counts in UCNHits?
+#### Notes
+
+* Do the settings.SLOW_TREES exist and have entries?
+* Are there nonzero counts in UCNHits?
+
+#### Examples
+
+```python
+>>> run.check_data()
+True
+```
 
 #### Signature
 
@@ -157,7 +161,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:382](../ucnrun.py#L382)
+[Show source in ucnrun.py:394](../../ucndata/ucnrun.py#L394)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -170,11 +174,25 @@ Generate filter array for cycles. Use with self.set_cycle_filter to filter cycle
 
 #### Returns
 
-- `np.array` - of bool, true if keep cycle, false if discard
+- `np.array(bool)` - true if keep cycle, false if discard
 
 #### Notes
 
-calls ucncycle.check_data on each cycle
+calls `ucncycle.check_data` on each cycle
+
+#### Examples
+
+```python
+>>> run.cycle_param.ncycles
+17
+>>> x = run.gen_cycle_filter(period_production=0, period_count=2)
+Run 1846, cycle 0: Beam current dropped to 0.0 uA
+Run 1846, cycle 11: Beam current dropped to 0.0 uA
+Run 1846, cycle 16: Detected pileup in period 2 of detector Li6
+>>> x
+array([False,  True,  True,  True,  True,  True,  True,  True,  True,
+        True,  True, False,  True,  True,  True,  True, False])
+```
 
 #### Signature
 
@@ -186,7 +204,7 @@ def gen_cycle_filter(
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:407](../ucnrun.py#L407)
+[Show source in ucnrun.py:432](../../ucndata/ucnrun.py#L432)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -202,6 +220,21 @@ ucncycle:
     if cycle > 0:  ucncycle object
     if cycle < 0 | None: a list ucncycle objects for all cycles
 
+#### Examples
+
+```python
+# get single cycle
+>>> run.get_cycle(0)
+run 1846 (cycle 0):
+    comment            cycle_start        month              shifters           supercycle
+    cycle              cycle_stop         run_number         start_time         tfile
+    cycle_param        experiment_number  run_title          stop_time          year
+
+# get all cycles
+>>> len(run.get_cycle())
+17
+```
+
 #### Signature
 
 ```python
@@ -210,9 +243,18 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:427](../ucnrun.py#L427)
+[Show source in ucnrun.py:466](../../ucndata/ucnrun.py#L466)
 
 Set filter for which cycles to fetch when slicing or iterating
+
+#### Arguments
+
+- `cfilter` *None|iterable* - list of bool, True if keep cycle, False if reject.
+    if None then same as if all True
+
+#### Returns
+
+- `None` - sets self.cycle_param.filter
 
 #### Notes
 
@@ -229,14 +271,40 @@ Examples where the filter is not applied:
     * run.get_cycle()
     * run.get_cycle(2)
 
-#### Arguments
+#### Examples
 
-- `cfilter` *None|iterable* - list of bool, True if keep cycle, False if reject.
-    if None then same as if all True
+```python
+# check how many cycles are fetched without filter
+>>> len(run[:])
+17
 
-#### Returns
+# apply a filter
+>>> filter = np.full(17, True)
+>>> filter[2] = False
+>>> run.set_cycle_filter(filter)
 
-- `None` - sets self.cycle_param.filter
+# check that cycle 2 is filtered out
+>>> len(run[:])
+16
+>>> for c in run:
+        print(c.cycle)
+0
+1
+3
+4
+5
+6
+7
+8
+9
+10
+11
+12
+13
+14
+15
+16
+```
 
 #### Signature
 
@@ -246,7 +314,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:461](../ucnrun.py#L461)
+[Show source in ucnrun.py:535](../../ucndata/ucnrun.py#L535)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
@@ -261,6 +329,10 @@ Run this if you want to change how cycle start times are calculated
     - `if` *he3* - use He3 detector cycle start times
     - `if` *li6* - use Li6 detector cycle start times
 
+#### Returns
+
+- `pd.DataFrame` - with columns "start", "stop", "offset" and "duration (s)". Values are in epoch time. Indexed by cycle id. Offset is the difference in detector start times: he3_start-li6_start
+
 #### Notes
 
 - If run ends before sequencer stop is called, a stop is set to final timestamp.
@@ -272,9 +344,12 @@ Run this if you want to change how cycle start times are calculated
     - set start/stop/duration based on start_He3
 - If the object reflects a single cycle, return from cycle_start, cycle_stop
 
-#### Returns
+#### Examples
 
-- `pd.DataFrame` - with columns "start", "stop", "offset" and "duration (s)". Values are in epoch time. Indexed by cycle id. Offset is the difference in detector start times: he3_start-li6_start
+```python
+# this calculates new cycle start and end times based on the selected method
+>>> run.set_cycle_times('li6')
+```
 
 #### Signature
 
