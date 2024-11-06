@@ -10,7 +10,6 @@
     * If you import more than numpy or pandas you will need to update gen_database.get_run_searchables
 
 """
-
 import pandas, numpy, ucndata, os
 
 # HEADER ITEMS ----------------------------------------------------------
@@ -23,6 +22,7 @@ def comment(r):     return r.comment
 def title(r):       return r.run_title
 def shifters(r):    return r.shifters
 def experiment(r):  return r.experiment_number
+def path(r):        return r.path
 
 # BEAMLINE ---------------------------------------------------------------
 def beam_current_mean(r):
@@ -38,27 +38,50 @@ def beam_current_mean(r):
 
 def beam_current_std(r):
 
-    # beam currents for each cycle/period
-    means = r[:,:].beam_current_uA.apply(numpy.mean)
-    stdev = r[:,:].beam_current_uA.apply(numpy.std)
+    period = production_period(r)
 
-    # get period for most largest current
-    period = pandas.DataFrame(means).mean(axis='index').argmax()
+    # beam currents for each cycle/period
+    stdev = r[:,period].beam_current_uA.apply(numpy.std)
 
     # get stdev of period with largest current
-    return pandas.DataFrame(stdev)[period].mean(axis='index')
+    return numpy.mean(stdev)
 
 def beam_duration_on(r):    return numpy.mean(r.beam_on_s)
 def beam_duration_off(r):   return numpy.mean(r.beam_off_s)
+
+# RUN PARAMETERS ---------------------------------------------------------
+def production_period(r):
+    # beam currents for each cycle/period
+    means = r[:,:].beam_current_uA.apply(numpy.mean)
+
+    # get period with largest current
+    return pandas.DataFrame(means).mean(axis='index').argmax()
+
+def count_period_li6(r):
+    # period with highest counts
+    counts, _ = r[:,:].get_counts('Li6').transpose()
+    mean_counts = numpy.mean(counts, axis=1)
+    return numpy.argmax(mean_counts)
+
+def count_period_he3(r):
+    # period with highest counts
+    counts, _ = r[:,:].get_counts('He3').transpose()
+    mean_counts = numpy.mean(counts, axis=1)
+    return numpy.argmax(mean_counts)
 
 # STATISTICS -------------------------------------------------------------
 def counts_li6(r):  return r.get_hits('Li6')['tIsUCN'].sum()
 def counts_he3(r):  return r.get_hits('He3')['tIsUCN'].sum()
 
+def background_li6(r):
+    counts, _ = r[:, production_period(r)].get_counts('Li6').transpose()
+    return numpy.mean(counts)
+
+def background_he3(r):
+    counts, _ = r[:, production_period(r)].get_counts('He3').transpose()
+    return numpy.mean(counts)
+
 # SOURCE PARAMETERS ------------------------------------------------------
 
 # MISC -------------------------------------------------------------------
-def path(r):
-    filename = f'ucn_run_{r.run_number:0>8}.root'
-    rel_path = os.path.join(ucndata.settings.datadir, filename)
-    return os.path.abspath(rel_path)
+

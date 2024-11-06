@@ -3,7 +3,7 @@
 # Nov 2024
 
 import fastparquet as fp
-import settings
+import settings as datasettings
 import searchables
 import pandas as pd
 import numpy as np
@@ -43,7 +43,7 @@ def add_runs_to_database(run_number_list):
 
     # read the database
     try:
-        db = fp.ParquetFile(settings.filename).to_pandas()
+        db = fp.ParquetFile(datasettings.filename).to_pandas()
     except FileNotFoundError:
         db = pd.DataFrame()
 
@@ -57,7 +57,7 @@ def add_runs_to_database(run_number_list):
     db = db.convert_dtypes()
 
     # save
-    fp.write(settings.filename, db)
+    fp.write(datasettings.filename, db)
 
 def get_columns():
     """Get the columns in the database
@@ -65,7 +65,7 @@ def get_columns():
     Returns:
         list: column names
     """
-    return fp.ParquetFile(settings.filename).columns
+    return fp.ParquetFile(datasettings.filename).columns
 
 def get_database(columns=None):
     """Get the database as a pandas dataframe.
@@ -77,7 +77,7 @@ def get_database(columns=None):
     Returns:
         pd.DataFrame: the database
     """
-    return fp.ParquetFile(settings.filename).to_pandas(columns)
+    return fp.ParquetFile(datasettings.filename).to_pandas(columns)
 
 def get_run_searchables(run_number):
     """Get searchable run parameters as dictionary
@@ -117,11 +117,11 @@ def regen_database():
     paths = paths[:, 0]
 
     # backup the database
-    bkup = settings.filename + '.bkup'
-    shutil.copy(settings.filename, bkup)
+    bkup = datasettings.filename + '.bkup'
+    shutil.copy(datasettings.filename, bkup)
 
     # delete the database
-    os.remove(settings.filename)
+    os.remove(datasettings.filename)
 
     # get those files
     add_runs_to_database(paths)
@@ -153,7 +153,7 @@ def search_database(filters):
         [ [[C1], [C2]], [[C3], [C4]] ]
         ```
     """
-    return fp.ParquetFile(settings.filename).to_pandas(settings.output_columns,
+    return fp.ParquetFile(datasettings.filename).to_pandas(datasettings.output_columns,
                                                        filters=filters,
                                                        row_filter=True)
 
