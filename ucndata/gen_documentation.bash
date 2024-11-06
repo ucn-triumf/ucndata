@@ -7,7 +7,7 @@
 
 # generate the documentation
 cd ucndata
-handsdown -o ../docs
+handsdown -o ../docs --theme readthedocs
 
 # fix the broken links
 cd ../docs

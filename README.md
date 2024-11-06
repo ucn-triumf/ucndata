@@ -2,7 +2,7 @@
 
 This repository defines the [ucndata] package and a few scripts which utilize this package to analyze data from the 2024 run.
 
-The `ucndata` package contained within has been installed system-wide on daq04. You will therefore be able to import it from any directory. 
+The `ucndata` package contained within has been installed system-wide on daq04. You will therefore be able to import it from any directory.
 
 ## ucndata quick links
 
@@ -27,17 +27,27 @@ These are the main workhorses of the ucndata project:
 ## storagelifetime.py
 
 This script takes storage-lifetime experiments with three periods per cycle (irradiation, storage, counting) that were performed without a monitor detector available during irradiation.
-It takes the counts in either the the Li6 detector and determines the storage lifetime in the following way:
+It takes the counts in the Li6 detector and determines the storage lifetime in the following way:
 
-Subtract a fixed background rate and divide the background-corrected detector counts by the average beam current for each cycle. Plot against duration of the storage period. A single-exponential fit determines the storage lifetime. Fitting routine is Minuit. This is executed in two contexts:
+Subtract the background rate (irradiation period) and divide the background-corrected detector counts by the average beam current for each cycle. Plot against duration of the storage period. A single-exponential fit determines the storage lifetime. Fitting routine is Minuit. This is executed in two contexts:
 
 1. On a run-by-run basis
 2. With a global fit: shared lifetime but variable scaling coefficient
 
-Results are saved to the storagelifetime directory:
+Results are saved to the `storagelifetime` directory:
 
 1. Figures as pdfs
 2. A csv file with the storage lifetimes and counts
 3. A csv file with the fit parameters and errors
+
+## sourcesaturation.py
+
+This script takes source saturation experiments with two periods per cycle (irradiation, counting) that were performed without a monitor detector available during irradiation.
+It takes the counts in the Li6 detector and subtracts the background rate, then divides by the average beam current for each cycle. Plot against duration of the irradiation period.
+
+Results are saved to the `sourcesaturation` directory:
+
+1. Figures as pdfs
+2. A csv file with the irradiation durations and counts
 
 [ucndata]: ucndata/README.md
