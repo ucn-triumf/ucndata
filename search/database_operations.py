@@ -7,7 +7,7 @@ import settings as datasettings
 import searchables
 import pandas as pd
 import numpy as np
-import shutil, os
+import shutil, os, glob
 
 from ucndata import ucnrun
 from tqdm import tqdm
@@ -105,16 +105,22 @@ def get_run_searchables(run_number):
 
     return pd.Series(searchdir)
 
-def regen_database():
+def regen_database(path=None):
     """Regenerate the whole database. Useful if adding columns.
 
+    Args:
+        path (str|None): path to root file directory. If none, get paths from existing database
+
     Returns:
-        None: re-write database file
+        None: delete and re-write database file
     """
 
     # get filepaths in the database
-    paths = get_database(['path']).values
-    paths = paths[:, 0]
+    if path is None:
+        paths = get_database(['path']).values
+        paths = paths[:, 0]
+    else:
+        paths = glob.glob(os.path.join(path, 'ucn_run_*.root'))
 
     # backup the database
     bkup = datasettings.filename + '.bkup'
