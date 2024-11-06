@@ -83,7 +83,7 @@ def read(path, as_dataframe=True, nproc=-1, header_only=False):
 
     # read out the data
     if nproc <= 0:
-        nproc = max(cpu_count()+nproc, 1)
+        nproc = max((cpu_count()+nproc, 1))
 
     with Pool(nproc) as pool:
         fn = partial(ucnrun, header_only=header_only)
