@@ -136,6 +136,8 @@ class ucnrun(ucnbase):
         elif type(run) is str:
             filename = run
 
+        self.path = os.path.abspath(filename)
+
         # read
         if header_only:
             fid = ROOT.TFile(filename, 'READ')
