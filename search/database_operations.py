@@ -77,7 +77,7 @@ def get_database(columns=None):
     Returns:
         pd.DataFrame: the database
     """
-    return fp.ParquetFile(datasettings.filename).to_pandas(columns)
+    return fp.ParquetFile(datasettings.filename).to_pandas(columns).sort_index()
 
 def get_run_searchables(run_number):
     """Get searchable run parameters as dictionary
@@ -99,9 +99,19 @@ def get_run_searchables(run_number):
 
     # read the run
     run = ucnrun(run_number)
+    run.to_dataframe()
 
     # make searchable dict
-    searchdir = {fn: getattr(searchables, fn)(run) for fn in function_list}
+    searchdir = {}
+    for fn in function_list:
+        try:
+            searchdir[fn] = getattr(searchables, fn)(run)
+        except Exception as err:
+            searchdir[fn] = np.nan
+
+            err = str(err)
+            if "type object 'dict' has no attribute 'cycle_times'" not in err:
+                tqdm.write(err)
 
     return pd.Series(searchdir)
 
@@ -163,7 +173,9 @@ def search_database(filters):
         [ [[C1], [C2]], [[C3], [C4]] ]
         ```
     """
-    return fp.ParquetFile(datasettings.filename).to_pandas(datasettings.output_columns,
-                                                       filters=filters,
-                                                       row_filter=True)
+    pf = fp.ParquetFile(datasettings.filename)
+    df = pf.to_pandas(datasettings.output_columns,
+                    filters=filters,
+                    row_filter=True)
+    return df.sort_index()
 

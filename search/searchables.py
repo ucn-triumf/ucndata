@@ -23,6 +23,9 @@ def title(r):       return r.run_title
 def shifters(r):    return r.shifters
 def experiment(r):  return r.experiment_number
 def path(r):        return r.path
+def duration_hours(r):
+    times = r.tfile.BeamlineEpics.index.values
+    return (numpy.max(times)-numpy.min(times))/3600
 
 # BEAMLINE ---------------------------------------------------------------
 def beam_current_mean(r):

@@ -6,4 +6,4 @@
 filename = 'dataset.parquet'
 
 # columns to display after search
-output_columns = ['year', 'experiment', 'title', 'beam_current_mean', 'beam_current_mean']
+output_columns = ['year', 'experiment', 'title', 'duration_hours', 'beam_current_mean']
