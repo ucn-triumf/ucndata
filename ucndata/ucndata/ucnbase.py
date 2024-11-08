@@ -10,6 +10,7 @@ from .applylist import applylist
 import ucndata.constants as const
 import numpy as np
 import pandas as pd
+import time
 
 class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
@@ -212,27 +213,21 @@ class ucnbase(object):
 
         # get data
         df = self.tfile[settings.DET_NAMES[detector]['hits']].copy()
-
+        
         # to dataframe
         if not isinstance(df, pd.DataFrame):
             df = df.to_dataframe()
-
-        # get new index
-        index_col = df.index.name
-        df.reset_index(inplace=True)
-
-        # get timesteps for which there is an ucn
-        times = df.index[df.tIsUCN.values.astype(bool)].values
-        times = np.sort(times)
-
+        
+        # get hits only
+        df = df.tIsUCN
+        df = df[df.astype(bool)]
+        
+        # get times of hits
+        times = df.index.values
+        
         # purge bad timestamps
-        idx = df[index_col] > 15e8
-        if any(idx):
-            df = df.loc[idx]
-
-        # combine timestamps which are identical
-        df = df.groupby(index_col).sum()
-
+        times = times[times > 15e8]
+       
         # get histogram bin edges
         bins = np.arange(times.min(), times.max()+bin_ms/1000, bin_ms/1000)
         bins -= bin_ms/1000/2
