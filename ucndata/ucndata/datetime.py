@@ -121,4 +121,4 @@ def to_datetime(item):
 
     # array conversion
     else:
-        return converted.values
+        return converted
