@@ -588,35 +588,59 @@ class ucnrun(ucnbase):
             mode = settings.cycle_times_mode
         mode = mode.lower()
 
-        # get data
-        df = self.tfile.SequencerTree
-        if type(df) == ttree:
-            df = df.to_dataframe()
-
         # get run end time from control trees - used in matched and detector cycles times
         run_stop = -np.inf
         for treename in settings.SLOW_TREES:
             try:
                 idx = self.tfile[treename].to_dataframe().index
             except AttributeError as err:
-                if type(self.tfile[treename]) is pd.DataFrame:
+                if isinstance(self.tfile[treename], (pd.DataFrame, pd.Series)):
                     idx = self.tfile[treename].index
                 else:
                     raise err from None
+                    
+            # tree not found, skip
+            except KeyError:
+                pass
+                
             run_stop = max((idx.max(), run_stop))
+            
+        # bad end time
+        if np.isinf(run_stop):
+            raise MissingDataError("Missing slow control trees, cannot find run end time.")
+
+        # get squencer data
+        try:
+            df = self.tfile.SequencerTree
+        except AttributeError:
+            df = None
+        else:
+            if type(df) == ttree:
+                df = df.to_dataframe()
 
         ## if no sequencer, make the whole run a single cycle
-        if not any(df.sequencerEnabled):
+        if df is None or not any(df.sequencerEnabled):
 
-            times = {'start': np.inf,
-                     'stop': -np.inf,
-                     'supercycle': 0}
+            times = {'start': [np.inf],
+                     'stop': [-np.inf],
+                     'supercycle': [0]}
 
             # use timestamps from slow control trees to determine timestamps
             for treename in settings.SLOW_TREES:
-                idx = self.tfile[treename].to_dataframe().index
-                times['start'] = min((idx.min(), times['start']))
-                times['stop']  = max((idx.max(), times['stop']))
+                
+                # check for tree
+                if treename not in self.tfile.keys():
+                    continue
+                
+                # get times
+                if isinstance(self.tfile[treename], pd.DataFrame):
+                    idx = self.tfile[treename].index
+                else:
+                    idx = self.tfile[treename].to_dataframe().index
+                    
+                # find min and max
+                times['start'] = [min((idx.min(), times['start']))]
+                times['stop']  = [max((idx.max(), times['stop']))]
 
         ## get matched timesteps from He3 and Li6 RunTransitions
         elif mode in 'matched':
