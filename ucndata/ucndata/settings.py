@@ -32,7 +32,7 @@ DET_NAMES = {'He3':{'hits':         'UCNHits_He3',
 SLOW_TREES = ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
 
 # data thresholds for checking data
-DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA
+DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA3
                      'beam_max_current_std': 0.02, # uA
                      'max_bkgd_count_rate': 4, # fractional increase over DET_BKGD values
                      'min_total_counts': 100, # number of counts total
@@ -53,7 +53,7 @@ def keyfilter(name):
 
     # reject some keys based on partial matches
     reject_keys = ('v1725', 'v1720', 'v792', 'tv1725', 'charge', 'edge_diff',
-                   'pulse_widths', 'iv2', 'iv3')
+                   'pulse_widths', 'iv2', 'iv3', 'rate')
     for key in reject_keys:
         if key in name:
             return False
