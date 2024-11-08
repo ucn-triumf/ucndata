@@ -24,6 +24,14 @@ import itertools, warnings, os
 
 ROOT.gROOT.SetBatch(1)
 
+# patch warnings
+def new_format(message, category, filename, lineno, line):
+    filename = os.path.basename(filename)
+    return f'\n{filename}:{lineno}: {category.__name__}: {message}\n' 
+    
+warnings.formatwarning = new_format
+    
+
 class ucnrun(ucnbase):
     """UCN run data. Cleans data and performs analysis
 
