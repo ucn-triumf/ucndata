@@ -221,15 +221,17 @@ class ucnbase(object):
         index_col = df.index.name
         df.reset_index(inplace=True)
 
-        # purge bad timestamps
-        df = df.loc[df[index_col] > 15e8]
-
-        # combine timestamps which are identical
-        df = df.groupby(index_col).sum()
-
         # get timesteps for which there is an ucn
         times = df.index[df.tIsUCN.values.astype(bool)].values
         times = np.sort(times)
+
+        # purge bad timestamps
+        idx = df[index_col] > 15e8
+        if any(idx):
+            df = df.loc[idx]
+
+        # combine timestamps which are identical
+        df = df.groupby(index_col).sum()
 
         # get histogram bin edges
         bins = np.arange(times.min(), times.max()+bin_ms/1000, bin_ms/1000)
