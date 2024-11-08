@@ -271,8 +271,12 @@ class ucnrun(ucnbase):
                             'nsupercyc': paramtree.nSuperCyc[0],
                             'enable': bool(paramtree.enable[0]),
                             'inf_cyc_enable': bool(paramtree.infCyclesEnable[0]),
+                            'ncycles': 1
                             }
         self.cycle_param = attrdict(self.cycle_param)
+        
+        # cycle filter
+        self.cycle_param['filter'] = None
 
         # setup cycle paramtree array outputs from transition trees
         tree = None
@@ -283,7 +287,7 @@ class ucnrun(ucnbase):
 
         # check if tree exists
         if tree is None:
-            warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot fully set up cycle_param', MissingDataWarning)
+            warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot fully set up cycle_param', MissingDataWarning)           
             return
         tree = tree.to_dataframe()
 
@@ -333,8 +337,7 @@ class ucnrun(ucnbase):
         # number of cycles
         self.cycle_param['ncycles'] = len(df.index)
 
-        # cycle filter
-        self.cycle_param['filter'] = None
+        
 
     def check_data(self, raise_error=False):
         """Run some checks to determine if the data is ok.
