@@ -17,7 +17,7 @@
 
 ## ucnbase
 
-[Show source in ucnbase.py:14](../../ucnbase.py#L14)
+[Show source in ucnbase.py:15](../../ucnbase.py#L15)
 
 UCN run data. Cleans data and performs analysis
 
@@ -58,7 +58,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:108](../../ucnbase.py#L108)
+[Show source in ucnbase.py:109](../../ucnbase.py#L109)
 
 Apply function to each cycle
 
@@ -85,7 +85,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam_current_uA
 
-[Show source in ucnbase.py:274](../../ucnbase.py#L274)
+[Show source in ucnbase.py:271](../../ucnbase.py#L271)
 
 Get beam current in uA (micro amps)
 
@@ -125,7 +125,7 @@ def beam_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:357](../../ucnbase.py#L357)
+[Show source in ucnbase.py:354](../../ucnbase.py#L354)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -167,7 +167,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:322](../../ucnbase.py#L322)
+[Show source in ucnbase.py:319](../../ucnbase.py#L319)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -209,7 +209,7 @@ def beam_on_s(self): ...
 
 ### ucnbase.from_dataframe
 
-[Show source in ucnbase.py:125](../../ucnbase.py#L125)
+[Show source in ucnbase.py:126](../../ucnbase.py#L126)
 
 Convert self.tfile contents to rootfile struture types
 
@@ -241,7 +241,7 @@ def from_dataframe(self): ...
 
 ### ucnbase.get_hits
 
-[Show source in ucnbase.py:149](../../ucnbase.py#L149)
+[Show source in ucnbase.py:150](../../ucnbase.py#L150)
 
 Get times of ucn hits
 
@@ -282,7 +282,7 @@ def get_hits(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:189](../../ucnbase.py#L189)
+[Show source in ucnbase.py:190](../../ucnbase.py#L190)
 
 Get histogram of UCNHits ttree times
 
@@ -317,7 +317,7 @@ def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 
 ### ucnbase.to_dataframe
 
-[Show source in ucnbase.py:248](../../ucnbase.py#L248)
+[Show source in ucnbase.py:245](../../ucnbase.py#L245)
 
 Convert self.tfile contents to pd.DataFrame
 

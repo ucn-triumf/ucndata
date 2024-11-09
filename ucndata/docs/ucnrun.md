@@ -11,10 +11,11 @@
     - [ucnrun.get_cycle](#ucnrunget_cycle)
     - [ucnrun.set_cycle_filter](#ucnrunset_cycle_filter)
     - [ucnrun.set_cycle_times](#ucnrunset_cycle_times)
+  - [new_format](#new_format)
 
 ## ucnrun
 
-[Show source in ucnrun.py:27](../../ucnrun.py#L27)
+[Show source in ucnrun.py:35](../../ucnrun.py#L35)
 
 UCN run data. Cleans data and performs analysis
 
@@ -133,7 +134,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:339](../../ucnrun.py#L339)
+[Show source in ucnrun.py:351](../../ucnrun.py#L351)
 
 Run some checks to determine if the data is ok.
 
@@ -165,7 +166,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:402](../../ucnrun.py#L402)
+[Show source in ucnrun.py:414](../../ucnrun.py#L414)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -208,7 +209,7 @@ def gen_cycle_filter(
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:440](../../ucnrun.py#L440)
+[Show source in ucnrun.py:452](../../ucnrun.py#L452)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -247,7 +248,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:474](../../ucnrun.py#L474)
+[Show source in ucnrun.py:486](../../ucnrun.py#L486)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -318,7 +319,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:543](../../ucnrun.py#L543)
+[Show source in ucnrun.py:555](../../ucnrun.py#L555)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
@@ -359,4 +360,16 @@ Run this if you want to change how cycle start times are calculated
 
 ```python
 def set_cycle_times(self, mode="default"): ...
+```
+
+
+
+## new_format
+
+[Show source in ucnrun.py:28](../../ucnrun.py#L28)
+
+#### Signature
+
+```python
+def new_format(message, category, filename, lineno, line): ...
 ```

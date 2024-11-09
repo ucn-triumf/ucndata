@@ -20,17 +20,17 @@ from . import settings
 import ROOT
 import numpy as np
 import pandas as pd
-import itertools, warnings, os
+import itertools, warnings, os, ROOT
 
 ROOT.gROOT.SetBatch(1)
 
 # patch warnings
 def new_format(message, category, filename, lineno, line):
     filename = os.path.basename(filename)
-    return f'\n{filename}:{lineno}: {category.__name__}: {message}\n' 
-    
+    return f'\n{filename}:{lineno}: {category.__name__}: {message}\n'
+
 warnings.formatwarning = new_format
-    
+
 
 class ucnrun(ucnbase):
     """UCN run data. Cleans data and performs analysis
@@ -156,7 +156,8 @@ class ucnrun(ucnbase):
 
         else:
             self.tfile = tfile(filename, empty_ok=False, quiet=True,
-                               key_filter=settings.keyfilter)
+                               key_filter=settings.keyfilter,
+                               tree_filter=settings.tree_filter)
             head = self.tfile['header']
 
             # fix header values in tfile
@@ -282,7 +283,7 @@ class ucnrun(ucnbase):
                             'ncycles': 1
                             }
         self.cycle_param = attrdict(self.cycle_param)
-        
+
         # cycle filter
         self.cycle_param['filter'] = None
 
@@ -295,7 +296,7 @@ class ucnrun(ucnbase):
 
         # check if tree exists
         if tree is None:
-            warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot fully set up cycle_param', MissingDataWarning)           
+            warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot fully set up cycle_param', MissingDataWarning)
             return
         tree = tree.to_dataframe()
 
@@ -345,7 +346,7 @@ class ucnrun(ucnbase):
         # number of cycles
         self.cycle_param['ncycles'] = len(df.index)
 
-        
+
 
     def check_data(self, raise_error=False):
         """Run some checks to determine if the data is ok.
@@ -609,13 +610,13 @@ class ucnrun(ucnbase):
                     idx = self.tfile[treename].index
                 else:
                     raise err from None
-                    
+
             # tree not found, skip
             except KeyError:
                 pass
-                
+
             run_stop = max((idx.max(), run_stop))
-            
+
         # bad end time
         if np.isinf(run_stop):
             raise MissingDataError("Missing slow control trees, cannot find run end time.")
@@ -638,17 +639,17 @@ class ucnrun(ucnbase):
 
             # use timestamps from slow control trees to determine timestamps
             for treename in settings.SLOW_TREES:
-                
+
                 # check for tree
                 if treename not in self.tfile.keys():
                     continue
-                
+
                 # get times
                 if isinstance(self.tfile[treename], pd.DataFrame):
                     idx = self.tfile[treename].index
                 else:
                     idx = self.tfile[treename].to_dataframe().index
-                    
+
                 # find min and max
                 times['start'] = [min((idx.min(), times['start']))]
                 times['stop']  = [max((idx.max(), times['stop']))]

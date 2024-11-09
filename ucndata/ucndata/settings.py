@@ -46,6 +46,15 @@ DET_BKGD = {'Li6':     1.578,
             'He3':     0.0349,
             'He3_err': 0.0023}
 
+# filter what trees and branches to load in each file. If unspecified then load the whole tree
+# treename: (filter, columns). See [rootloader documentation](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree-1) for details
+tree_filter = {}
+
+# set tree_filter to read only detector entries which contain hits
+for name in DET_NAMES.values():
+    tree_filter[name['hits']] = ('tIsUCN>0', None)
+
+# filter what objects to load in each file
 def keyfilter(name):
     """Don't load all the data in each file, only that which is needed"""
 
@@ -59,3 +68,4 @@ def keyfilter(name):
             return False
 
     return True
+

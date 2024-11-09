@@ -20,13 +20,16 @@
 
 - `DET_BKGD` - default detector backgrounds - from 2019: {'Li6': 1.578, 'Li6_err': 0.009, 'He3': 0.0349, 'He3_err': 0.0023}
 
+- `tree_filter` - filter what trees and branches to load in each file. If unspecified then load the whole tree
+  treename: (filter, columns). See [rootloader documentation](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree-1) for details: {}
+
 
 - [Settings](#settings)
   - [keyfilter](#keyfilter)
 
 ## keyfilter
 
-[Show source in settings.py:49](../../settings.py#L49)
+[Show source in settings.py:58](../../settings.py#L58)
 
 Don't load all the data in each file, only that which is needed
 

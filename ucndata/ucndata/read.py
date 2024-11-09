@@ -11,7 +11,7 @@ from collections.abc import Iterable
 from tqdm import tqdm
 import numpy as np
 from functools import partial
-import os
+import os, ROOT
 
 def read(path, as_dataframe=True, nproc=-1, header_only=False):
     """Read out single or multiple UCN run files from ROOT
