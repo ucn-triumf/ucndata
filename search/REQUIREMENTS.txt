@@ -1,4 +1,0 @@
-fastparquet
-pandas
-tqdm
-numpy
