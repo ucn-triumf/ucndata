@@ -613,13 +613,13 @@ class ucnrun(ucnbase):
 
             # tree not found, skip
             except KeyError:
-                pass
+                continue
 
             run_stop = max((idx.max(), run_stop))
 
         # bad end time
         if np.isinf(run_stop):
-            raise MissingDataError("Missing slow control trees, cannot find run end time.")
+            raise MissingDataError(f"Run {self.run_number}: Missing slow control trees, cannot find run end time.")
 
         # get squencer data
         try:
