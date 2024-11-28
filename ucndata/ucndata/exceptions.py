@@ -11,9 +11,9 @@ class MergeError(Exception): pass
 class DataError(Exception): pass
 
 class BeamError(DataError): pass
+class CycleError(DataError): pass
 class DetectorError(DataError): pass
 class ValveError(DataError): pass
-
 
 # warnings -----------------------------------
 class CycleWarning(Warning): pass

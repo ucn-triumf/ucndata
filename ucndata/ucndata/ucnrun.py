@@ -31,7 +31,6 @@ def new_format(message, category, filename, lineno, line):
 
 warnings.formatwarning = new_format
 
-
 class ucnrun(ucnbase):
     """UCN run data. Cleans data and performs analysis
 
@@ -192,6 +191,7 @@ class ucnrun(ucnbase):
                 del self.tfile[key]
 
         # get cycle times
+        cycle_failed = False
         for mode in ['default', 'matched', 'li6', 'he3', 'sequencer']:
             try:
                 self.set_cycle_times(mode=mode)
@@ -199,10 +199,14 @@ class ucnrun(ucnbase):
                 warnings.warn(f'Run {self.run_number}: Unable to set cycle times. SequencerTree must exist and have entries.',
                             MissingDataWarning)
                 break
-            except KeyError:
-                pass
+            except (KeyError, CycleError):
+                print(f'Run {self.run_number}: Cycle time detection mode {mode} failed')
+                cycle_failed = True
             else:
                 break
+
+        if cycle_failed:
+            print(f'Run {self.run_number}: Set cycle times based on {mode} detection mode')
 
     def __repr__(self):
         klist = [d for d in self.__dict__.keys() if d[0] != '_']
@@ -345,8 +349,6 @@ class ucnrun(ucnbase):
 
         # number of cycles
         self.cycle_param['ncycles'] = len(df.index)
-
-
 
     def check_data(self, raise_error=False):
         """Run some checks to determine if the data is ok.
@@ -681,7 +683,7 @@ class ucnrun(ucnbase):
 
                     # discard if time difference is too large
                     if abs(offset) > 20:
-                        warnings.warn(f'He3 cycle start time ({pair[0]}) too distant from Li6 start ({pair[1]}) in run {self.run_number}', CycleWarning)
+                        raise CycleError(f'He3 cycle start time ({pair[0]}) too distant from Li6 start ({pair[1]}) in run {self.run_number}')
                     else:
                         matchedhe3.append(pair[0])
                         matchedli6.append(pair[1])
@@ -690,13 +692,13 @@ class ucnrun(ucnbase):
             matchedli6 = np.sort(matchedli6)
 
             # warnings for unmatched cycles
-            unmatched = [t not in matchedhe3 for t in hestart]
+            unmatched = [t not in matchedhe3 for t in hestart.values]
             if any(unmatched):
-                warnings.warn(f'Found no match to He3 cycles at {unmatched} in run {self.run_number}', CycleWarning)
+                raise CycleError(f'Found no match to He3 cycles at {hestart.values[unmatched]} in run {self.run_number}')
 
-            unmatched = [t not in matchedhe3 for t in listart]
+            unmatched = [t not in matchedhe3 for t in listart.values]
             if any(unmatched):
-                warnings.warn(f'Found no match to Li6 cycles at {unmatched} in run {self.run_number}', CycleWarning)
+                raise CycleError(f'Found no match to Li6 cycles at {listart.values[unmatched]} in run {self.run_number}')
 
             # setup output
             times = {'start': matchedhe3,
