@@ -4,29 +4,12 @@
 
 from ucndata import settings, read, ucnrun
 from tools import *
-import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
-from iminuit import Minuit
-from iminuit.cost import LeastSquares
 import os
 from datetime import datetime
-from fitting import global_fitter
 
-# settings
-# settings.datadir = 'root_files'     # path to root data
-settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
-settings.DET_NAMES.pop('He3')       # don't check He3 detector data
-detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
-filename = 'sourcesaturation/saturation.csv'      # save counts output
-run_numbers = [1846]   # example: [1846, '1847+1848']
-
-# periods settings
-periods = {'production':  0,
-           'count':       1,
-           'background':  0}
-
-def get_satur_cnts(run, filename, periods):
+def get_satur_cnts(run, outfile, periods):
     """Get counts needed for a source saturation calculation for a single run.
     Save this to file.
 
@@ -77,14 +60,14 @@ def get_satur_cnts(run, filename, periods):
                        })
 
     # save file
-    if filename:
-        dirname = os.path.dirname(filename)
+    if outfile:
+        dirname = os.path.dirname(outfile)
         if dirname:
             os.makedirs(dirname, exist_ok=True)
 
         # read file if exists
         try:
-            df_old = pd.read_csv(filename, comment='#')
+            df_old = pd.read_csv(outfile, comment='#')
         except FileNotFoundError:
             df_old = pd.DataFrame()
 
@@ -100,25 +83,25 @@ def get_satur_cnts(run, filename, periods):
         header = ['# Normalized counts and production times for saturation measurement',
                   '# Written by sourcesaturation.py',
                   f'# Last updated: {str(datetime.now())}']
-        with open(filename, 'w') as fid:
+        with open(outfile, 'w') as fid:
             fid.write('\n'.join(header))
             fid.write('\n')
-        df.to_csv(filename, index=False, mode='a')
+        df.to_csv(outfile, index=False, mode='a')
 
     return df
 
-def draw_counts(run, filename):
+def draw_counts(run, satfile):
     """Draw and fit counts for a run
 
     Args:
         run (int): run number to fit and draw.
-        filename (str): path to file with the counts (output of get_satur_cnts)
+        satfile (str): path to file with the counts (output of get_satur_cnts)
         fitfn (fn handle|None): if none, don't do fit. else fit this function
         p0 (iterable): initial fit paramters
     """
 
     # get data
-    df = pd.read_csv(filename, comment='#', index_col=0)
+    df = pd.read_csv(satfile, comment='#', index_col=0)
     if run is not None:
         if isinstance(df.index.dtype, str):
             run = str(run)
@@ -143,17 +126,18 @@ def draw_counts(run, filename):
     plt.tight_layout()
 
     # get save location
-    dirname = os.path.dirname(filename)
+    dirname = os.path.dirname(satfile)
     dirname = dirname if dirname else '.'
 
     # save results - figure
     plt.savefig(os.path.join(dirname, f'{df.iloc[0]["experiment"]}_run{run}_counts.pdf'))
 
-def draw_hits(run):
+def draw_hits(run, outdir='.'):
     """Draw hits histogram for each run
 
     Args:
         run (ucnrun): run data
+        outdir (str): directory in which to save figure
     """
 
     plt.figure(figsize=(6,6))
@@ -189,13 +173,25 @@ def draw_hits(run):
     plt.tight_layout()
 
     # save file
-    savefile = os.path.dirname(filename)
-    savefile = os.path.join(savefile, f'{run.experiment_number}_run{run.run_number}_hits.pdf')
+    savefile = os.path.join(outdir, f'{run.experiment_number}_run{run.run_number}_hits.pdf')
     plt.savefig(savefile)
 
 # RUN ============================================
 
 if __name__ == "__main__":
+
+    # settings
+    # settings.datadir = 'root_files'     # path to root data
+    settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
+    settings.DET_NAMES.pop('He3')       # don't check He3 detector data
+    detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
+    outfile = 'sourcesaturation/saturation.csv'      # save counts output
+    run_numbers = [1846]   # example: [1846, '1847+1848']
+
+    # periods settings
+    periods = {'production':  0,
+               'count':       1,
+               'background':  0}
 
     # setup runs
     runs = read(run_numbers)
@@ -204,9 +200,9 @@ if __name__ == "__main__":
 
     # counts and hits
     for run in runs:
-        get_satur_cnts(run, filename, periods)
+        get_satur_cnts(run, outfile, periods)
         draw_hits(run)
-        draw_counts(run.run_number, filename)
+        draw_counts(run.run_number, outfile)
 
     # draw all counts
-    draw_counts(None, filename)
+    draw_counts(None, outfile)

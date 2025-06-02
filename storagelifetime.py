@@ -13,26 +13,12 @@ import os
 from datetime import datetime
 from fitting import global_fitter
 
-# settings
-# settings.datadir = 'root_files'     # path to root data
-settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
-settings.DET_NAMES.pop('He3')       # don't check He3 detector data
-detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
-filename = 'storagelifetime/storagecounts.csv'      # save counts output
-run_numbers = [1846]   # example: [1846, '1847+1848']
-
-# periods settings
-periods = {'production':  0,
-           'storage':     1,
-           'count':       2,
-           'background':  1}
-
 # fit function to counts vs lifetimes
 @prettyprint(r'$p_0 \exp(-t/\tau)$', '$p_0$', r'$\tau$')
 def fitfn(t, p0, tau):
     return p0*np.exp(-t/tau)
 
-def get_storage_cnts(run, periods):
+def get_storage_cnts(run, periods, outfile):
     """Get counts needed for a storage lifetime calculation for a single run.
     Save this to file.
 
@@ -82,14 +68,14 @@ def get_storage_cnts(run, periods):
                        })
 
     # save file
-    if filename:
-        dirname = os.path.dirname(filename)
+    if outfile:
+        dirname = os.path.dirname(outfile)
         if dirname:
             os.makedirs(dirname, exist_ok=True)
 
         # read file if exists
         try:
-            df_old = pd.read_csv(filename, comment='#')
+            df_old = pd.read_csv(outfile, comment='#')
         except FileNotFoundError:
             df_old = pd.DataFrame()
 
@@ -105,19 +91,19 @@ def get_storage_cnts(run, periods):
         header = ['# Normalized counts and storage times for lifetime measurement',
                   '# Written by storagelifetime.py',
                   f'# Last updated: {str(datetime.now())}']
-        with open(filename, 'w') as fid:
+        with open(outfile, 'w') as fid:
             fid.write('\n'.join(header))
             fid.write('\n')
-        df.to_csv(filename, index=False, mode='a')
+        df.to_csv(outfile, index=False, mode='a')
 
     return df
 
-def get_lifetime(run, filename, fitfn=None, p0=None):
+def get_lifetime(run, lifefile, fitfn=None, p0=None):
     """Draw and fit counts for a run or set of runs
 
     Args:
         run (int): run number to fit and draw.
-        filename (str): path to file with the counts (output of get_storage_cnts)
+        lifefile (str): path to file with the counts (output of get_storage_cnts)
         fitfn (fn handle|None): if none, don't do fit. else fit this function
         p0 (iterable): initial fit paramters
     """
@@ -125,7 +111,7 @@ def get_lifetime(run, filename, fitfn=None, p0=None):
     run = str(run)
 
     # get data
-    df = pd.read_csv(filename, comment='#', index_col=0)
+    df = pd.read_csv(lifefile, comment='#', index_col=0)
     df = df.loc[run]
 
     # get data
@@ -174,16 +160,16 @@ def get_lifetime(run, filename, fitfn=None, p0=None):
     plt.tight_layout()
 
     # get save location
-    dirname = os.path.dirname(filename)
+    dirname = os.path.dirname(lifefile)
     dirname = dirname if dirname else '.'
 
     # save results - figure
     plt.savefig(os.path.join(dirname, f'{df.iloc[0]["experiment"]}_run{run}_lifetime.pdf'))
 
     # load old fit results
-    filename = os.path.join(dirname, 'lifetimes.csv')
+    lifefile = os.path.join(dirname, 'lifetimes.csv')
     try:
-        df_old = pd.read_csv(filename, comment='#', index_col=0)
+        df_old = pd.read_csv(lifefile, comment='#', index_col=0)
     except FileNotFoundError:
         df_old = pd.DataFrame()
 
@@ -207,16 +193,16 @@ def get_lifetime(run, filename, fitfn=None, p0=None):
               f'# Last updated: {str(datetime.now())}',
               ]
 
-    with open(filename, 'w') as fid:
+    with open(lifefile, 'w') as fid:
         fid.write('\n'.join(header))
         fid.write('\n')
-    df.to_csv(filename, mode='a')
+    df.to_csv(lifefile, mode='a')
 
-def get_global_lifetime(filename, fitfn, p0=None):
+def get_global_lifetime(lifefile, fitfn, p0=None):
     """Fit all runs with a shared lifetime
 
     Args:
-        filename (str): path to file with the counts (output of get_storage_cnts)
+        lifefile (str): path to file with the counts (output of get_storage_cnts)
         fitfn (fn handle|None): if none, don't do fit. else fit this function
         p0 (iterable): initial fit paramters
 
@@ -228,7 +214,7 @@ def get_global_lifetime(filename, fitfn, p0=None):
     """
 
     # get data
-    df = pd.read_csv(filename, comment='#', index_col=0)
+    df = pd.read_csv(lifefile, comment='#', index_col=0)
 
     # get data
     df.sort_values('storage duration (s)', inplace=True)
@@ -292,7 +278,7 @@ def get_global_lifetime(filename, fitfn, p0=None):
     plt.tight_layout()
 
     # get save location
-    dirname = os.path.dirname(filename)
+    dirname = os.path.dirname(lifefile)
     dirname = dirname if dirname else '.'
 
     # save results - figure
@@ -300,11 +286,12 @@ def get_global_lifetime(filename, fitfn, p0=None):
 
     return (par, std)
 
-def draw_hits(run):
+def draw_hits(run, outdir='.'):
     """Draw hits histogram for each run
 
     Args:
         run (ucnrun): run data
+        outdir (str): directory in which to save figure
     """
 
     plt.figure(figsize=(6,6))
@@ -340,13 +327,26 @@ def draw_hits(run):
     plt.tight_layout()
 
     # save file
-    savefile = os.path.dirname(filename)
-    savefile = os.path.join(savefile, f'{run.experiment_number}_run{run.run_number}_hits.pdf')
+    savefile = os.path.join(outdir, f'{run.experiment_number}_run{run.run_number}_hits.pdf')
     plt.savefig(savefile)
 
 # RUN ============================================
 
 if __name__ == '__main__':
+
+    # settings
+    # settings.datadir = 'root_files'     # path to root data
+    settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
+    settings.DET_NAMES.pop('He3')       # don't check He3 detector data
+    detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
+    outfile = 'storagelifetime/storagecounts.csv'      # save counts output
+    run_numbers = [1846]   # example: [1846, '1847+1848']
+
+    # periods settings
+    periods = {'production':  0,
+            'storage':     1,
+            'count':       2,
+            'background':  1}
 
     # setup runs
     runs = read(run_numbers)
@@ -360,7 +360,7 @@ if __name__ == '__main__':
 
     # calculate lifetimes for each run
     for run in run_numbers:
-        get_lifetime(run, filename, fitfn)
+        get_lifetime(run, outfile, fitfn)
 
     # get global lifetime
-    par, std = get_global_lifetime(filename, fitfn)
+    par, std = get_global_lifetime(outfile, fitfn)
