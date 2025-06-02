@@ -26,12 +26,14 @@ periods = {'production':  0,
            'count':       1,
            'background':  0}
 
-def get_counts_productiontimes(run, filename):
+def get_satur_cnts(run, filename, periods):
     """Get counts needed for a source saturation calculation for a single run.
     Save this to file.
 
     Args:
         r (ucnrun): run data
+        f (str): name of file to save at the end
+        periods (dict): specify which periods are for which purpose (production, count, background)
 
     Returns:
         pd.DataFrame: with counts needed for calculation
@@ -42,8 +44,8 @@ def get_counts_productiontimes(run, filename):
 
     # filter cycles
     run.set_cycle_filter(run.gen_cycle_filter(period_production=periods['production'],
-                                          period_count=periods['count'],
-                                          period_background=periods['background']))
+                                              period_count=periods['count'],
+                                              period_background=periods['background']))
 
     # get beam current and means
     beam_currents = run[:, periods['production']].beam_current_uA
@@ -110,7 +112,7 @@ def draw_counts(run, filename):
 
     Args:
         run (int): run number to fit and draw.
-        filename (str): path to file with the counts (output of get_counts_productiontimes)
+        filename (str): path to file with the counts (output of get_satur_cnts)
         fitfn (fn handle|None): if none, don't do fit. else fit this function
         p0 (iterable): initial fit paramters
     """
@@ -193,16 +195,18 @@ def draw_hits(run):
 
 # RUN ============================================
 
-# setup runs
-runs = read(run_numbers)
-if isinstance(runs, ucnrun):
-    runs = [runs]
+if __name__ == "__main__":
 
-# counts and hits
-for run in runs:
-    get_counts_productiontimes(run, filename)
-    draw_hits(run)
-    draw_counts(run.run_number, filename)
+    # setup runs
+    runs = read(run_numbers)
+    if isinstance(runs, ucnrun):
+        runs = [runs]
 
-# draw all counts
-draw_counts(None, filename)
+    # counts and hits
+    for run in runs:
+        get_satur_cnts(run, filename, periods)
+        draw_hits(run)
+        draw_counts(run.run_number, filename)
+
+    # draw all counts
+    draw_counts(None, filename)

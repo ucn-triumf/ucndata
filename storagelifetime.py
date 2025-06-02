@@ -32,12 +32,13 @@ periods = {'production':  0,
 def fitfn(t, p0, tau):
     return p0*np.exp(-t/tau)
 
-def get_counts_storagetimes(run):
+def get_storage_cnts(run, periods):
     """Get counts needed for a storage lifetime calculation for a single run.
     Save this to file.
 
     Args:
         r (ucnrun): run data to calculate lifetime for
+        periods (dict): specify which periods are for which purpose (production, storage,count, background)
 
     Returns:
         pd.DataFrame: with counts needed for lifetime calculation
@@ -116,7 +117,7 @@ def get_lifetime(run, filename, fitfn=None, p0=None):
 
     Args:
         run (int): run number to fit and draw.
-        filename (str): path to file with the counts (output of get_counts_storagetimes)
+        filename (str): path to file with the counts (output of get_storage_cnts)
         fitfn (fn handle|None): if none, don't do fit. else fit this function
         p0 (iterable): initial fit paramters
     """
@@ -215,7 +216,7 @@ def get_global_lifetime(filename, fitfn, p0=None):
     """Fit all runs with a shared lifetime
 
     Args:
-        filename (str): path to file with the counts (output of get_counts_storagetimes)
+        filename (str): path to file with the counts (output of get_storage_cnts)
         fitfn (fn handle|None): if none, don't do fit. else fit this function
         p0 (iterable): initial fit paramters
 
@@ -345,19 +346,21 @@ def draw_hits(run):
 
 # RUN ============================================
 
-# setup runs
-runs = read(run_numbers)
-if isinstance(runs, ucnrun):
-    runs = [runs]
+if __name__ == '__main__':
 
-# counts and hits
-for run in runs:
-    get_counts_storagetimes(run)
-    draw_hits(run)
+    # setup runs
+    runs = read(run_numbers)
+    if isinstance(runs, ucnrun):
+        runs = [runs]
 
-# calculate lifetimes for each run
-for run in run_numbers:
-    get_lifetime(run, filename, fitfn)
+    # counts and hits
+    for run in runs:
+        get_storage_cnts(run)
+        draw_hits(run)
 
-# get global lifetime
-par, std = get_global_lifetime(filename, fitfn)
+    # calculate lifetimes for each run
+    for run in run_numbers:
+        get_lifetime(run, filename, fitfn)
+
+    # get global lifetime
+    par, std = get_global_lifetime(filename, fitfn)
