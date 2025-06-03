@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 from scipy.optimize import curve_fit
 
 # settings
-settings.datadir = 'root_files'
+settings.datadir = 'test_files'
 production_period = 0
 storageperiod =     1
 countperiod =       2
@@ -57,3 +57,6 @@ for r in runs:
     plt.tight_layout()
 
     print(f'lifetime: {par[1]:.5g} +\- {std[1]:.5g} (s)')
+    
+    
+    

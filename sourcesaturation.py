@@ -53,10 +53,10 @@ def get_satur_cnts(run, outfile, periods):
                        'production duration (s)': production_duration,
                        'counts (1/uA)': counts[:, 0],
                        'bkgd (counts)': counts_bkgd[0],
-                       'normalization (uA)': beam_currents,
+                       'beam_current (uA)': beam_currents,
                        'dcounts (1/uA)': counts[:, 1],
                        'dbkgd (counts)': counts_bkgd[1],
-                       'dnormalization (uA)': dbeam_currents,
+                       'dbeam_current (uA)': dbeam_currents,
                        })
 
     # save file
@@ -90,24 +90,14 @@ def get_satur_cnts(run, outfile, periods):
 
     return df
 
-def draw_counts(run, satfile):
+def draw_counts(df, ax=None, **error_kwargs):
     """Draw and fit counts for a run
 
     Args:
-        run (int): run number to fit and draw.
-        satfile (str): path to file with the counts (output of get_satur_cnts)
-        fitfn (fn handle|None): if none, don't do fit. else fit this function
-        p0 (iterable): initial fit paramters
+        df (pd.DataFrame): dataframe with the data. Must have columns from output of get_satur_cnts
+        ax (plt.Axis): axes to draw in
+        error_kwargs: passed to plt.errorbar
     """
-
-    # get data
-    df = pd.read_csv(satfile, comment='#', index_col=0)
-    if run is not None:
-        if isinstance(df.index.dtype, str):
-            run = str(run)
-        df = df.loc[run]
-    else:
-        run = 'all'
 
     # get data
     df.sort_values('production duration (s)', inplace=True)
@@ -115,22 +105,17 @@ def draw_counts(run, satfile):
     counts = df['counts (1/uA)'].values
     dcounts = df['dcounts (1/uA)'].values
 
+    # get axes
+    if ax is None:
+        plt.figure()
+        ax = plt.gca()
+
     # draw data
-    plt.figure()
-    plt.errorbar(production_duration, counts, dcounts, fmt='.')
-    plt.yscale('log')
-    plt.xlabel('Production Duration (s)')
-    plt.ylabel('Normalized Number of Counts (uA$^{-1}$)')
-    plt.title(f'Run {run}: background-subtracted and normalized by beam current',
-              fontsize='xx-small')
+    ax.errorbar(production_duration, counts, dcounts)
+    ax.set_yscale('log')
+    ax.set_xlabel('Production Duration (s)')
+    ax.set_ylabel('Number of Counts Normalized to Beam Current (uA$^{-1}$)')
     plt.tight_layout()
-
-    # get save location
-    dirname = os.path.dirname(satfile)
-    dirname = dirname if dirname else '.'
-
-    # save results - figure
-    plt.savefig(os.path.join(dirname, f'{df.iloc[0]["experiment"]}_run{run}_counts.pdf'))
 
 def draw_hits(run, outdir='.'):
     """Draw hits histogram for each run
@@ -175,34 +160,3 @@ def draw_hits(run, outdir='.'):
     # save file
     savefile = os.path.join(outdir, f'{run.experiment_number}_run{run.run_number}_hits.pdf')
     plt.savefig(savefile)
-
-# RUN ============================================
-
-if __name__ == "__main__":
-
-    # settings
-    # settings.datadir = 'root_files'     # path to root data
-    settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
-    settings.DET_NAMES.pop('He3')       # don't check He3 detector data
-    detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
-    outfile = 'sourcesaturation/saturation.csv'      # save counts output
-    run_numbers = [1846]   # example: [1846, '1847+1848']
-
-    # periods settings
-    periods = {'production':  0,
-               'count':       1,
-               'background':  0}
-
-    # setup runs
-    runs = read(run_numbers)
-    if isinstance(runs, ucnrun):
-        runs = [runs]
-
-    # counts and hits
-    for run in runs:
-        get_satur_cnts(run, outfile, periods)
-        draw_hits(run)
-        draw_counts(run.run_number, outfile)
-
-    # draw all counts
-    draw_counts(None, outfile)
