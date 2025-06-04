@@ -2,7 +2,7 @@
 # Derek Fujimoto
 # June 2025
 
-from sourcesaturation import get_satur_cnts, draw_counts, draw_hits
+from sourcesaturation import get_satur_cnts, fit, draw_hits
 from ucndata import settings, read, ucnrun
 import os
 
@@ -11,7 +11,7 @@ settings.datadir = 'root_files'     # path to root data
 settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
 settings.DET_NAMES.pop('He3')       # don't check He3 detector data
 detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
-outfile = 'TCN6A_020/results.csv'   # save counts output
+outfile = 'TCN6A_020/counts.csv'   # save counts output
 run_numbers = [1846]   # example: [1846, '1847+1848']
 
 # setup save dir
@@ -32,6 +32,34 @@ for run in runs:
     get_satur_cnts(run, outfile, periods)
     draw_hits(run)
 
-# draw all counts
+# get results
 df = pd.read_csv(outfile, comment='#')
-draw_counts(df, marker='o', fillstyle='none')
+df.sort_values('production duration (s)', inplace=True)
+
+# draw counts normalized to 1 uA current
+plt.figure()
+fit(df['production duration (s)'],
+    df['counts_norm (1/uA)'],
+    df['dcounts_norm (1/uA)'],
+    p0 = (1,1),
+    err_kwargs = {
+        'marker':'o',
+        'ls':= 'none',
+        'fillstyle':'none'},
+    xlabel = 'Storage Duration (s)',
+    ylabel = 'UCN Counts Normalized to 1 $\micro$A',
+    outfile = 'TCN6A_020/fitpar_counts_norm.csv')
+
+# draw raw counts
+plt.figure()
+fit(df['production duration (s)'],
+    df['counts'],
+    df['dcounts'],
+    p0 = (1,1),
+    err_kwargs = {
+        'marker':'o',
+        'ls':= 'none',
+        'fillstyle':'none'},
+    xlabel = 'Storage Duration (s)',
+    ylabel = 'UCN Counts',
+    outfile = 'TCN6A_020/fitpar_counts_raw.csv')

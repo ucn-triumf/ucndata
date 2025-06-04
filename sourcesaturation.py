@@ -8,6 +8,12 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import os
 from datetime import datetime
+from iminuit import Minuit
+from iminuit.cost import LeastSquares
+from datetime import datetime
+
+def fitfn(t, p0, tau):
+    return p0*(1-np.exp(-t/tau))
 
 def get_satur_cnts(run, outfile, periods):
     """Get counts needed for a source saturation calculation for a single run.
@@ -41,20 +47,29 @@ def get_satur_cnts(run, outfile, periods):
     counts_bkgd = run[:, periods['background']].get_counts(detector)
     counts_bkgd = counts_bkgd.transpose()
 
-    counts = run[:, periods['count']].get_counts(detector,
+    counts_norm = run[:, periods['count']].get_counts(detector,
                                         bkgd=counts_bkgd[0],
                                         dbkgd=counts_bkgd[1],
                                         norm=beam_currents,
-                                        dnorm=dbeam_currents)
+                                        dnorm=dbeam_currents,
+                                        )
+
+    counts = run[:, periods['count']].get_counts(detector,
+                                        bkgd=counts_bkgd[0],
+                                        dbkgd=counts_bkgd[1],
+                                        )
+
 
     # make into a dataframe
     df = pd.DataFrame({'run': run.run_number,
                        'experiment': run.experiment_number,
                        'production duration (s)': production_duration,
-                       'counts (1/uA)': counts[:, 0],
+                       'counts_norm (1/uA)': counts_norm[:, 0],
+                       'dcounts_norm (1/uA)': counts_norm[:, 1],
+                       'counts': counts[:, 0],
+                       'dcounts': counts[:, 1],
                        'bkgd (counts)': counts_bkgd[0],
                        'beam_current (uA)': beam_currents,
-                       'dcounts (1/uA)': counts[:, 1],
                        'dbkgd (counts)': counts_bkgd[1],
                        'dbeam_current (uA)': dbeam_currents,
                        })
@@ -90,32 +105,92 @@ def get_satur_cnts(run, outfile, periods):
 
     return df
 
-def draw_counts(df, ax=None, **error_kwargs):
-    """Draw and fit counts for a run
+def get_saturation_time(x, y, dy, p0=None):
+    """Draw and fit counts for a run or set of runs
 
     Args:
-        df (pd.DataFrame): dataframe with the data. Must have columns from output of get_satur_cnts
-        ax (plt.Axis): axes to draw in
-        error_kwargs: passed to plt.errorbar
+        run (int): run number to fit and draw.
+        p0 (iterable): initial fit paramters
+    """
+    # fit
+    m = Minuit(LeastSquares(x = x,
+                            y = y,
+                            yerror = dy,
+                            model = fitfn), *p0)
+    m.migrad()
+    par = m.values
+    std = m.errors
+
+    return (par, std)
+
+def fit(x, y, dy, p0, err_kwargs, outfile=None, xlabel=None, ylabel=None):
+    """Draw and fit counts for a run or set of runs
+
+    Args:
+        x, y, dy (iterable): data to fit
+        p0 (iterable): initial fit paramters
+        err_kwargs (dict): keyword arguments to pass to plt.errorbar
+        xlabel, ylabel (str): axis titles
     """
 
-    # get data
-    df.sort_values('production duration (s)', inplace=True)
-    production_duration = df['production duration (s)'].values
-    counts = df['counts (1/uA)'].values
-    dcounts = df['dcounts (1/uA)'].values
+    plt.errorbar(x, y, dy, **err_kwargs)
+    plt.yscale('log')
+    if xlabel is not None: plt.xlabel(xlabel)
+    if ylabel is not None: plt.ylabel(ylabel)
 
-    # get axes
-    if ax is None:
-        plt.figure()
-        ax = plt.gca()
+    # fit
+    m = Minuit(LeastSquares(x = x,
+                            y = y,
+                            yerror = dy,
+                            model = fitfn), *p0)
+    m.migrad()
+    par = m.values
+    std = m.errors
 
-    # draw data
-    ax.errorbar(production_duration, counts, dcounts)
-    ax.set_yscale('log')
-    ax.set_xlabel('Production Duration (s)')
-    ax.set_ylabel('Number of Counts Normalized to Beam Current (uA$^{-1}$)')
+    # draw
+    plt.plot(x, fitfn(x, **par.to_dict()))
+    plt.text(0.95, 0.95, fitfn.print(par, std),
+            ha='right',
+            va='top',
+            transform=plt.gca().transAxes,
+            fontsize='x-small',
+            backgroundcolor='w',
+            multialignment='left')
+
+    plt.grid(which='both', axis='both', visible=True)
     plt.tight_layout()
+
+    # load old fit results
+    if outfile is not None:
+
+        # get save location
+        dirname = os.path.dirname(outfile)
+        dirname = dirname if dirname else '.'
+
+        # save results - figure
+        plt.savefig(os.path.join(dirname, f'{os.path.splitext(os.path.basename(outfile))[0]}.pdf'))
+
+        # make dataframe for new data
+        values = m.values.to_dict()
+        errors = m.errors.to_dict()
+        errors = {f'd{key}':val for key, val in errors.items()}
+        df = pd.DataFrame({**values, **errors})
+
+        # save result
+        df = pd.concat((df, df_old), axis='index')
+
+        header = ['# Source Saturation',
+                 f'# Fit function: {fitfn.name if hasattr(fitfn, "name") else ""}',
+                  '# Written by sourcesaturation.py',
+                 f'# Last updated: {str(datetime.now())}',
+                 ]
+
+        with open(outfile, 'w') as fid:
+            fid.write('\n'.join(header))
+            fid.write('\n')
+        df.to_csv(outfile, mode='a')
+
+    return
 
 def draw_hits(run, outdir='.'):
     """Draw hits histogram for each run
@@ -151,7 +226,7 @@ def draw_hits(run, outdir='.'):
                  rotation='vertical')
 
     # plot elements
-    plt.ylabel('Number of Hits')
+    plt.ylabel('UCN Hits')
     plt.ylim(-30, None)
     plt.xticks(rotation=90)
     plt.gca().tick_params(axis='x', which='major', labelsize='x-small')

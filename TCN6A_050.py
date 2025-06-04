@@ -1,4 +1,4 @@
-# Run analysis for TCN6A-040: source saturation measurement at varying beam energies
+# Run analysis for TCN6A-050: source lifetime measurement at varying beam energies
 # Derek Fujimoto
 # June 2025
 
@@ -11,7 +11,7 @@ settings.datadir = 'root_files'     # path to root data
 settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
 settings.DET_NAMES.pop('He3')       # don't check He3 detector data
 detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
-outfile = 'TCN6A_040/counts.csv'   # save counts output
+outfile = 'TCN6A_050/counts.csv'   # save counts output
 run_numbers = [1846]   # example: [1846, '1847+1848']
 
 # setup save dir
@@ -19,8 +19,9 @@ os.makedirs(os.path.dirname(outfile), exist_ok=True)
 
 # periods settings
 periods = {'production':  0,
-           'count':       1,
-           'background':  0}
+           'storage':     1,
+           'count':       2,
+           'background':  1}
 
 # setup runs
 runs = read(run_numbers)
@@ -41,7 +42,7 @@ df['beam_current_rounded (mA)'] = df['beam_current (mA)'].round()
 plt.figure()
 for current, g in df.groupby('beam_current_rounded (mA)'):
 
-    fit(df['production duration (s)'],
+    fit(df['storage duration (s)'],
         df['counts_norm (1/uA)']*current,
         df['dcounts_norm (1/uA)']*current,
         p0 = (1,1),
@@ -51,7 +52,7 @@ for current, g in df.groupby('beam_current_rounded (mA)'):
             'fillstyle':'none',
             'label':f'{current} uA'},
         )
-plt.xlabel('Production Duration (s)')
+plt.xlabel('Storage Duration (s)')
 plt.ylabel('UCN Counts Normalized to Current Setpoint')
 plt.tight_layout()
-plt.savefig('TCN6A_040/counts_norm.pdf')
+plt.savefig('TCN6A_050/counts_norm.pdf')
