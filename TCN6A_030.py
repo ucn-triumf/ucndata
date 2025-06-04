@@ -9,11 +9,11 @@ import os
 
 # settings
 settings.datadir = 'test'     # path to root data
-settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
+settings.cycle_times_mode = 'beamon'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer|beamon]
 settings.DET_NAMES.pop('He3')       # don't check He3 detector data
 storagelifetime.detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
 outfile = 'TCN6A_030/counts.csv'   # save counts output
-run_numbers = [1846]   # example: [1846, '1847+1848']
+run_numbers = [1846, 1873, 1875]   # example: [1846, '1847+1848']
 
 # periods settings
 periods = {'production':  0,

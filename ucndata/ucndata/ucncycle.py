@@ -217,7 +217,7 @@ class ucncycle(ucnbase):
                 # background count rate too high
                 rate = counts / period.cycle_param.period_durations_s
                 if rate / settings.DET_BKGD[det] > settings.DATA_CHECK_THRESH['max_bkgd_count_rate']:
-                    return warn(DataError, f'{msg} Background count rate in {det} detector is {rate / settings.DET_BKGD[det]} times larger than expected ({settings.DET_BKGD[det]} counts/s)')
+                    return warn(DataError, f'{msg} Background count rate in {det} detector is {rate / settings.DET_BKGD[det]:.1f} times larger than expected ({settings.DET_BKGD[det]} counts/s)')
 
                 # background counts missing
                 if counts == 0:

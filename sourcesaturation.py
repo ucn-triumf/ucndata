@@ -234,3 +234,7 @@ def draw_hits(run, outdir='.'):
     # save file
     savefile = os.path.join(outdir, f'{run.experiment_number}_run{run.run_number}_hits.pdf')
     plt.savefig(savefile)
+
+    # plot elements for viewing
+    plt.title(f'Run {run.run_number}')
+    plt.tight_layout()

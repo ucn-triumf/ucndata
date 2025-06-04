@@ -192,7 +192,7 @@ class ucnrun(ucnbase):
 
         # get cycle times
         cycle_failed = False
-        for mode in ['default', 'matched', 'li6', 'he3', 'sequencer']:
+        for mode in ['default', 'matched', 'li6', 'he3', 'sequencer', 'beamon']:
             try:
                 self.set_cycle_times(mode=mode)
             except (AttributeError, IndexError):
@@ -734,7 +734,7 @@ class ucnrun(ucnbase):
 
             # setup output
             times = {'start': start,
-                     'duration (s)': np.concatenate((np.diff(start), [run_stop]))
+                     'duration (s)': np.diff(np.concatenate((start, [run_stop])))
                     }
             times['stop'] = times['start'] + times['duration (s)']
             times['supercycle'] = self.tfile[settings.DET_NAMES['He3']['transitions']].superCycleIndex
@@ -747,10 +747,23 @@ class ucnrun(ucnbase):
 
             # setup output
             times = {'start': start,
-                     'duration (s)': np.concatenate((np.diff(start), [run_stop])),
+                     'duration (s)': np.diff(np.concatenate((start, [run_stop]))),
                     }
             times['stop'] = times['start'] + times['duration (s)']
-            times['supercycle'] = self.tfile[settings.DET_NAMES['Li6']['transitions']].superCycleIndex
+            times['supercycle'] = 0
+
+        ## beam on
+        elif mode in 'beamon':
+            current = self.beam_current_uA
+            start = current.loc[current.diff() > settings.DATA_CHECK_THRESH['beam_min_current']/2]
+            start = start.index.values
+
+            # setup output
+            times = {'start': start,
+                     'duration (s)': np.diff(np.concatenate((start, [run_stop]))),
+                    }
+            times['stop'] = times['start'] + times['duration (s)']
+            times['supercycle'] = 0
 
         ## bad mode
         else:
@@ -763,4 +776,5 @@ class ucnrun(ucnbase):
 
         # save
         self.cycle_param['cycle_times'] = times
+        self.cycle_param['ncycles'] = len(times.index)
         return times

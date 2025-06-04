@@ -32,10 +32,10 @@ DET_NAMES = {'He3':{'hits':         'UCNHits_He3',
 SLOW_TREES = ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
 
 # data thresholds for checking data
-DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA3
+DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA
                      'beam_max_current_std': 0.02, # uA
                      'max_bkgd_count_rate': 4, # fractional increase over DET_BKGD values
-                     'min_total_counts': 100, # number of counts total
+                     'min_total_counts': 20, # number of counts total
                      'pileup_cnt_per_ms': 3, # if larger than this, then pileup and delete
                      'pileup_within_first_s': 1, # time frame for pileup in each period
                     }
