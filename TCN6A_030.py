@@ -2,15 +2,16 @@
 # Derek Fujimoto
 # June 2025
 
+import storagelifetime
 from storagelifetime import get_storage_cnts, draw_hits, fit
 from ucndata import settings, read, ucnrun
 import os
 
 # settings
-settings.datadir = 'root_files'     # path to root data
+settings.datadir = 'test'     # path to root data
 settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer]
 settings.DET_NAMES.pop('He3')       # don't check He3 detector data
-detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
+storagelifetime.detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
 outfile = 'TCN6A_030/counts.csv'   # save counts output
 run_numbers = [1846]   # example: [1846, '1847+1848']
 
@@ -27,8 +28,8 @@ if isinstance(runs, ucnrun):
 
 # counts and hits
 for run in runs:
-    get_storage_cnts(run)
-    draw_hits(run)
+    get_storage_cnts(run, periods, outfile)
+    draw_hits(run, outdir=os.path.dirname(outfile))
 
 # get results
 df = pd.read_csv(outfile, comment='#')
@@ -42,11 +43,11 @@ fit(df['storage duration (s)'],
     p0 = (1,1),
     err_kwargs = {
         'marker':'o',
-        'ls':= 'none',
+        'ls':'none',
         'fillstyle':'none'},
     xlabel = 'Storage Duration (s)',
-    ylabel = 'UCN Counts Normalized to 1 $\micro$A',
-    outfile = 'TCN6A_030/counts_norm.csv')
+    ylabel = 'UCN Counts Normalized to 1 uA',
+    outfile = 'TCN6A_030/fit_counts_norm.csv')
 
 # draw raw counts
 plt.figure()
@@ -56,8 +57,8 @@ fit(df['storage duration (s)'],
     p0 = (1,1),
     err_kwargs = {
         'marker':'o',
-        'ls':= 'none',
+        'ls':'none',
         'fillstyle':'none'},
     xlabel = 'Storage Duration (s)',
     ylabel = 'UCN Counts',
-    outfile = 'TCN6A_030/counts_raw.csv')
+    outfile = 'TCN6A_030/fit_counts_raw.csv')

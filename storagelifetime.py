@@ -49,22 +49,28 @@ def get_storage_cnts(run, periods, outfile):
     counts_bkgd = run[:, periods['background']].get_counts(detector)
     counts_bkgd = counts_bkgd.transpose()
 
-    counts = run[:, periods['count']].get_counts(detector,
+    counts_norm = run[:, periods['count']].get_counts(detector,
                                         bkgd=counts_bkgd[0],
                                         dbkgd=counts_bkgd[1],
                                         norm=beam_currents,
                                         dnorm=dbeam_currents)
 
+    counts = run[:, periods['count']].get_counts(detector,
+                                        bkgd=counts_bkgd[0],
+                                        dbkgd=counts_bkgd[1])
+
     # make into a dataframe
     df = pd.DataFrame({'run': run.run_number,
                        'experiment': run.experiment_number,
                        'storage duration (s)': storage_duration,
-                       'counts (1/uA)': counts[:, 0],
+                       'counts_norm (1/uA)': counts_norm[:, 0],
+                       'dcounts_norm (1/uA)': counts_norm[:, 1],
+                       'counts': counts[:, 0],
+                       'dcounts': counts[:, 1],
                        'bkgd (counts)': counts_bkgd[0],
-                       'normalization (uA)': beam_currents,
-                       'dcounts (1/uA)': counts[:, 1],
                        'dbkgd (counts)': counts_bkgd[1],
-                       'dnormalization (uA)': dbeam_currents,
+                       'beam_current (uA)': beam_currents,
+                       'dbeam_current (uA)': dbeam_currents,
                        })
 
     # save file
@@ -149,11 +155,7 @@ def fit(x, y, dy, p0, err_kwargs, outfile=None, xlabel=None, ylabel=None):
         values = m.values.to_dict()
         errors = m.errors.to_dict()
         errors = {f'd{key}':val for key, val in errors.items()}
-        df = pd.DataFrame({**values, **errors}, index=[run])
-        df.index.name = 'run'
-
-        # save result
-        df = pd.concat((df, df_old), axis='index')
+        df = pd.DataFrame({**values, **errors}, index=[0])
 
         header = ['# Storage Lifetimes',
                  f'# Fit function: {fitfn.name if hasattr(fitfn, "name") else ""}',
@@ -164,7 +166,7 @@ def fit(x, y, dy, p0, err_kwargs, outfile=None, xlabel=None, ylabel=None):
         with open(outfile, 'w') as fid:
             fid.write('\n'.join(header))
             fid.write('\n')
-        df.to_csv(outfile, mode='a')
+        df.to_csv(outfile, mode='a', index=False)
 
 def draw_hits(run, outdir='.'):
     """Draw hits histogram for each run
