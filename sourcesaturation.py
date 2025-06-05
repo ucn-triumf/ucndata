@@ -13,18 +13,38 @@ from iminuit import Minuit
 from iminuit.cost import LeastSquares
 from datetime import datetime
 
+# periods settings
+periods = {'production':  0,
+           'count':       1,
+           'background':  0}
+
+# epics equipment to average values over: equip_name:period to average over
+equipment = {'BeamlineEpics':           periods['production'],
+            #  'UCN2Epics':               periods['production'],
+            #  'UCN2EpicsTemperature':    periods['production'],
+            #  'UCN2EpicsPressures':      periods['production'],
+            #  'UCN2EpicsOthers':         periods['production'],
+            #  'UCN2EpicsPhase2B':        periods['production'],
+            #  'UCN2EpicsPhase3':         periods['production'],
+            #  'UCN2EpPha5Pre':           periods['production'],
+            #  'UCN2EpPha5Oth':           periods['production'],
+            #  'UCN2EpPha5Tmp':           periods['production'],
+            #  'UCN2EpPha5Last':          periods['production'],
+            #  'UCN2Pur':                 periods['production'],
+            }
+
 @prettyprint(r'$p_0 (1-\exp(-t/\tau))$', '$p_0$', r'$\tau$')
 def fitfn(t, p0, tau):
     return p0*(1-np.exp(-t/tau))
 
-def get_satur_cnts(run, outfile, periods):
+
+def get_satur_cnts(run, outfile):
     """Get counts needed for a source saturation calculation for a single run.
     Save this to file.
 
     Args:
         r (ucnrun): run data
         f (str): name of file to save at the end
-        periods (dict): specify which periods are for which purpose (production, count, background)
 
     Returns:
         pd.DataFrame: with counts needed for calculation
@@ -76,6 +96,12 @@ def get_satur_cnts(run, outfile, periods):
                        'dbeam_current (uA)': dbeam_currents,
                        })
 
+    # add epics summary variables
+    df_list = [df]
+    for equip, period in equipment.items():
+        df_list.append(pd.DataFrame(getattr(run[:, period].tfile, equip).mean()))
+    df = pd.concat(df_list, axis='columns')
+
     # save file
     if outfile:
         dirname = os.path.dirname(outfile)
@@ -106,24 +132,6 @@ def get_satur_cnts(run, outfile, periods):
         df.to_csv(outfile, index=False, mode='a')
 
     return df
-
-def get_saturation_time(x, y, dy, p0=None):
-    """Draw and fit counts for a run or set of runs
-
-    Args:
-        run (int): run number to fit and draw.
-        p0 (iterable): initial fit paramters
-    """
-    # fit
-    m = Minuit(LeastSquares(x = x,
-                            y = y,
-                            yerror = dy,
-                            model = fitfn), *p0)
-    m.migrad()
-    par = m.values
-    std = m.errors
-
-    return (par, std)
 
 def fit(x, y, dy, p0, err_kwargs, outfile=None, xlabel=None, ylabel=None):
     """Draw and fit counts for a run or set of runs

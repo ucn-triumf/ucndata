@@ -13,6 +13,27 @@ import os
 from datetime import datetime
 from fitting import global_fitter
 
+# periods settings
+periods = {'production':  0,
+           'storage':     1,
+           'count':       2,
+           'background':  1,}
+
+# epics equipment to average values over: equip_name:period to average over
+equipment = {'BeamlineEpics':           periods['production'],
+            #  'UCN2Epics':               periods['storage'],
+            #  'UCN2EpicsTemperature':    periods['storage'],
+            #  'UCN2EpicsPressures':      periods['storage'],
+            #  'UCN2EpicsOthers':         periods['storage'],
+            #  'UCN2EpicsPhase2B':        periods['storage'],
+            #  'UCN2EpicsPhase3':         periods['storage'],
+            #  'UCN2EpPha5Pre':           periods['storage'],
+            #  'UCN2EpPha5Oth':           periods['storage'],
+            #  'UCN2EpPha5Tmp':           periods['storage'],
+            #  'UCN2EpPha5Last':          periods['storage'],
+            #  'UCN2Pur':                 periods['storage'],
+            }
+
 # fit function to counts vs lifetimes
 @prettyprint(r'$p_0 \exp(-t/\tau)$', '$p_0$', r'$\tau$')
 def fitfn(t, p0, tau):
@@ -72,6 +93,12 @@ def get_storage_cnts(run, periods, outfile):
                        'beam_current (uA)': beam_currents,
                        'dbeam_current (uA)': dbeam_currents,
                        })
+
+    # add epics summary variables
+    df_list = [df]
+    for equip, period in equipment.items():
+        df_list.append(pd.DataFrame(getattr(run[:, period].tfile, equip).mean()))
+    df = pd.concat(df_list, axis='columns')
 
     # save file
     if outfile:

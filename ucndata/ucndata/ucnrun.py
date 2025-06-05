@@ -561,11 +561,12 @@ class ucnrun(ucnbase):
         Run this if you want to change how cycle start times are calculated
 
         Args:
-            mode (str): default|matched|sequencer|he3|li6
+            mode (str): default|matched|sequencer|he3|li6|beamon
                 if matched: look for identical timestamps in RunTransitions from detectors
                 if sequencer: look for inCycle timestamps in SequencerTree
                 if he3: use He3 detector cycle start times
                 if li6: use Li6 detector cycle start times
+                if beamon: use rise of beam current to determine start time
 
         Returns:
             pd.DataFrame: with columns "start", "stop", "offset" and "duration (s)". Values are in epoch time. Indexed by cycle id. Offset is the difference in detector start times: he3_start-li6_start

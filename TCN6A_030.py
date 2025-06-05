@@ -9,17 +9,11 @@ import os
 
 # settings
 settings.datadir = 'test'     # path to root data
-settings.cycle_times_mode = 'beamon'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer|beamon]
+settings.cycle_times_mode = 'beamon'# what frontend to use for determining cycle times [li6|he3|matched|sequencer|beamon]
 settings.DET_NAMES.pop('He3')       # don't check He3 detector data
-storagelifetime.detector = 'Li6'                    # detector to use when getting counts [Li6|He3]
-outfile = 'TCN6A_030/counts.csv'   # save counts output
-run_numbers = [1846, 1873, 1875]   # example: [1846, '1847+1848']
-
-# periods settings
-periods = {'production':  0,
-           'storage':     1,
-           'count':       2,
-           'background':  1}
+storagelifetime.detector = 'Li6'    # detector to use when getting counts [Li6|He3]
+outfile = 'TCN6A_030/summary.csv'   # save counts output
+run_numbers = [1846, 1873, 1875]    # example: [1846, '1847+1848']
 
 # setup runs
 runs = read(run_numbers)
@@ -28,7 +22,7 @@ if isinstance(runs, ucnrun):
 
 # counts and hits
 for run in runs:
-    get_storage_cnts(run, periods, outfile)
+    get_storage_cnts(run, outfile)
     draw_hits(run, outdir=os.path.dirname(outfile))
 
 # get results
