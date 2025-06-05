@@ -2,16 +2,14 @@
 # Derek Fujimoto
 # June 2025
 
-import sourcesaturation
-from sourcesaturation import get_satur_cnts, fit, draw_hits
 from ucndata import settings, read, ucnrun
 import os
+import tools
 
 # settings
-settings.datadir = 'root_files'     # path to root data
+settings.datadir = 'test'     # path to root data
 settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer|beamon]
 settings.DET_NAMES.pop('He3')       # don't check He3 detector data
-sourcesaturation.detector = 'Li6'   # detector to use when getting counts [Li6|He3]
 outfile = 'TCN6A_040/summary.csv'    # save counts output
 run_numbers = [1846]   # example: [1846, '1847+1848']
 
@@ -23,10 +21,18 @@ runs = read(run_numbers)
 if isinstance(runs, ucnrun):
     runs = [runs]
 
+# setup analyzer
+ana = tools.Analyzer('saturation', outfile)
+
 # counts and hits
 for run in runs:
-    get_satur_cnts(run, outfile, periods)
-    draw_hits(run, outdir=os.path.dirname(outfile))
+    ana.get_counts(run)
+    ana.draw_hits(run)
+
+# fit function to counts vs production times
+@tools.prettyprint(r'$p_0 (1-\exp(-t/\tau))$', '$p_0$', r'$\tau$')
+def fitfn(t, p0, tau):
+    return p0*(1-np.exp(-t/tau))
 
 # draw counts for each beam energy
 df = pd.read_csv(outfile, comment='#')
@@ -37,7 +43,8 @@ df['beam_current_rounded (mA)'] = df['beam_current (mA)'].round()
 plt.figure()
 for current, g in df.groupby('beam_current_rounded (mA)'):
 
-    fit(df['production duration (s)'],
+    tools.fit(fitfn,
+        df['production duration (s)'],
         df['counts_norm (1/uA)']*current,
         df['dcounts_norm (1/uA)']*current,
         p0 = (1,1),
