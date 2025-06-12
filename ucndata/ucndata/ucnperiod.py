@@ -12,7 +12,6 @@
 """
 
 from .exceptions import *
-from . import settings
 from .ucnbase import ucnbase
 from .tsubfile import tsubfile
 
@@ -153,7 +152,7 @@ class ucnperiod(ucnbase):
     def is_pileup(self, detector):
         """Check if pileup may be an issue in this period.
 
-        Histograms the first `pileup_within_first_s` seconds of data in 1 ms bins and checks if any of those bins are greater than the `pileup_cnt_per_ms` threshold. Set these settings in the [settings.py](../settings.py) file.
+        Histograms the first `pileup_within_first_s` seconds of data in 1 ms bins and checks if any of those bins are greater than the `pileup_cnt_per_ms` threshold.
 
         Args:
             detector (str): one of the keys to self.DET_NAMES

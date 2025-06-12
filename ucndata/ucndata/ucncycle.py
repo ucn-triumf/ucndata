@@ -16,7 +16,6 @@ from .applylist import applylist
 from .ucnbase import ucnbase
 from .ucnperiod import ucnperiod
 from .tsubfile import tsubfile
-from . import settings
 
 import numpy as np
 import os

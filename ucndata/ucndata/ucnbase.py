@@ -4,7 +4,6 @@
 
 from rootloader import ttree
 from .exceptions import *
-from . import settings
 from .datetime import to_datetime
 from .applylist import applylist
 import ucndata.constants as const
@@ -24,7 +23,7 @@ class ucnbase(object):
     Attributes:
         comment (str): comment input by users
         cycle (int|none): cycle number, none if no cycle selected
-        cycle_param (attrdict): cycle parameters from sequencer settings
+        cycle_param (attrdict): cycle parameters 
         experiment_number (str): experiment number input by users
         month (int): month of run start
         run_number (int): run number
@@ -38,7 +37,7 @@ class ucnbase(object):
 
     Notes:
         Can access attributes of tfile directly from top-level object
-        Need to define the values in ucndata.settings if you want non-default
+        Need to redefine the values if you want non-default
         behaviour
         Object is indexed as [cycle, period] for easy access to sub time frames
     """

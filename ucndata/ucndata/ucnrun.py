@@ -16,7 +16,6 @@ from .exceptions import *
 from .applylist import applylist
 from .ucnbase import ucnbase
 from .ucncycle import ucncycle
-from . import settings
 import ROOT
 import numpy as np
 import pandas as pd
@@ -57,8 +56,7 @@ class ucnrun(ucnbase):
 
     Notes:
         * Can access attributes of tfile directly from top-level object
-        * Need to define the values in ucndata.settings if you want non-default
-        behaviour
+        * Need to define the values if you want non-default behaviour
         * Object is indexed as [cycle, period] for easy access to sub time frames
 
         Cycle param contents
