@@ -173,9 +173,6 @@ class ucnrun(ucnbase):
         else:
             self.run_number = int(self.run_number)
 
-        # set cycle parameters
-        self._get_cycle_param()
-
         # set other header items
         date = pd.to_datetime(self.start_time)
         self.year = date.year
@@ -187,9 +184,12 @@ class ucnrun(ucnbase):
 
         # reformat tfile branch names to remove spaces
         for key in tuple(self.tfile.keys()):
-            if ' ' in key:
-                self.tfile[key.replace(' ', '_')] = self.tfile[key]
+            if ' ' in key or '-' in key:
+                self.tfile[key.replace(' ', '_').replace('-','')] = self.tfile[key]
                 del self.tfile[key]
+
+        # set cycle parameters
+        self._get_cycle_param()
 
         # get cycle times
         cycle_failed = False
@@ -293,16 +293,19 @@ class ucnrun(ucnbase):
         self.cycle_param['filter'] = None
 
         # setup cycle paramtree array outputs from transition trees
-        tree = None
+        treelist = []
         for detector in settings.DET_NAMES.values():
             if detector['transitions'] in self.tfile.keys():
-                tree = self.tfile[detector['transitions']]
-                break
+                treelist.append(self.tfile[detector['transitions']])
 
-        # check if tree exists
-        if tree is None:
+        # check if trees exist
+        if not treelist:
             warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot fully set up cycle_param', MissingDataWarning)
             return
+
+        # get longest
+        treelen = [len(t) for t in treelist]
+        tree = treelist[np.argmax(treelen)]
 
         if type(tree) is not pd.DataFrame:
             tree = tree.to_dataframe()
@@ -487,35 +490,6 @@ class ucnrun(ucnbase):
             return applylist(map(self.get_cycle, range(ncycles)))
         else:
             return ucncycle(self, cycle)
-
-    def plot_psd(self):
-        """Draw PSD_VS_QL TH2 histograms"""
-
-        # Li detector figures
-        fig, axes = plt.subplots(nrows=3, ncols=3, sharex=True, sharey=True,
-                                layout='constrained',
-                                figsize=(10,8))
-        axes = np.concat(axes)
-
-        for i in range(9):
-            ax = axes[i]
-            data = self.tfile[f'V1725PSD_VS_QL_0_{i}']
-            if type(data) is pd.DataFrame:
-                data.draw(ax=ax)
-            else:
-                data.plot(ax=ax)
-            ax.set_xlabel('')
-            ax.set_ylabel('')
-            ax.set_title(f'CH {i}', fontsize='x-small')
-
-        # remove color bars
-        rmlist = [ax for ax in fig.axes if 'colorbar' in ax.get_label()]
-        for ax in rmlist:
-            fig.delaxes(ax)
-
-        fig.suptitle('V1725 PSD_VS_QL')
-        fig.supxlabel('Q Long')
-        fig.supylabel(r'Pulse Shape Discrimination $(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
 
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating

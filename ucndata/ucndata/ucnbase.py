@@ -11,6 +11,7 @@ import ucndata.constants as const
 import numpy as np
 import pandas as pd
 import time
+import matplotlib.pyplot as plt
 
 class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
@@ -241,6 +242,56 @@ class ucnbase(object):
             bin_centers = to_datetime(bin_centers)
 
         return (bin_centers, hist)
+
+    def plot_psd(self, detector='Li6'):
+        """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms"""
+
+        # get the data from the tree
+        df = self.tfile[settings.DET_NAMES[detector]['hits']]
+        
+        # calculate new psd
+        df = df.loc[df.tChargeL > 0]
+        df = df.loc[df.tChargeL < 5e4]
+        df['psd'] = (df.tChargeL-df.tChargeS)/df.tChargeL
+
+        # Li detector figures
+        fig, axes = plt.subplots(nrows=3, ncols=3, sharex=True, sharey=True,
+                                layout='constrained',
+                                figsize=(10,8))
+        axes = np.concat(axes)
+
+        hist_edges = []
+        max_chargeL = df.tChargeL.max()
+
+        for i in range(9):
+            
+            ch = df.loc[df.tChannel == i]
+            
+            # histogram     
+            xbins = np.linspace(0,max_chargeL, 1000)
+            ybins = np.arange(-1,1.01,0.01)
+            hist, xedge, yedge = np.histogram2d(ch.tChargeL, ch.psd,
+                        bins=[xbins, ybins])
+             
+            hist_edges.append((hist, xedge, yedge))
+            
+        # get max
+        max_bin_count = np.max([np.max(h[0]) for h in hist_edges])
+            
+        for i in range(9):
+            ax = axes[i]
+            hist, xbins, ybins = hist_edges[i]
+             
+            # draw
+            c = ax.pcolormesh(xbins, ybins, hist.transpose(), 
+                              cmap='RdBu',
+                              vmin=0, vmax=max_bin_count)
+            if i in (2, 5, 8):
+                plt.gcf().colorbar(c, ax=ax)
+            ax.set_title(f'CH {i}', fontsize='x-small')
+
+        fig.supxlabel(r'$Q_{\mathrm{Long}}$')
+        fig.supylabel(r'$(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
 
     def to_dataframe(self):
         """Convert self.tfile contents to pd.DataFrame
