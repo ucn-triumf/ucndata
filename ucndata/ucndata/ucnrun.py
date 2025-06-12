@@ -36,7 +36,7 @@ class ucnrun(ucnbase):
     """UCN run data. Cleans data and performs analysis
 
     Args:
-        run (int|str): if int, generate filename with settings.datadir
+        run (int|str): if int, generate filename with self.datadir
             elif str then run is the path to the file
         header_only (bool): if true, read only the header
 
@@ -84,7 +84,7 @@ class ucnrun(ucnbase):
         # load from filename
         ucnrun('/path/to/file/ucn_run_00001846.root')
         # load from run number
-        settings.datadir = '/path/to/file/'
+        self.datadir = '/path/to/file/'
         ucnrun(1846)
         ```
 
@@ -138,7 +138,7 @@ class ucnrun(ucnbase):
 
         # make filename from defaults
         elif type(run) is int:
-            filename = os.path.join(settings.datadir, f'ucn_run_{run:0>8d}.root')
+            filename = os.path.join(self.datadir, f'ucn_run_{run:0>8d}.root')
 
         # fetch from specified path
         elif type(run) is str:
@@ -156,8 +156,8 @@ class ucnrun(ucnbase):
 
         else:
             self.tfile = tfile(filename, empty_ok=False, quiet=True,
-                               key_filter=settings.keyfilter,
-                               tree_filter=settings.tree_filter)
+                               key_filter=self.keyfilter,
+                               tree_filter=self.tree_filter)
             head = self.tfile['header']
 
             # fix header values in tfile
@@ -294,7 +294,7 @@ class ucnrun(ucnbase):
 
         # setup cycle paramtree array outputs from transition trees
         treelist = []
-        for detector in settings.DET_NAMES.values():
+        for detector in self.DET_NAMES.values():
             if detector['transitions'] in self.tfile.keys():
                 treelist.append(self.tfile[detector['transitions']])
 
@@ -366,7 +366,7 @@ class ucnrun(ucnbase):
             bool: true if check passes, else false.
 
         Notes:
-            * Do the settings.SLOW_TREES exist and have entries?
+            * Do the self.SLOW_TREES exist and have entries?
             * Are there nonzero counts in UCNHits?
 
         Example:
@@ -377,7 +377,7 @@ class ucnrun(ucnbase):
         """
 
         # check some necessary data trees
-        for tree in settings.SLOW_TREES:
+        for tree in self.SLOW_TREES:
 
             msg = None
 
@@ -397,7 +397,7 @@ class ucnrun(ucnbase):
                     print(msg)
                     return False
 
-        for name, det in settings.DET_NAMES.items():
+        for name, det in self.DET_NAMES.items():
 
             # check for nonzero counts
             if not self.tfile[det['hits']].tIsUCN.any():
@@ -490,6 +490,22 @@ class ucnrun(ucnbase):
             return applylist(map(self.get_cycle, range(ncycles)))
         else:
             return ucncycle(self, cycle)
+
+    # filter what objects to load in each file
+    def keyfilter(self, name):
+        """Don't load all the data in each file, only that which is needed"""
+
+        name = name.replace(' ', '_').lower()
+
+        # reject some keys based on partial matches
+        reject_keys = ('v1725', 'v1720', 'v792', 'tv1725', 'charge', 'edge_diff',
+                       'pulse_widths', 'iv2', 'iv3', 'rate')
+        for key in reject_keys:
+            if key in name:
+                return False
+
+        return True
+
 
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating
@@ -606,12 +622,12 @@ class ucnrun(ucnbase):
 
         # get mode
         if mode in 'default':
-            mode = settings.cycle_times_mode
+            mode = self.cycle_times_mode
         mode = mode.lower()
 
         # get run end time from control trees - used in matched and detector cycles times
         run_stop = -np.inf
-        for treename in settings.SLOW_TREES:
+        for treename in self.SLOW_TREES:
             try:
                 idx = self.tfile[treename].to_dataframe().index
             except AttributeError as err:
@@ -647,7 +663,7 @@ class ucnrun(ucnbase):
                      'supercycle': [0]}
 
             # use timestamps from slow control trees to determine timestamps
-            for treename in settings.SLOW_TREES:
+            for treename in self.SLOW_TREES:
 
                 # check for tree
                 if treename not in self.tfile.keys():
@@ -665,9 +681,9 @@ class ucnrun(ucnbase):
 
         ## get matched timesteps from He3 and Li6 RunTransitions
         elif mode in 'matched':
-            hestart = self.tfile[settings.DET_NAMES['He3']['transitions']].cycleStartTime
-            listart = self.tfile[settings.DET_NAMES['Li6']['transitions']].cycleStartTime
-            scycle = self.tfile[settings.DET_NAMES['He3']['transitions']].superCycleIndex
+            hestart = self.tfile[self.DET_NAMES['He3']['transitions']].cycleStartTime
+            listart = self.tfile[self.DET_NAMES['Li6']['transitions']].cycleStartTime
+            scycle = self.tfile[self.DET_NAMES['He3']['transitions']].superCycleIndex
 
             # drop duplicate timestamps
             hestart = hestart.drop_duplicates()
@@ -736,7 +752,7 @@ class ucnrun(ucnbase):
         ## detector start times
         elif mode in 'he3':
 
-            start = self.tfile[settings.DET_NAMES['He3']['transitions']].cycleStartTime
+            start = self.tfile[self.DET_NAMES['He3']['transitions']].cycleStartTime
             start = start.drop_duplicates()
 
             # setup output
@@ -744,12 +760,12 @@ class ucnrun(ucnbase):
                      'duration (s)': np.diff(np.concatenate((start, [run_stop])))
                     }
             times['stop'] = times['start'] + times['duration (s)']
-            times['supercycle'] = self.tfile[settings.DET_NAMES['He3']['transitions']].superCycleIndex
+            times['supercycle'] = self.tfile[self.DET_NAMES['He3']['transitions']].superCycleIndex
 
         ## detector start times
         elif mode in 'li6':
 
-            start = self.tfile[settings.DET_NAMES['Li6']['transitions']].cycleStartTime
+            start = self.tfile[self.DET_NAMES['Li6']['transitions']].cycleStartTime
             start = start.drop_duplicates()
 
             # setup output
@@ -762,7 +778,7 @@ class ucnrun(ucnbase):
         ## beam on
         elif mode in 'beamon':
             current = self.beam_current_uA
-            start = current.loc[current.diff() > settings.DATA_CHECK_THRESH['beam_min_current']/2]
+            start = current.loc[current.diff() > self.DATA_CHECK_THRESH['beam_min_current']/2]
             start = start.index.values
 
             # setup output

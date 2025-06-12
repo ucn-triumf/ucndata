@@ -17,7 +17,7 @@ class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
 
     Args:
-        run (int|str): if int, generate filename with settings.datadir
+        run (int|str): if int, generate filename with self.datadir
             elif str then run is the path to the file
         header_only (bool): if true, read only the header
 
@@ -42,6 +42,57 @@ class ucnbase(object):
         behaviour
         Object is indexed as [cycle, period] for easy access to sub time frames
     """
+
+    # path to the directory which contains the root files
+    datadir = "/data3/ucn/root_files"
+
+    # timezone for datetime conversion
+    timezone = 'America/Vancouver'
+
+    # cycle times finding mode
+    cycle_times_mode = 'matched'
+    
+    # filter what trees and branches to load in each file. If unspecified then load the whole tree
+    # treename: (filter, columns). See [rootloader documentation](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree-1) for details
+    tree_filter = {}
+
+
+    # detector tree names
+    DET_NAMES = {'He3':{'hits':         'UCNHits_He3',
+                        'charge':       'He3_Charge',
+                        'rate':         'He3_Rate',
+                        'transitions':  'RunTransitions_He3',
+                        'hitsseq':      'hitsinsequence_he3',
+                        'hitsseqcumul': 'hitsinsequencecumul_he3',
+                        },
+                 'Li6':{'hits':         'UCNHits_Li6',
+                        'charge':       'Li6_Charge',
+                        'rate':         'Li6_Rate',
+                        'transitions':  'RunTransitions_Li6',
+                        'hitsseq':      'hitsinsequence_li6',
+                        'hitsseqcumul': 'hitsinsequencecumul_li6',
+                        },
+                }
+                
+    # needed slow control trees: for checking data quality
+    SLOW_TREES = ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
+
+
+    # data thresholds for checking data
+    DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA
+                         'beam_max_current_std': 0.02, # uA
+                         'max_bkgd_count_rate': 4, # fractional increase over DET_BKGD values
+                         'min_total_counts': 20, # number of counts total
+                         'pileup_cnt_per_ms': 3, # if larger than this, then pileup and delete
+                         'pileup_within_first_s': 1, # time frame for pileup in each period
+                        }
+
+    # default detector backgrounds - from 2019
+    DET_BKGD = {'Li6':     1.578,
+                'Li6_err': 0.009,
+                'He3':     0.0349,
+                'He3_err': 0.0023}
+
 
     def __iter__(self):
         # setup iteration
@@ -152,7 +203,7 @@ class ucnbase(object):
         """Get times of ucn hits
 
         Args:
-            detector (str): one of the keys to `settings.DET_NAMES`
+            detector (str): one of the keys to `self.DET_NAMES`
 
         Returns:
             pd.DataFrame: hits tree as a dataframe, only the values when a hit is registered
@@ -179,7 +230,7 @@ class ucnbase(object):
         """
 
         # get the tree
-        hit_tree = self.tfile[settings.DET_NAMES[detector]['hits']] # maybe should be a copy?
+        hit_tree = self.tfile[self.DET_NAMES[detector]['hits']] # maybe should be a copy?
         if type(hit_tree) is not pd.DataFrame:
             hit_tree = hit_tree.to_dataframe()
 
@@ -213,7 +264,7 @@ class ucnbase(object):
         """
 
         # get data
-        df = self.tfile[settings.DET_NAMES[detector]['hits']].copy()
+        df = self.tfile[self.DET_NAMES[detector]['hits']].copy()
         
         # to dataframe
         if not isinstance(df, pd.DataFrame):
@@ -247,7 +298,7 @@ class ucnbase(object):
         """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms"""
 
         # get the data from the tree
-        df = self.tfile[settings.DET_NAMES[detector]['hits']]
+        df = self.tfile[self.DET_NAMES[detector]['hits']]
         
         # calculate new psd
         df = df.loc[df.tChargeL > 0]
@@ -290,6 +341,7 @@ class ucnbase(object):
                 plt.gcf().colorbar(c, ax=ax)
             ax.set_title(f'CH {i}', fontsize='x-small')
 
+        fig.suptitle(f'Run {self.run_number}')
         fig.supxlabel(r'$Q_{\mathrm{Long}}$')
         fig.supylabel(r'$(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
 

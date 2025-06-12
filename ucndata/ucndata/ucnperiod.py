@@ -85,7 +85,7 @@ class ucnperiod(ucnbase):
         """Get sum of ucn hits
 
         Args:
-            detector (str): one of the keys to settings.DET_NAMES
+            detector (str): one of the keys to self.DET_NAMES
             bkgd (float|None): background counts
             dbkgd(float|None): error in background counts
             norm (float|None): normalize to this value
@@ -156,7 +156,7 @@ class ucnperiod(ucnbase):
         Histograms the first `pileup_within_first_s` seconds of data in 1 ms bins and checks if any of those bins are greater than the `pileup_cnt_per_ms` threshold. Set these settings in the [settings.py](../settings.py) file.
 
         Args:
-            detector (str): one of the keys to settings.DET_NAMES
+            detector (str): one of the keys to self.DET_NAMES
 
         Returns:
             bool: true if pileup detected
@@ -175,8 +175,8 @@ class ucnperiod(ucnbase):
         ## filter pileup for period data
 
         # get thresholds
-        dt = settings.DATA_CHECK_THRESH['pileup_within_first_s']
-        count_thresh = settings.DATA_CHECK_THRESH['pileup_cnt_per_ms']
+        dt = self.DATA_CHECK_THRESH['pileup_within_first_s']
+        count_thresh = self.DATA_CHECK_THRESH['pileup_cnt_per_ms']
 
         # make histogram
         t = hit_tree.index.values
@@ -192,7 +192,7 @@ class ucnperiod(ucnbase):
         """Get sum of ucn hits per unit time of period
 
         Args:
-            detector (str): one of the keys to settings.DET_NAMES
+            detector (str): one of the keys to self.DET_NAMES
             bkgd (float|None): background counts
             dbkgd(float|None): error in background counts
             norm (float|None): normalize to this value

@@ -186,7 +186,7 @@ class ucncycle(ucnbase):
             return warn(ValveError, f'{msg} No valves operated')
 
         # has counts
-        if not any([self.tfile[settings.DET_NAMES[det]['hits']].tIsUCN.sum() > 1 for det in settings.DET_NAMES.keys()]):
+        if not any([self.tfile[self.DET_NAMES[det]['hits']].tIsUCN.sum() > 1 for det in self.DET_NAMES.keys()]):
             return warn(DataError, f'{msg} No counts detected in {det} detector')
 
         ## production period checks ------------------------------------------
@@ -199,11 +199,11 @@ class ucncycle(ucnbase):
                 return warn(BeamError, f'{msg} No beam data during production period')
 
             # beam dropped too low
-            if beam_current.min() < settings.DATA_CHECK_THRESH['beam_min_current']:
+            if beam_current.min() < self.DATA_CHECK_THRESH['beam_min_current']:
                 return warn(BeamError, f'{msg} Beam current dropped to {beam_current.min()} uA')
 
             # beam current unstable
-            if beam_current.std() > settings.DATA_CHECK_THRESH['beam_max_current_std']:
+            if beam_current.std() > self.DATA_CHECK_THRESH['beam_max_current_std']:
                 return warn(BeamError, f'{msg} Beam current fluctuated by {beam_current.std()} uA')
 
         ## background period checks ------------------------------------------
@@ -211,13 +211,13 @@ class ucncycle(ucnbase):
 
             period = self.get_period(period_background)
 
-            for det in settings.DET_NAMES.keys():
-                counts = period.tfile[settings.DET_NAMES[det]['hits']].tIsUCN.sum()
+            for det in self.DET_NAMES.keys():
+                counts = period.tfile[self.DET_NAMES[det]['hits']].tIsUCN.sum()
 
                 # background count rate too high
                 rate = counts / period.cycle_param.period_durations_s
-                if rate / settings.DET_BKGD[det] > settings.DATA_CHECK_THRESH['max_bkgd_count_rate']:
-                    return warn(DataError, f'{msg} Background count rate in {det} detector is {rate / settings.DET_BKGD[det]:.1f} times larger than expected ({settings.DET_BKGD[det]} counts/s)')
+                if rate / self.DET_BKGD[det] > self.DATA_CHECK_THRESH['max_bkgd_count_rate']:
+                    return warn(DataError, f'{msg} Background count rate in {det} detector is {rate / self.DET_BKGD[det]:.1f} times larger than expected ({self.DET_BKGD[det]} counts/s)')
 
                 # background counts missing
                 if counts == 0:
@@ -227,11 +227,11 @@ class ucncycle(ucnbase):
         if period_count is not None:
 
             period = self.get_period(period_count)
-            for det in settings.DET_NAMES.keys():
+            for det in self.DET_NAMES.keys():
 
                 # check too few counts
                 counts = period.get_counts(det)[0]
-                if counts < settings.DATA_CHECK_THRESH['min_total_counts']:
+                if counts < self.DATA_CHECK_THRESH['min_total_counts']:
                     return warn(DataError, f'{msg} Too few counts in {det} detector during counting period ({counts} counts)')
 
                 # check if pileup
@@ -243,7 +243,7 @@ class ucncycle(ucnbase):
     def get_counts(self, detector, period=None, bkgd=None, dbkgd=None, norm=None, dnorm=None):
         """Get counts for a/each period
         Args:
-            detector (str): one of the keys to settings.DET_NAMES
+            detector (str): one of the keys to self.DET_NAMES
             period (None|int):  if None get for entire cycle
                                 elif < 0 get for each period
                                 elif >=0 get for that period
@@ -361,7 +361,7 @@ class ucncycle(ucnbase):
     def get_rate(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None):
         """Get count rate for each period
         Args:
-            detector (str): one of the keys to settings.DET_NAMES
+            detector (str): one of the keys to self.DET_NAMES
             bkgd (float|None): background counts
             dbkgd(float|None): error in background counts
             norm (float|None): normalize to this value

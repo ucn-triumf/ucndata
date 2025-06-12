@@ -4,7 +4,7 @@
 
 import pandas as pd
 import numpy as np
-from . import settings
+from . import ucnbase
 
 def from_datetime(item):
     """Convert to epoch time
@@ -111,7 +111,7 @@ def to_datetime(item):
 
     # convert values
     converted = pd.to_datetime(item, unit='s', utc=True)
-    converted = converted.tz_convert(settings.timezone)
+    converted = converted.tz_convert(ucnbase.timezone)
 
     # dataframe conversion
     if df is not None:
