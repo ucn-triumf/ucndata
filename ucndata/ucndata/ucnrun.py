@@ -21,6 +21,7 @@ import ROOT
 import numpy as np
 import pandas as pd
 import itertools, warnings, os, ROOT
+import matplotlib.pyplot as plt
 
 ROOT.gROOT.SetBatch(1)
 
@@ -302,7 +303,9 @@ class ucnrun(ucnbase):
         if tree is None:
             warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot fully set up cycle_param', MissingDataWarning)
             return
-        tree = tree.to_dataframe()
+
+        if type(tree) is not pd.DataFrame:
+            tree = tree.to_dataframe()
 
         # cycle and supercycle indices
         self.cycle_param['cycle'] = tree['cycleIndex'].astype(int)
@@ -484,6 +487,35 @@ class ucnrun(ucnbase):
             return applylist(map(self.get_cycle, range(ncycles)))
         else:
             return ucncycle(self, cycle)
+
+    def plot_psd(self):
+        """Draw PSD_VS_QL TH2 histograms"""
+
+        # Li detector figures
+        fig, axes = plt.subplots(nrows=3, ncols=3, sharex=True, sharey=True,
+                                layout='constrained',
+                                figsize=(10,8))
+        axes = np.concat(axes)
+
+        for i in range(9):
+            ax = axes[i]
+            data = self.tfile[f'V1725PSD_VS_QL_0_{i}']
+            if type(data) is pd.DataFrame:
+                data.draw(ax=ax)
+            else:
+                data.plot(ax=ax)
+            ax.set_xlabel('')
+            ax.set_ylabel('')
+            ax.set_title(f'CH {i}', fontsize='x-small')
+
+        # remove color bars
+        rmlist = [ax for ax in fig.axes if 'colorbar' in ax.get_label()]
+        for ax in rmlist:
+            fig.delaxes(ax)
+
+        fig.suptitle('V1725 PSD_VS_QL')
+        fig.supxlabel('Q Long')
+        fig.supylabel(r'Pulse Shape Discrimination $(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
 
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating
