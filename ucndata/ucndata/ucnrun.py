@@ -504,6 +504,58 @@ class ucnrun(ucnbase):
 
         return True
 
+    def set_cut(self, detector, psd_bounds, qlong_bounds):
+        """Apply a cut to the ucn hits tree. Sets values in the tIsUCN column
+        
+        Args:
+            detector (str): Li6|He3
+            psd_bounds (iterable): set ranges. If within bounds, set tIsUCN to true, else false
+                format can be a list [lower, upper] or a dict of lists: {ch:[lower, upper]}
+                the former applies to all channels
+                If the latter is missing a channel, keep all hits from that channel
+                set to [-np.inf, np.inf] to disable
+            qlong_bounds (iterable): similar to psd_bounds
+        """
+        
+        # get tree
+        hit_tree = self.tfile[self.DET_NAMES[detector]['hits']]
+        
+        # default: accept zero hits as UCN
+        hit_tree.loc[:, 'tIsUCN'] = 0.0
+        
+        # calculate new psd
+        hit_tree = hit_tree.loc[hit_tree.tChargeL>0]
+        hit_tree = hit_tree.loc[hit_tree.tChargeL < 5e4]        
+        hit_tree['tPSD'] = (hit_tree.tChargeL-hit_tree.tChargeS)/hit_tree.tChargeL
+
+        # force dict inputs
+        if not isinstance(psd_bounds, dict):
+            psd_bounds = {i: psd_bounds for i in range(9)}
+        if not isinstance(qlong_bounds, dict):
+            qlong_bounds = {i: qlong_bounds for i in range(9)}
+            
+        # detect channels from inputs
+        channels = np.unique(np.concat((list(psd_bounds.keys()), 
+                                        list(qlong_bounds.keys()))))
+        
+        # iterate and get new ucn tags
+        for ch in channels:
+            if ch in psd_bounds.keys(): pbnd = psd_bounds[ch]
+            else:                       pbnd = [-np.inf, np.inf]
+            
+            if ch in qlong_bounds.keys(): qbnd = qlong_bounds[ch]
+            else:                         qbnd = [-np.inf, np.inf]
+        
+            idx = hit_tree.tChannel == ch
+            ch_tree = hit_tree.loc[idx]
+            print(max(ch_tree.tPSD))
+            hit_tree.loc[idx, 'tIsUCN'] = ((ch_tree.tChargeL > qbnd[0]) & \
+                                           (ch_tree.tChargeL < qbnd[1]) & \
+                                           (ch_tree.tPSD > pbnd[0]) & \
+                                           (ch_tree.tPSD < pbnd[1])).astype(int)
+
+        # set the new tree
+        self.tfile[self.DET_NAMES[detector]['hits']] = hit_tree
 
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating
