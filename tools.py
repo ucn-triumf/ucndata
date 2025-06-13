@@ -45,17 +45,17 @@ class Analyzer(object):
         # epics equipment to average values over: equip_name:period to average over
         if mode in 'lifetime':
             self.equipment = {'BeamlineEpics':           'production',
-                        #  'UCN2Epics':               'storage',
-                        #  'UCN2EpicsTemperature':    'storage',
-                        #  'UCN2EpicsPressures':      'storage',
-                        #  'UCN2EpicsOthers':         'storage',
-                        #  'UCN2EpicsPhase2B':        'storage',
-                        #  'UCN2EpicsPhase3':         'storage',
-                        #  'UCN2EpPha5Pre':           'storage',
-                        #  'UCN2EpPha5Oth':           'storage',
-                        #  'UCN2EpPha5Tmp':           'storage',
-                        #  'UCN2EpPha5Last':          'storage',
-                        #  'UCN2Pur':                 'storage',
+                              'UCN2Epics':               'storage',
+                              'UCN2EpicsTemperature':    'storage',
+                              'UCN2EpicsPressures':      'storage',
+                              'UCN2EpicsOthers':         'storage',
+                              'UCN2EpicsPhase2B':        'storage',
+                              'UCN2EpicsPhase3':         'storage',
+                              'UCN2EpPha5Pre':           'storage',
+                              'UCN2EpPha5Oth':           'storage',
+                              'UCN2EpPha5Tmp':           'storage',
+                              'UCN2EpPha5Last':          'storage',
+                              'UCN2Pur':                 'storage',
                         }
             self.periods = {'production':  0,
                             'storage':     1,
@@ -65,17 +65,17 @@ class Analyzer(object):
 
         elif mode in 'saturation':
             self.equipment = {'BeamlineEpics':           'production',
-                        #  'UCN2Epics':               'production',
-                        #  'UCN2EpicsTemperature':    'production',
-                        #  'UCN2EpicsPressures':      'production',
-                        #  'UCN2EpicsOthers':         'production',
-                        #  'UCN2EpicsPhase2B':        'production',
-                        #  'UCN2EpicsPhase3':         'production',
-                        #  'UCN2EpPha5Pre':           'production',
-                        #  'UCN2EpPha5Oth':           'production',
-                        #  'UCN2EpPha5Tmp':           'production',
-                        #  'UCN2EpPha5Last':          'production',
-                        #  'UCN2Pur':                 'production',
+                              'UCN2Epics':               'production',
+                              'UCN2EpicsTemperature':    'production',
+                              'UCN2EpicsPressures':      'production',
+                              'UCN2EpicsOthers':         'production',
+                              'UCN2EpicsPhase2B':        'production',
+                              'UCN2EpicsPhase3':         'production',
+                              'UCN2EpPha5Pre':           'production',
+                              'UCN2EpPha5Oth':           'production',
+                              'UCN2EpPha5Tmp':           'production',
+                              'UCN2EpPha5Last':          'production',
+                              'UCN2Pur':                 'production',
                         }
             self.periods = {'production':  0,
                             'count':       1,
@@ -127,19 +127,26 @@ class Analyzer(object):
         counts = run[:, self.periods['count']].get_counts(self.detector,
                                             bkgd=counts_bkgd[0],
                                             dbkgd=counts_bkgd[1])
+                                            
+        counts_raw = run[:, self.periods['count']].get_counts(self.detector)
+
+        # get durations
+        durations = {f'{k} duration (s)': run.cycle_param.period_durations.loc[p, 0] for k, p in self.periods.items()}
 
         # make into a dataframe
         df = pd.DataFrame({'run': run.run_number,
                         'experiment': run.experiment_number,
-                        duration_label: duration,
-                        'counts_norm (1/uA)': counts_norm[:, 0],
-                        'dcounts_norm (1/uA)': counts_norm[:, 1],
-                        'counts': counts[:, 0],
-                        'dcounts': counts[:, 1],
+                        'counts_bkgd_norm (1/uA)': counts_norm[:, 0],
+                        'dcounts_bkgd_norm (1/uA)': counts_norm[:, 1],
+                        'counts_bkgd': counts[:, 0],
+                        'dcounts_bkgd': counts[:, 1],
+                        'counts_raw': counts_raw[:, 0],
+                        'dcounts_raw': counts_raw[:, 1],
                         'bkgd (counts)': counts_bkgd[0],
                         'dbkgd (counts)': counts_bkgd[1],
                         'beam_current (uA)': beam_currents,
                         'dbeam_current (uA)': dbeam_currents,
+                        **durations,
                         })
 
         # add epics summary variables
@@ -195,7 +202,10 @@ class Analyzer(object):
 
             # get cycle and check if it passed filter
             cycle = run[i]
-            is_good = run.cycle_param.filter[i]
+            if run.cycle_param.filter is None:
+                is_good = True
+            else:
+                is_good = run.cycle_param.filter[i]
 
             # plot histogram
             bins, hist = cycle.get_hits_histogram(self.detector, as_datetime=True)
@@ -228,7 +238,8 @@ class Analyzer(object):
         plt.title(f'Run {run.run_number}')
         plt.tight_layout()
 
-def fit(fitfn, x, y, dy, p0, err_kwargs, outfile=None, xlabel=None, ylabel=None):
+def fit(fitfn, x, y, dy, p0, err_kwargs, 
+        index=None, index_name=None, outfile=None, xlabel=None, ylabel=None):
     """Draw and fit counts for a run or set of runs
 
     Args:
@@ -236,8 +247,17 @@ def fit(fitfn, x, y, dy, p0, err_kwargs, outfile=None, xlabel=None, ylabel=None)
         p0 (iterable): initial fit paramters
         err_kwargs (dict): keyword arguments to pass to plt.errorbar
         xlabel, ylabel (str): axis titles
+        index: use this as the index of the file
+        index_name (str): use this as index name
     """
 
+    # setup index
+    if index is None:
+        index = 0
+    if index_name is None:
+        index_name = ''
+
+    # draw data
     plt.errorbar(x, y, dy, **err_kwargs)
     plt.yscale('log')
     if xlabel is not None: plt.xlabel(xlabel)
@@ -265,7 +285,6 @@ def fit(fitfn, x, y, dy, p0, err_kwargs, outfile=None, xlabel=None, ylabel=None)
     plt.grid(which='both', axis='both', visible=True)
     plt.tight_layout()
 
-    # load old fit results
     if outfile is not None:
 
         # get save location
@@ -279,13 +298,19 @@ def fit(fitfn, x, y, dy, p0, err_kwargs, outfile=None, xlabel=None, ylabel=None)
         values = m.values.to_dict()
         errors = m.errors.to_dict()
         errors = {f'd{key}':val for key, val in errors.items()}
-        df = pd.DataFrame({**values, **errors}, index=[0])
+        df = pd.DataFrame({**values, **errors}, index=[index])
+        df.index.name = index_name
 
-        header = ['# Source Saturation',
-                f'# Fit function: {fitfn.name if hasattr(fitfn, "name") else ""}',
-                '# Written by sourcesaturation.py',
-                f'# Last updated: {str(datetime.now())}',
-                ]
+        header = [f'# Fit function: {fitfn.name if hasattr(fitfn, "name") else ""}',
+                  f'# Last updated: {str(datetime.now())}']
+
+        # get old data and concat
+        try:
+            df_old = pd.read_csv(outfile, comment='#')
+        except FileNotFoundError:
+            pass
+        else:
+            df = pd.concat(df_old, df)
 
         with open(outfile, 'w') as fid:
             fid.write('\n'.join(header))
