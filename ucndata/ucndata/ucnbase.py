@@ -11,6 +11,7 @@ import numpy as np
 import pandas as pd
 import time
 import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
 
 class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
@@ -23,7 +24,7 @@ class ucnbase(object):
     Attributes:
         comment (str): comment input by users
         cycle (int|none): cycle number, none if no cycle selected
-        cycle_param (attrdict): cycle parameters 
+        cycle_param (attrdict): cycle parameters
         experiment_number (str): experiment number input by users
         month (int): month of run start
         run_number (int): run number
@@ -50,14 +51,14 @@ class ucnbase(object):
 
     # cycle times finding mode
     cycle_times_mode = 'matched'
-    
+
     # filter what trees and branches to load in each file. If unspecified then load the whole tree
     # treename: (filter, columns). See [rootloader documentation](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree-1) for details
     tree_filter = {}
 
-
     # detector tree names
     DET_NAMES = {'He3':{'hits':         'UCNHits_He3',
+                        'hits_orig':    'UCNHits_He3', # as saved in the root file
                         'charge':       'He3_Charge',
                         'rate':         'He3_Rate',
                         'transitions':  'RunTransitions_He3',
@@ -65,6 +66,7 @@ class ucnbase(object):
                         'hitsseqcumul': 'hitsinsequencecumul_he3',
                         },
                  'Li6':{'hits':         'UCNHits_Li6',
+                        'hits_orig':    'UCNHits_Li-6', # as saved in the root file
                         'charge':       'Li6_Charge',
                         'rate':         'Li6_Rate',
                         'transitions':  'RunTransitions_Li6',
@@ -72,22 +74,23 @@ class ucnbase(object):
                         'hitsseqcumul': 'hitsinsequencecumul_li6',
                         },
                 }
-                
+
     # needed slow control trees: for checking data quality
     SLOW_TREES = ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
 
 
     # data thresholds for checking data
     DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA
-                         'beam_max_current_std': 0.02, # uA
+                         'beam_max_current_std': 0.2, # uA
                          'max_bkgd_count_rate': 4, # fractional increase over DET_BKGD values
+                         'count_period_last_s_is_bkgd': 5, # check that the last seconds are within background
                          'min_total_counts': 20, # number of counts total
-                         'pileup_cnt_per_ms': 3, # if larger than this, then pileup and delete
+                         'pileup_cnt_per_ms': 10, # if larger than this, then pileup and delete
                          'pileup_within_first_s': 1, # time frame for pileup in each period
                         }
 
     # default detector backgrounds - from 2019
-    DET_BKGD = {'Li6':     1.578,
+    DET_BKGD = {'Li6':     80, # 2025 value
                 'Li6_err': 0.009,
                 'He3':     0.0349,
                 'He3_err': 0.0023}
@@ -233,6 +236,12 @@ class ucnbase(object):
         if type(hit_tree) is not pd.DataFrame:
             hit_tree = hit_tree.to_dataframe()
 
+        # drop leading second
+        try:
+            hit_tree = hit_tree.loc[hit_tree.index > min(hit_tree.index) +1]
+        except ValueError:
+            pass
+            
         # get times only when a hit is registered
         hit_tree = hit_tree.loc[hit_tree.tIsUCN.astype(bool)]
 
@@ -264,21 +273,21 @@ class ucnbase(object):
 
         # get data
         df = self.tfile[self.DET_NAMES[detector]['hits']].copy()
-        
+
         # to dataframe
         if not isinstance(df, pd.DataFrame):
             df = df.to_dataframe()
-        
+
         # get hits only
         df = df.tIsUCN
         df = df[df.astype(bool)]
-        
+
         # get times of hits
         times = df.index.values
-        
+
         # purge bad timestamps
         times = times[times > 15e8]
-       
+
         # get histogram bin edges
         bins = np.arange(times.min(), times.max()+bin_ms/1000, bin_ms/1000)
         bins -= bin_ms/1000/2
@@ -293,12 +302,16 @@ class ucnbase(object):
 
         return (bin_centers, hist)
 
-    def plot_psd(self, detector='Li6'):
-        """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms"""
+    def plot_psd(self, detector='Li6', cut=None):
+        """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
+
+        Args:
+            cut (tuple): lower left corner of box cut (QLong, PSD). If not none then draw
+        """
 
         # get the data from the tree
         df = self.tfile[self.DET_NAMES[detector]['hits']]
-        
+
         # calculate new psd
         df = df.loc[df.tChargeL > 0]
         df = df.loc[df.tChargeL < 5e4]
@@ -313,32 +326,36 @@ class ucnbase(object):
         hist_edges = []
         max_chargeL = df.tChargeL.max()
 
+        # histogram
         for i in range(9):
-            
             ch = df.loc[df.tChannel == i]
-            
-            # histogram     
             xbins = np.linspace(0,max_chargeL, 1000)
             ybins = np.arange(-1,1.01,0.01)
             hist, xedge, yedge = np.histogram2d(ch.tChargeL, ch.psd,
                         bins=[xbins, ybins])
-             
+
             hist_edges.append((hist, xedge, yedge))
-            
+
         # get max
         max_bin_count = np.max([np.max(h[0]) for h in hist_edges])
-            
+
+
+        # draw
         for i in range(9):
             ax = axes[i]
             hist, xbins, ybins = hist_edges[i]
-             
-            # draw
-            c = ax.pcolormesh(xbins, ybins, hist.transpose(), 
+            c = ax.pcolormesh(xbins, ybins, hist.transpose(),
                               cmap='RdBu',
-                              vmin=0, vmax=max_bin_count)
+                              vmin=0, vmax=max_bin_count/10)
             if i in (2, 5, 8):
                 plt.gcf().colorbar(c, ax=ax)
             ax.set_title(f'CH {i}', fontsize='x-small')
+
+            if cut is not None:
+                dx = max_chargeL - cut[0]
+                dy = 1 - cut[1]
+                rec = Rectangle(cut, dx, dy, color='white', fc='none', lw=1)
+                ax.add_patch(rec)
 
         fig.suptitle(f'Run {self.run_number}')
         fig.supxlabel(r'$Q_{\mathrm{Long}}$')

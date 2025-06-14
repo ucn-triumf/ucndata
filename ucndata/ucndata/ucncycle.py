@@ -177,21 +177,40 @@ class ucncycle(ucnbase):
         if self.cycle_stop - self.cycle_start <= 0:
             return warn(DataError, f'{msg} Cycle duration nonsensical: {self.cycle_stop - self.cycle_start} s')
 
-        # skip cycle because cycle sequence is longer than irradiation interval
-        # TODO
-
         # valve states
         if not self.cycle_param.valve_states.any().any():
             return warn(ValveError, f'{msg} No valves operated')
 
         # has counts
-        if not any([self.tfile[self.DET_NAMES[det]['hits']].tIsUCN.sum() > 1 for det in self.DET_NAMES.keys()]):
-            return warn(DataError, f'{msg} No counts detected in {det} detector')
+        det_counts = []
+        for det in self.DET_NAMES.keys():
+            try:
+                det_counts.append(self.tfile[self.DET_NAMES[det]['hits']].tIsUCN.sum() > 1)
+            except KeyError:
+                pass
+            
+        if not any(det_counts):
+            return warn(DataError, f'{msg} No counts detected in any detector')
+
+        # check that proton current is stable
+        beam_current = self.tfile.BeamlineEpics.B1V_KSM_PREDCUR
+        if beam_current.min() < self.DATA_CHECK_THRESH['beam_min_current']:
+            return warn(BeamError, f'{msg} Proton current dropped to {beam_current.min()} uA during full cycle')
+
+        beam_range = beam_current.max() - beam_current.min()
+        if beam_range > self.DATA_CHECK_THRESH['beam_max_current_std']:
+            return warn(BeamError, f'{msg} Proton current fluctuated up to {beam_range:.2f} uA during full cycle')
+
+        # check that the cycle duration is at least as long as the period duration sums
+        dt_cycle = self.cycle_stop - self.cycle_start
+        dt_periods = self.cycle_param.period_durations_s.sum()
+        if dt_periods > dt_cycle:
+            return warn(DataError, f'{msg} Cycle length ({dt_cycle}) shorter than expected given period duration sum ({dt_periods})')
 
         ## production period checks ------------------------------------------
         if period_production is not None:
             period = self.get_period(period_production)
-            beam_current = period.beam_current_uA
+            beam_current = period.beam_current_uA.iloc[1:-1]
 
             # beam data exists during production
             if len(beam_current) == 0:
@@ -199,11 +218,12 @@ class ucncycle(ucnbase):
 
             # beam dropped too low
             if beam_current.min() < self.DATA_CHECK_THRESH['beam_min_current']:
-                return warn(BeamError, f'{msg} Beam current dropped to {beam_current.min()} uA')
+                return warn(BeamError, f'{msg} Beam current dropped to {beam_current.min():.2f} uA')
 
             # beam current unstable
-            if beam_current.std() > self.DATA_CHECK_THRESH['beam_max_current_std']:
-                return warn(BeamError, f'{msg} Beam current fluctuated by {beam_current.std()} uA')
+            beam_range = beam_current.max() - beam_current.min()
+            if beam_range > self.DATA_CHECK_THRESH['beam_max_current_std']:
+                return warn(BeamError, f'{msg} Beam current fluctuated up to {beam_range:.2f} uA')
 
         ## background period checks ------------------------------------------
         if period_background is not None:
@@ -211,16 +231,19 @@ class ucncycle(ucnbase):
             period = self.get_period(period_background)
 
             for det in self.DET_NAMES.keys():
-                counts = period.tfile[self.DET_NAMES[det]['hits']].tIsUCN.sum()
-
+                try:
+                    counts = period.tfile[self.DET_NAMES[det]['hits']].tIsUCN.sum()
+                except KeyError:
+                    continue
+                    
                 # background count rate too high
-                rate = counts / period.cycle_param.period_durations_s
-                if rate / self.DET_BKGD[det] > self.DATA_CHECK_THRESH['max_bkgd_count_rate']:
-                    return warn(DataError, f'{msg} Background count rate in {det} detector is {rate / self.DET_BKGD[det]:.1f} times larger than expected ({self.DET_BKGD[det]} counts/s)')
+                # rate = counts / period.cycle_param.period_durations_s
+                #if rate / self.DET_BKGD[det] > self.DATA_CHECK_THRESH['max_bkgd_count_rate']:
+                #    return warn(DataError, f'{msg} Background count rate in {det} detector is {rate / self.DET_BKGD[det]:.1f} times larger than expected ({self.DET_BKGD[det]} counts/s)')
 
-                # background counts missing
-                if counts == 0:
-                    return warn(DataError, f'{msg} No detected background counts in {det} detector')
+                ## background counts missing
+                #if counts == 0:
+                #    return warn(DataError, f'{msg} No detected background counts in {det} detector')
 
         ## count period checks -----------------------------------------------
         if period_count is not None:
@@ -229,13 +252,30 @@ class ucncycle(ucnbase):
             for det in self.DET_NAMES.keys():
 
                 # check too few counts
-                counts = period.get_counts(det)[0]
+                try:
+                    counts = period.get_counts(det)[0]
+                    hits = period.get_hits(det)
+                except KeyError:
+                    continue
+                    
                 if counts < self.DATA_CHECK_THRESH['min_total_counts']:
                     return warn(DataError, f'{msg} Too few counts in {det} detector during counting period ({counts} counts)')
 
                 # check if pileup
                 if period.is_pileup(det):
                     return warn(DataError, f'{msg} Detected pileup in period {period.period} of detector {det}')
+                    
+                # check if counts at end are too large
+                
+                # get thresholds
+                dt = self.DATA_CHECK_THRESH['count_period_last_s_is_bkgd']
+                rate_thresh = self.DATA_CHECK_THRESH['max_bkgd_count_rate']*self.DET_BKGD[det]
+
+                # get rate
+                t = hits.index.values
+                rate = sum(t > max(t)-dt) / dt
+                if rate > rate_thresh:
+                    return warn(DataError, f'{msg} Count rate ({rate:.1f}) in last {dt} s is over {rate_thresh} in period {period.period} of detector {det}')
 
         return True
 

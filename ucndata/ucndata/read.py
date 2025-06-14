@@ -13,7 +13,7 @@ import numpy as np
 from functools import partial
 import os, ROOT
 
-def read(path, as_dataframe=True, nproc=-1, header_only=False):
+def read(path, as_dataframe=True, nproc=-1, header_only=False, hit_detail='hits', onlyucn=True):
     """Read out single or multiple UCN run files from ROOT
 
     Args:
@@ -24,6 +24,12 @@ def read(path, as_dataframe=True, nproc=-1, header_only=False):
         as_dataframe (bool): if true, convert to dataframes
         nproc (int): number of processors used in read. If <= 0, use total - nproc. If > 0 use nproc.
         header_only (bool): if true, read only the header
+        hit_detail (str): hits|low|med|all determine how much detail to read from hit tree
+            hits: only load tIsUCN column but all UCN hits
+            low: load tIsUCN, tChannel
+            med: load tIsUCN, tChannel, tChargeL, tChargeS, tPSD
+            all: load all columns
+        onlyucn (bool): if true only load ucn hits in hit tree
 
     Example:
         ```python
@@ -86,7 +92,10 @@ def read(path, as_dataframe=True, nproc=-1, header_only=False):
         nproc = max((cpu_count()+nproc, 1))
 
     with Pool(nproc) as pool:
-        fn = partial(ucnrun, header_only=header_only)
+        fn = partial(ucnrun, 
+                     header_only=header_only, 
+                     hit_detail=hit_detail,
+                     onlyucn=onlyucn)
         iterable = tqdm(pool.imap_unordered(fn, read_in_paths),
                         leave=False,
                         total=len(read_in_paths),

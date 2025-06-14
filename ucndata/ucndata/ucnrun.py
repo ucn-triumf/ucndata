@@ -38,6 +38,12 @@ class ucnrun(ucnbase):
         run (int|str): if int, generate filename with self.datadir
             elif str then run is the path to the file
         header_only (bool): if true, read only the header
+        hit_detail (str): hits|low|med|all determine how much detail to read from hit tree
+            hits: only load tIsUCN column but all UCN hits
+            low: load tIsUCN, tChannel
+            med: load tIsUCN, tChannel, tChargeL, tChargeS, tPSD
+            all: load all columns
+        onlyucn (bool): if true only load ucn hits in hit tree
 
     Attributes:
         comment (str): comment input by users
@@ -128,12 +134,12 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, header_only=False):
+    def __init__(self, run, header_only=False, hit_detail='ucn', onlyucn=True):
 
         # check if copying
         if run is None:
             return
-
+            
         # make filename from defaults
         elif type(run) is int:
             filename = os.path.join(self.datadir, f'ucn_run_{run:0>8d}.root')
@@ -143,6 +149,27 @@ class ucnrun(ucnbase):
             filename = run
 
         self.path = os.path.abspath(filename)
+
+        # set tree_filter to read only detector entries which contain hits
+        ucnstr = 'tIsUCN>0' if onlyucn else None
+        
+        for name in self.DET_NAMES.values():
+
+            if hit_detail in 'hits':
+                self.tree_filter[name['hits_orig']] = (ucnstr, ['tIsUCN', 
+                                                              'tUnixTimePrecise'])
+            elif hit_detail in 'low':
+                self.tree_filter[name['hits_orig']] = (ucnstr, ['tIsUCN', 'tChannel',
+                                                              'tUnixTimePrecise'])
+            elif hit_detail in 'med':
+                self.tree_filter[name['hits_orig']] = (ucnstr, ['tIsUCN', 'tChannel',
+                                                              'tChargeL', 'tChargeS', 
+                                                              'tPSD', 'tUnixTimePrecise'])
+            elif hit_detail in 'all':
+                self.tree_filter[name['hits_orig']] = (ucnstr, None)
+                
+            else:
+                raise RuntimeError('hit_detail must be one of "hits", "low", "med", or "all"')
 
         # read
         if header_only:
@@ -161,7 +188,7 @@ class ucnrun(ucnbase):
             # fix header values in tfile
             for key, value in self.tfile.header.items():
                 self.tfile.header[key] = str(value[0])
-
+                
         # reformat header and move to top level
         for k, val in head.items():
             setattr(self, k.replace(' ', '_').lower(), val)
@@ -206,6 +233,13 @@ class ucnrun(ucnbase):
 
         if cycle_failed:
             print(f'Run {self.run_number}: Set cycle times based on {mode} detection mode')
+            
+        # trim last cycle if duration is not good
+        #cyc_times = self.cycle_param.cycle_times['duration (s)']
+        #if cyc_times.iloc[-1] != cyc_times.iloc[0]:
+        #    print(f'Run {self.run_number} last cycle is incomplete, trimming.')
+        #    self.cycle_param.cycle_times = self.cycle_param.cycle_times.iloc[:-1]
+        #    self.cycle_param.ncycles -= 1
 
     def __repr__(self):
         klist = [d for d in self.__dict__.keys() if d[0] != '_']
@@ -416,6 +450,25 @@ class ucnrun(ucnbase):
                     return False
 
         return True
+
+    def draw_cycle_hits(self, detector, period):
+        """Draw cycles in a histogram with vertical lines indicating cycle start and periods"""
+        
+        plt.figure()
+        plt.plot(*self.get_hits_histogram(detector), color='gray')
+        for cyc in self:
+        
+            # period data
+            plt.plot(*cyc[period].get_hits_histogram(detector), color=f'C{period}')
+            
+            # cycle start
+            plt.axvline(cyc.cycle_start, color='k', ls='-', lw=2)
+            
+            # start time
+            if period > 0:
+                plt.axvline(cyc.cycle_param.period_end_times[period-1], color=f'C{period-1}', ls=':', lw=1)
+            # end time
+            plt.axvline(cyc.cycle_param.period_end_times[period], color=f'C{period}', ls=':', lw=1)
 
     def gen_cycle_filter(self, period_production=None, period_count=None,
                          period_background=None, quiet=False):
