@@ -78,8 +78,8 @@ class Analyzer(object):
                               'UCN2Pur':                 'production',
                         }
             self.periods = {'production':  0,
-                            'count':       1,
-                            'background':  0}
+                            'count':       2,
+                            'background':  3}
 
     def get_counts(self, run):
         """Get counts needed for a storage lifetime or source saturation calculation for a single run.
@@ -131,7 +131,7 @@ class Analyzer(object):
         counts_raw = run[:, self.periods['count']].get_counts(self.detector)
 
         # get durations
-        durations = {f'{k} duration (s)': run.cycle_param.period_durations.loc[p, 0] for k, p in self.periods.items()}
+        durations = {f'{k} duration (s)': run.cycle_param.period_durations_s.loc[p, 0] for k, p in self.periods.items()}
 
         # make into a dataframe
         df = pd.DataFrame({'run': run.run_number,

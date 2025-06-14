@@ -25,7 +25,7 @@ os.makedirs(os.path.dirname(outfile), exist_ok=True)
 #run = runs[0]
 
 #run = read(['old_files/ucn_run_00001877.root', 2489])
-run = read(2489)
+run = read(2529)
 
 def get_counts(run):
 
@@ -36,6 +36,9 @@ def get_counts(run):
     print(len(psd), len(run.tfile.UCNHits_Li6))
     df.loc[:, 'tPSD'] = psd.astype(float)
     run.tfile.UCNHits_Li6 = df
+    
+    
+    counts = []
 
     for cyc in run:
 
@@ -43,7 +46,7 @@ def get_counts(run):
         
         # get counts from new cuts
         try:
-            df = cyc[i].tfile.UCNHits_Li6
+            df = cyc[i].get_hits('Li6')
         except KeyError:
             continue
 
@@ -96,6 +99,7 @@ def get_counts(run):
             df = df.loc[idx]
         
         print(f'Cycle {cyc.cycle} total: {len(df)}')
+        counts.append(len(df))
         if len(df) == 0: continue
 
         # histogram
@@ -103,7 +107,14 @@ def get_counts(run):
         hist, _ = np.histogram(df.index, bins=bins)
         plt.plot(bins[:-1], hist)
 
-
+    print(f'background-subtracted counts: {np.diff(counts)}')
+    cnts = np.abs(np.diff(counts))
+    print(f'Total average: {np.mean(cnts)} +/- {np.std(cnts)}')
+    
+    
+    
+    
+    
         
 
 
