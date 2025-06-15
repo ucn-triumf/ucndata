@@ -134,7 +134,7 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, header_only=False, hit_detail='ucn', onlyucn=True):
+    def __init__(self, run, header_only=False, hit_detail='hits', onlyucn=True):
 
         # check if copying
         if run is None:
@@ -194,9 +194,9 @@ class ucnrun(ucnbase):
             setattr(self, k.replace(' ', '_').lower(), val)
 
         if type(self.run_number) is pd.Series:
-            self.run_number = int(self.run_number[0])
+            self.run_number = int(float(self.run_number[0]))
         else:
-            self.run_number = int(self.run_number)
+            self.run_number = int(float(self.run_number))
 
         # set other header items
         date = pd.to_datetime(self.start_time)
@@ -451,24 +451,55 @@ class ucnrun(ucnbase):
 
         return True
 
-    def draw_cycle_hits(self, detector, period):
-        """Draw cycles in a histogram with vertical lines indicating cycle start and periods"""
-        
-        plt.figure()
-        plt.plot(*self.get_hits_histogram(detector), color='gray')
-        for cyc in self:
-        
-            # period data
-            plt.plot(*cyc[period].get_hits_histogram(detector), color=f'C{period}')
+    def draw_hits(self, detector, period=None):
+        """Draw hits histogram for each cycle
+        """
+
+        plt.figure(figsize=(6,6))
+
+        # force iteration over all cycles
+        for i in range(self.cycle_param.ncycles):
+
+            # get cycle and check if it passed filter
+            cycle = self[i]
+            if self.cycle_param.filter is None:
+                is_good = True
+            else:
+                is_good = self.cycle_param.filter[i]
+
+            # get cycle or period
+            dat = cycle if period is None else cycle[period]
             
-            # cycle start
-            plt.axvline(cyc.cycle_start, color='k', ls='-', lw=2)
+            # check that data exists
+            if dat.tfile[self.DET_NAMES[detector]['hits']].empty:
+                continue
             
-            # start time
-            if period > 0:
-                plt.axvline(cyc.cycle_param.period_end_times[period-1], color=f'C{period-1}', ls=':', lw=1)
-            # end time
-            plt.axvline(cyc.cycle_param.period_end_times[period], color=f'C{period}', ls=':', lw=1)
+            # plot histogram
+            bins, hist = dat.get_hits_histogram(detector, as_datetime=True)
+            line = plt.plot(bins, hist, label=f'Cycle {cycle.cycle}',
+                            color=None if is_good else 'k')
+
+            # get cycle text - strikeout if not good
+            text = f'Cycle {cycle.cycle}'
+            if not is_good:
+                text = '\u0336'.join(text) + '\u0336'
+            plt.text(bins[0], -1, text,
+                    va='top',
+                    ha='left',
+                    fontsize='xx-small',
+                    color=line[0].get_color(),
+                    rotation='vertical')
+
+        # plot elements
+        plt.ylabel('UCN Counts')
+        plt.ylim(-30, None)
+        plt.xticks(rotation=90)
+        plt.gca().tick_params(axis='x', which='major', labelsize='x-small')
+        plt.tight_layout()
+
+        # plot elements for viewing
+        plt.title(f'Run {self.run_number}')
+        plt.tight_layout()
 
     def gen_cycle_filter(self, period_production=None, period_count=None,
                          period_background=None, quiet=False):
@@ -558,7 +589,7 @@ class ucnrun(ucnbase):
         return True
 
     def set_cut(self, detector, psd_bounds, qlong_bounds):
-        """Apply a cut to the ucn hits tree. Sets values in the tIsUCN column
+        """Apply a box cut to the ucn hits tree. Sets values in the tIsUCN column
         
         Args:
             detector (str): Li6|He3

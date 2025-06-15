@@ -111,7 +111,7 @@ def to_datetime(item):
 
     # convert values
     converted = pd.to_datetime(item, unit='s', utc=True)
-    converted = converted.tz_convert(ucnbase.timezone)
+    converted = converted.tz_convert(ucnbase.ucnbase.timezone)
 
     # dataframe conversion
     if df is not None:

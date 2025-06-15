@@ -29,6 +29,8 @@ dependencies = [
     "tqdm",
     "pandas",
     "rootloader",
+    "dask",
+    "pyarrow",
 ]
 dynamic = ["version"]
 

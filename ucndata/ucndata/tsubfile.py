@@ -44,15 +44,8 @@ class tsubfile(tfile):
             pass
         else:
             if 'time' in index_name:
-                try:
-                    start = np.min(val.index[val.index >= self._start]) # not sure why needed
-                    stop = np.max(val.index[val.index <= self._stop]) # it should work without it
-                    val = val.loc[start:stop]
-
-                # case of duplicate indexes
-                except KeyError:
-                    idx = (val.index >= self._start) & (val.index <= self._stop)
-                    val = val.loc[idx]
+                idx = (val.index >= self._start) & (val.index <= self._stop)
+                val = val.loc[idx]
 
         # convert back
         if not is_dataframe:

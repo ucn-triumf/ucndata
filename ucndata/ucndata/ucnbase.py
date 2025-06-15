@@ -12,6 +12,7 @@ import pandas as pd
 import time
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
+import dask.array as da
 
 class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
@@ -236,12 +237,6 @@ class ucnbase(object):
         if type(hit_tree) is not pd.DataFrame:
             hit_tree = hit_tree.to_dataframe()
 
-        # drop leading second
-        try:
-            hit_tree = hit_tree.loc[hit_tree.index > min(hit_tree.index) +1]
-        except ValueError:
-            pass
-            
         # get times only when a hit is registered
         hit_tree = hit_tree.loc[hit_tree.tIsUCN.astype(bool)]
 
@@ -272,11 +267,15 @@ class ucnbase(object):
         """
 
         # get data
-        df = self.tfile[self.DET_NAMES[detector]['hits']].copy()
+        df = self.tfile[self.DET_NAMES[detector]['hits']]
 
         # to dataframe
         if not isinstance(df, pd.DataFrame):
             df = df.to_dataframe()
+
+        # early end: no data
+        if df.size == 0:
+            return (np.array(np.nan), np.array(np.nan))
 
         # get hits only
         df = df.tIsUCN
@@ -286,14 +285,23 @@ class ucnbase(object):
         times = df.index.values
 
         # purge bad timestamps
-        times = times[times > 15e8]
+        if times[0] <= 15e8: 
+            times = times[times > 15e8]
+        
+        # check that run has times
+        if times.size == 0:
+            return (np.array(np.nan), np.array(np.nan))
+
+        # to dask array
+        times = da.from_array(times) # pick a chunk size?
 
         # get histogram bin edges
         bins = np.arange(times.min(), times.max()+bin_ms/1000, bin_ms/1000)
         bins -= bin_ms/1000/2
 
         # histogram
-        hist, bins = np.histogram(times, bins=bins)
+        hist, bins = da.histogram(times, bins=bins)
+        hist = hist.compute()
         bin_centers = (bins[1:] + bins[:-1])/2
 
         # to datetime
