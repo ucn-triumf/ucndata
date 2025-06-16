@@ -451,6 +451,32 @@ class ucnrun(ucnbase):
 
         return True
 
+    def draw_cycle_times(self):
+        """Draw cycle start times as thick black lines, period end times as dashed lines
+        
+        Notes:
+            Assumed periods:    0 - irradiation    
+                                1 - storage
+                                2 - count
+        """
+        
+        for cyc in self:
+            plt.axvline(cyc.cycle_start, color='k', ls='-', lw=2)
+            plt.axvline(cyc.cycle_param.period_end_times[0], color='r', ls=':', lw=1)
+            plt.axvline(cyc.cycle_param.period_end_times[1], color='g', ls=':', lw=1)
+            plt.axvline(cyc.cycle_param.period_end_times[2], color='b', ls=':', lw=1)
+            
+            # get cycle text - strikeout if not good
+            text = f'Cycle {cyc.cycle}' + ' $\\downarrow$'
+
+            ypos = plt.ylim()[1]
+            plt.text(cyc.cycle_start, ypos, text,
+                    va='top',
+                    ha='left',
+                    fontsize='xx-small',
+                    color='k',
+                    rotation='vertical')
+
     def draw_hits(self, detector, period=None):
         """Draw hits histogram for each cycle
         """

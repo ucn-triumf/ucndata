@@ -396,6 +396,20 @@ class ucnbase(object):
 
     # quick access properties
     @property
+    def beam1a_current_uA(self):
+        """Get beamline 1A current in uA (micro amps)
+        
+        Returns:
+            pd.Series: indexed by timestamps, current in uA
+        """
+        if type(self.tfile.BeamlineEpics) is pd.DataFrame:
+            df = self.tfile.BeamlineEpics
+        else:
+            df = self.tfile.BeamlineEpics.to_dataframe()
+            
+        return df.B1_FOIL_ADJCUR
+    
+    @property
     def beam_current_uA(self):
         """Get beam current in uA (micro amps)
 

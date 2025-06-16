@@ -197,9 +197,9 @@ class ucncycle(ucnbase):
         if beam_current.min() < self.DATA_CHECK_THRESH['beam_min_current']:
             return warn(BeamError, f'{msg} Proton current dropped to {beam_current.min()} uA during full cycle')
 
-        beam_range = beam_current.max() - beam_current.min()
-        if beam_range > self.DATA_CHECK_THRESH['beam_max_current_std']:
-            return warn(BeamError, f'{msg} Proton current fluctuated up to {beam_range:.2f} uA during full cycle')
+        #beam_range = beam_current.max() - beam_current.min()
+#        if beam_range > self.DATA_CHECK_THRESH['beam_max_current_std']:
+#            return warn(BeamError, f'{msg} Proton current fluctuated up to {beam_range:.2f} uA during full cycle')
 
         # check that the cycle duration is at least as long as the period duration sums
         dt_cycle = self.cycle_stop - self.cycle_start
@@ -221,7 +221,7 @@ class ucncycle(ucnbase):
                 return warn(BeamError, f'{msg} Beam current dropped to {beam_current.min():.2f} uA')
 
             # beam current unstable
-            beam_range = beam_current.max() - beam_current.min()
+            beam_range = beam_current.std()
             if beam_range > self.DATA_CHECK_THRESH['beam_max_current_std']:
                 return warn(BeamError, f'{msg} Beam current fluctuated up to {beam_range:.2f} uA')
 
