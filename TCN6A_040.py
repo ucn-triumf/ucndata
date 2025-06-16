@@ -13,13 +13,32 @@ from tqdm import tqdm
 ucnrun.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer|beamon]
 outfile = 'TCN6A_040/summary.csv'    # save counts output
 
-# include cycles to drop - manual cycle filter
-run_numbers = [2575, 2576, 2577, 2579, 2580, 2581, 2582, 2584, 2585,
-               2587, 2588, 2590, 2592]
+# runs
+run_numbers = [ # 2549, # count rate issues
+                # 2550, # low rate
+                2551,
+                2552,
+                2553,
+                2554,
+                2555,
+                2556,
+                2557,
+                2575,
+                2576,
+                2577,
+                2579,
+                2580,
+                2581,
+                2582,
+                2584,
+                2585,
+                2587,
+                2588,
+                2590,
+                2592]
 
 os.makedirs('TCN6A_040', exist_ok=True)
 
-# filter cycles for beam drops
 def cycle_filter(run):
     filt = []
     iterator = tqdm(run,
@@ -71,6 +90,15 @@ def cycle_filter(run):
 
         filt.append(True)
     return filt
+
+def inspect_all():
+    for r in run_numbers:
+        run = ucnrun(r)
+        run.set_cycle_filter(cycle_filter(run))
+        run.inspect_beam()
+        plt.pause(1)
+        input()
+        plt.close()
 
 # extract counts from runs
 df_list = []

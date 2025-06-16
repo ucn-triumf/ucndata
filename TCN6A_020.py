@@ -8,15 +8,19 @@ import tools
 # settings
 ucnrun.cycle_times_mode = 'li6'   # li6|he3|matched|sequencer|beamon
 outfile = 'TCN6A_020/summary.csv'   # save counts output
-counts_col = 'counts_raw' # counts_raw|counts_bkgd|counts_bdgd_norm (1/uA)
-run_numbers = []   # example: [1846, '1847+1848']
+counts_col = 'counts_bkgd' # counts_raw|counts_bkgd|counts_bdgd_norm (1/uA)
+run_numbers = [2543,2546,2547,2548] # 2544,2545,  # example: [1846, '1847+1848']
 
 # setup save dir
 os.makedirs(os.path.dirname(outfile), exist_ok=True)
 
 # check existing runs to skip re-analysis of counts
-old = pd.read_csv(outfile, comment='#')
-run_numbers = [r for r in run_numbers if r not in old['run']]
+#try:
+#    old = pd.read_csv(outfile, comment='#')
+#except FileNotFoundError:
+#    pass
+#else:
+#   run_numbers = [r for r in run_numbers if r not in old['run']]
 
 # setup runs
 runs = read(run_numbers)
@@ -62,7 +66,6 @@ for t_prod, g in df.groupby('production duration (s)'):
             index_name = 'Production Time (s)',
             outfile = f'TCN6A_020/life_{counts_col.split(" ")[0]}.csv')
 
-
 ## SATURATION MEASUREMENTS ===================================================
 
 # fit function to counts vs production times
@@ -97,7 +100,7 @@ df_life = pd.read_csv(f'TCN6A_020/life_{counts_col.split(" ")[0]}.csv', comment=
 
 plt.figure()
 
-plt.errorbar(df_sat['Storage Time (s)'], df_sat['tau'], df_sat['dtau'], 
+plt.errorbar(df_sat['Sqtorage Time (s)'], df_sat['tau'], df_sat['dtau'], 
              marker='o',
              ls='none',
              fillstyle='none',

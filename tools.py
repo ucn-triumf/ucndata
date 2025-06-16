@@ -60,7 +60,7 @@ class Analyzer(object):
             self.periods = {'production':  0,
                             'storage':     1,
                             'count':       2,
-                            'background':  1,}
+                            'background':  3,}
 
 
         elif mode in 'saturation':
@@ -98,8 +98,7 @@ class Analyzer(object):
 
         # filter cycles
         run.set_cycle_filter(run.gen_cycle_filter(period_production=self.periods['production'],
-                                            period_count=self.periods['count'],
-                                            period_background=self.periods['background']))
+                                            period_count=self.periods['count']))
 
         # get beam current and means
         beam_currents = run[:, self.periods['production']].beam_current_uA
@@ -134,7 +133,9 @@ class Analyzer(object):
         durations = {f'{k} duration (s)': run.cycle_param.period_durations_s.loc[p, 0] for k, p in self.periods.items()}
 
         # make into a dataframe
-        df = pd.DataFrame({'run': run.run_number,
+        idn = [f'{cyc.run_number}.{cyc.cycle}' for cyc in run]
+        df = pd.DataFrame({'run.cycle': idn,
+                        'run': run.run_number,
                         'experiment': run.experiment_number,
                         'counts_bkgd_norm (1/uA)': counts_norm[:, 0],
                         'dcounts_bkgd_norm (1/uA)': counts_norm[:, 1],
@@ -154,6 +155,7 @@ class Analyzer(object):
         for equip, period in self.equipment.items():
             df_list.append(pd.DataFrame(getattr(run[:, self.periods[period]].tfile, equip).mean()))
         df = pd.concat(df_list, axis='columns')
+        df.set_index('run.cycle', inplace=True)
 
         # save file
         if self.outfile:
@@ -162,18 +164,20 @@ class Analyzer(object):
                 os.makedirs(dirname, exist_ok=True)
 
             # read file if exists
-            try:
-                df_old = pd.read_csv(self.outfile, comment='#')
-            except FileNotFoundError:
-                df_old = pd.DataFrame()
+            #try:
+            #    df_old = pd.read_csv(self.outfile, comment='#')
+            #except FileNotFoundError:
+            #    df_old = pd.DataFrame()
+            #else:
+            #    # remove data from this run
+            #    idx = df_old['run'] != run.run_number
+            #    df_old = df_old.loc[idx]
+                
 
-            # remove data from this run
-            else:
-                idx = df_old['run'] != run.run_number
-                df_old = df_old.loc[idx]
-
-            # add this to the old data
-            df = pd.concat((df, df_old), axis='index')
+            #    # add this to the old data
+            #    if len(df_old)>0:
+            #        df_old.set_index('run.cycle', inplace=True)
+            #        df = pd.concat((df, df_old), axis='index')
 
             # write to file
             header = [f'# UCN counts, durations, and average metadata for {self.mode} measurement',

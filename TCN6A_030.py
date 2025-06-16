@@ -13,6 +13,10 @@ settings.DET_NAMES.pop('He3')       # don't check He3 detector data
 outfile = 'TCN6A_030/summary.csv'   # save counts output
 run_numbers = [1846, 1873, 1875]    # example: [1846, '1847+1848']
 
+# check existing runs to skip re-analysis of counts
+old = pd.read_csv(outfile, comment='#')
+run_numbers = [r for r in run_numbers if r not in old['run']]
+
 # setup runs
 runs = read(run_numbers)
 if isinstance(runs, ucnrun):
@@ -22,7 +26,7 @@ if isinstance(runs, ucnrun):
 ana = tools.Analyzer('lifetime', outfile)
 
 # counts and hits
-for run in runs:
+for run in runs:       
     ana.get_counts(run)
     ana.draw_hits(run)
 

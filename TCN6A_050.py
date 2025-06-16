@@ -1,59 +1,71 @@
 # Run analysis for TCN6A-050: source lifetime measurement at varying beam energies
 # Derek Fujimoto
 # June 2025
-from ucndata import settings, read, ucnrun
+from ucndata import read, ucnrun
 import os
 import tools
+from scipy.optimize import curve_fit
+import pandas as pd
+import numpy as np
 
 # settings
-settings.datadir = 'root_files'     # path to root data
-settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer|beamon]
-settings.DET_NAMES.pop('He3')       # don't check He3 detector data
+ucnrun.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer|beamon]
 outfile = 'TCN6A_050/summary.csv'    # save counts output
-run_numbers = [1846]   # example: [1846, '1847+1848']
 
-# setup save dir
-os.makedirs(os.path.dirname(outfile), exist_ok=True)
+# include cycles to drop - manual cycle filter
+run_numbers = { 2575:[1],
+                2576:[2],
+                2577:[2],
+                2578:[19], # 15 maybe
+                2579:[1,2,3,4,5,8], # 0, 7 maybe
+                2580:[], # all good
+                2581:[], # all good
+                2582:[], # all good
+                2584:[], # all good 
+                2585:[], # all good 
+                2587:[], # all good 
+                2588:[1], # 0 maybe
+                2590:[0], 
+                2592:[], # all good
+               }
 
-# setup runs
-runs = read(run_numbers)
-if isinstance(runs, ucnrun):
-    runs = [runs]
+os.makedirs('TCN6A_050', exist_ok=True)
 
-# setup analyzer
-ana = tools.Analyzer('lifetime', outfile)
+# look for bad data in the run
+def inspect_run(run):
+    fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True,
+                        layout='constrained', figsize=(8,10))
 
-# counts and hits
-for run in runs:
-    ana.get_counts(run)
-    ana.draw_hits(run)
+    run.beam1a_current_uA.plot(ax=ax[0])
+    run.beam_current_uA.plot(ax=ax[0])
+    plt.sca(ax[0])
+    run.draw_cycle_times()
+    
+    plt.sca(ax[1])
+    plt.plot(*run.get_hits_histogram('Li6'))
+    plt.yscale('log')
+    ax[0].set_title(run.run_number,fontsize='x-small')
+    run.draw_cycle_times()
+    
+# extract counts from runs
+df_list = []
+for n, filt in run_numbers.items():
 
-# fit function to counts vs lifetimes
-@tools.prettyprint(r'$p_0 \exp(-t/\tau)$', '$p_0$', r'$\tau$')
-def fitfn(t, p0, tau):
-    return p0*np.exp(-t/tau)
+    # read
+    run = ucnrun(n)
+    
+    # manual cycle filter
+    if filt:
+        cycflit = np.ones(run.cycle_param.ncycles)
+        cycflit[filt] = 0    
+        run.set_cycle_filter(cycflit)
+    
+    # get counts from cycles
+    counts = run[:,2].get_counts('Li6')
+    
+    
+    
+    
+    
+    break
 
-# draw counts for each beam energy
-df = pd.read_csv(outfile, comment='#')
-
-# round to the nearest mA
-df['beam_current_rounded (mA)'] = df['beam_current (mA)'].round()
-
-plt.figure()
-for current, g in df.groupby('beam_current_rounded (mA)'):
-
-    tools.fit(fitfn,
-        df['storage duration (s)'],
-        df['counts_norm (1/uA)']*current,
-        df['dcounts_norm (1/uA)']*current,
-        p0 = (1,1),
-        err_kwargs = {
-            'marker':'o',
-            'ls':'none',
-            'fillstyle':'none',
-            'label':f'{current} uA'},
-        )
-plt.xlabel('Storage Duration (s)')
-plt.ylabel('UCN Counts Normalized to Current Setpoint')
-plt.tight_layout()
-plt.savefig('TCN6A_050/counts_norm.pdf')
