@@ -1,60 +1,97 @@
 # Run analysis for TCN6A-040: source saturation measurement at varying beam energies
 # Derek Fujimoto
 # June 2025
-
-from ucndata import settings, read, ucnrun
+from ucndata import read, ucnrun
 import os
 import tools
+from scipy.optimize import curve_fit
+import pandas as pd
+import numpy as np
+from tqdm import tqdm
 
 # settings
-settings.datadir = 'test'     # path to root data
-settings.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer|beamon]
-settings.DET_NAMES.pop('He3')       # don't check He3 detector data
+ucnrun.cycle_times_mode = 'li6'   # what frontend to use for determining cycle times [li6|he3|matched|sequencer|beamon]
 outfile = 'TCN6A_040/summary.csv'    # save counts output
-run_numbers = [1846]   # example: [1846, '1847+1848']
 
-# setup save dir
-os.makedirs(os.path.dirname(outfile), exist_ok=True)
+# include cycles to drop - manual cycle filter
+run_numbers = [2575, 2576, 2577, 2579, 2580, 2581, 2582, 2584, 2585,
+               2587, 2588, 2590, 2592]
 
-# setup runs
-runs = read(run_numbers)
-if isinstance(runs, ucnrun):
-    runs = [runs]
+os.makedirs('TCN6A_040', exist_ok=True)
 
-# setup analyzer
-ana = tools.Analyzer('saturation', outfile)
+# filter cycles for beam drops
+def cycle_filter(run):
+    filt = []
+    iterator = tqdm(run,
+                    desc=f'Run {run.run_number}: Scanning cycles',
+                    leave=False,
+                    total=run.cycle_param.ncycles)
 
-# counts and hits
-for run in runs:
-    ana.get_counts(run)
-    ana.draw_hits(run)
+    for cyc in iterator:
 
-# fit function to counts vs production times
-@tools.prettyprint(r'$p_0 (1-\exp(-t/\tau))$', '$p_0$', r'$\tau$')
-def fitfn(t, p0, tau):
-    return p0*(1-np.exp(-t/tau))
+        # check if period duration exceeds cycle duration
+        expected_duration = cyc.cycle_param.period_durations_s.sum()
+        actual_duration = cyc.cycle_stop - cyc.cycle_start
+        if expected_duration > actual_duration:
+            filt.append(False)
+            tqdm.write(f'Run {run.run_number} (cycle {cyc.cycle}): cycle duration shorter than sum of periods')
+            continue
 
-# draw counts for each beam energy
-df = pd.read_csv(outfile, comment='#')
+        # drop cycles where the 1A beam drops to zero during production
+        if any(cyc[0].beam1a_current_uA < 0.1):
+            filt.append(False)
+            tqdm.write(f'Run {run.run_number} (cycle {cyc.cycle}): 1A current dropped below 0.1 uA during irradiation')
+            continue
 
-# round to the nearest mA
-df['beam_current_rounded (mA)'] = df['beam_current (mA)'].round()
+        # check that there are hits in the count period
+        hits = cyc[2].get_hits('Li6')
+        hitsb = cyc[3].get_hits('Li6')
+        if hits.empty and hitsb.empty:
+            filt.append(False)
+            tqdm.write(f'Run {run.run_number} (cycle {cyc.cycle}): No counts in both counting period and background period')
+            continue
 
-plt.figure()
-for current, g in df.groupby('beam_current_rounded (mA)'):
+        # use background if counting period is empty
+        if hits.empty:
+            count_cyc = cyc[3]
+        else:
+            count_cyc = cyc[2]
 
-    tools.fit(fitfn,
-        df['production duration (s)'],
-        df['counts_norm (1/uA)']*current,
-        df['dcounts_norm (1/uA)']*current,
-        p0 = (1,1),
-        err_kwargs = {
-            'marker':'o',
-            'ls':'none',
-            'fillstyle':'none',
-            'label':f'{current} uA'},
-        )
-plt.xlabel('Production Duration (s)')
-plt.ylabel('UCN Counts Normalized to Current Setpoint')
-plt.tight_layout()
-plt.savefig('TCN6A_040/counts_norm.pdf')
+        # check for bad cycle definitions: rate close to irradiation rate at start of count
+        # note that irr counts comes in bunches for some reason
+        _, irr_hits = cyc[0].get_hits_histogram('Li6', bin_ms=100)
+        _, cnt_hits = count_cyc.get_hits_histogram('Li6', bin_ms=100)
+        irr_rate = irr_hits.max()/0.1
+        cnt_rate = cnt_hits.max()/0.1
+
+        if cnt_rate/irr_rate > 0.7:
+            filt.append(False)
+            tqdm.write(f'Run {run.run_number} (cycle {cyc.cycle}): Starting count rate ({int(cnt_rate):d} Hz) more than 70% of irradiation rate ({int(irr_rate):d} Hz)')
+            continue
+
+        filt.append(True)
+    return filt
+
+# extract counts from runs
+df_list = []
+for n in run_numbers:
+
+    # read
+    run = ucnrun(n)
+    run.to_dataframe()
+
+    # apply cycle filter
+    run.set_cycle_filter(cycle_filter(run))
+
+    # get counts from cycles
+    counts = run[:,2].get_counts('Li6')
+
+    # get IV001 status
+    is_background = [cyc[2].tfile.UCN2EpPha5Tmp.UCN2_ISO_IV001_STATON.mean() for cyc in run]
+    is_background = np.array(is_background)>0
+
+
+
+
+    break
+
