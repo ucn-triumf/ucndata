@@ -38,12 +38,6 @@ class ucnrun(ucnbase):
         run (int|str): if int, generate filename with self.datadir
             elif str then run is the path to the file
         header_only (bool): if true, read only the header
-        hit_detail (str): hits|low|med|all determine how much detail to read from hit tree
-            hits: only load tIsUCN column but all UCN hits
-            low: load tIsUCN, tChannel
-            med: load tIsUCN, tChannel, tChargeL, tChargeS, tPSD
-            all: load all columns
-        onlyucn (bool): if true only load ucn hits in hit tree
 
     Attributes:
         comment (str): comment input by users
@@ -134,7 +128,7 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, header_only=False, hit_detail='hits', onlyucn=True):
+    def __init__(self, run, header_only=False):
 
         # check if copying
         if run is None:
@@ -150,27 +144,6 @@ class ucnrun(ucnbase):
 
         self.path = os.path.abspath(filename)
 
-        # set tree_filter to read only detector entries which contain hits
-        ucnstr = 'tIsUCN>0' if onlyucn else None
-
-        for name in self.DET_NAMES.values():
-
-            if hit_detail in 'hits':
-                self.tree_filter[name['hits_orig']] = (ucnstr, ['tIsUCN',
-                                                              'tUnixTimePrecise'])
-            elif hit_detail in 'low':
-                self.tree_filter[name['hits_orig']] = (ucnstr, ['tIsUCN', 'tChannel',
-                                                              'tUnixTimePrecise'])
-            elif hit_detail in 'med':
-                self.tree_filter[name['hits_orig']] = (ucnstr, ['tIsUCN', 'tChannel',
-                                                              'tChargeL', 'tChargeS',
-                                                              'tPSD', 'tUnixTimePrecise'])
-            elif hit_detail in 'all':
-                self.tree_filter[name['hits_orig']] = (ucnstr, None)
-
-            else:
-                raise RuntimeError('hit_detail must be one of "hits", "low", "med", or "all"')
-
         # read
         if header_only:
             fid = ROOT.TFile(filename, 'READ')
@@ -181,13 +154,8 @@ class ucnrun(ucnbase):
 
         else:
             self.tfile = tfile(filename, empty_ok=False, quiet=True,
-                               key_filter=self.keyfilter,
-                               tree_filter=self.tree_filter)
-            head = self.tfile['header']
-
-            # fix header values in tfile
-            for key, value in self.tfile.header.items():
-                self.tfile.header[key] = str(value[0])
+                               key_filter=self.keyfilter)
+            head = self.tfile['header'].to_dataframe()
 
         # reformat header and move to top level
         for k, val in head.items():
@@ -199,7 +167,7 @@ class ucnrun(ucnbase):
             self.run_number = int(float(self.run_number))
 
         # set other header items
-        date = pd.to_datetime(self.start_time)
+        date = pd.to_datetime(self.start_time).loc[0]
         self.year = date.year
         self.month = date.month
 
@@ -212,6 +180,12 @@ class ucnrun(ucnbase):
             if ' ' in key or '-' in key:
                 self.tfile[key.replace(' ', '_').replace('-','')] = self.tfile[key]
                 del self.tfile[key]
+
+        # some trees should be dataframes by default
+        for name in self.DATAFRAME_TREES:
+            if name in self.tfile.keys():
+                self.tfile[name] = self.tfile[name].to_dataframe()
+                self.tfile[name].reset_index(inplace=True, drop=True)
 
         # set cycle parameters
         self._get_cycle_param()
@@ -332,9 +306,6 @@ class ucnrun(ucnbase):
         treelen = [len(t) for t in treelist]
         tree = treelist[np.argmax(treelen)]
 
-        if type(tree) is not pd.DataFrame:
-            tree = tree.to_dataframe()
-
         # cycle and supercycle indices
         self.cycle_param['cycle'] = tree['cycleIndex'].astype(int)
         self.cycle_param['supercycle'] = tree['superCycleIndex'].astype(int)
@@ -349,6 +320,7 @@ class ucnrun(ucnbase):
         col_map = {col:int(col.replace("valveStatePeriod", "")) for col in df.columns}
         df = df.rename(columns=col_map)
         df.columns.name = 'period'
+        df.reset_index(inplace=True, drop=True)
         df.index.name = 'cycle_idx'
 
         # valve states should not change across cycles
@@ -613,7 +585,7 @@ class ucnrun(ucnbase):
         self.draw_cycle_times()
 
         plt.sca(ax[1])
-        plt.plot(*self.get_hits_histogram(detector))
+        self.get_hits_histogram(detector).plot()
         plt.yscale('log')
         ax[0].set_title(self.run_number,fontsize='x-small')
         self.draw_cycle_times()
@@ -810,18 +782,13 @@ class ucnrun(ucnbase):
         run_stop = -np.inf
         for treename in self.SLOW_TREES:
             try:
-                idx = self.tfile[treename].to_dataframe().index
-            except AttributeError as err:
-                if isinstance(self.tfile[treename], (pd.DataFrame, pd.Series)):
-                    idx = self.tfile[treename].index
-                else:
-                    raise err from None
+                max_time = self.tfile[treename].index.max()
 
             # tree not found, skip
             except KeyError:
                 continue
 
-            run_stop = max((idx.max(), run_stop))
+            run_stop = max((max_time, run_stop))
 
         # bad end time
         if np.isinf(run_stop):

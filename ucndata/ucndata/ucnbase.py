@@ -12,7 +12,6 @@ import pandas as pd
 import time
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
-import dask.array as da
 
 class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
@@ -76,9 +75,11 @@ class ucnbase(object):
                         },
                 }
 
+    # make these trees dataframes, ok since they're small - also resets the index
+    DATAFRAME_TREES = ('CycleParamTree', 'RunTransitions_He3', 'RunTransitions_Li6')
+
     # needed slow control trees: for checking data quality
     SLOW_TREES = ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
-
 
     # data thresholds for checking data
     DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA
@@ -95,7 +96,6 @@ class ucnbase(object):
                 'Li6_err': 0.009,
                 'He3':     0.0349,
                 'He3_err': 0.0023}
-
 
     def __iter__(self):
         # setup iteration
@@ -178,30 +178,6 @@ class ucnbase(object):
         """
         return applylist([fn_handle(c) for c in self])
 
-    def from_dataframe(self):
-        """Convert self.tfile contents to rootfile struture types
-
-        Returns:
-            None: acts in-place
-
-        Example:
-
-            ```python
-                >>> run = ucnrun(1846)
-
-                # convert to dataframe
-                >>> run.to_dataframe()
-                >>> type(run.tfile.BeamlineEpics)
-                pandas.core.frame.DataFrame
-
-                # convert back
-                >>> run.from_dataframe()
-                >>> type(run.tfile.BeamlineEpics)
-                rootloader.ttree.ttree
-            ```
-        """
-        self.tfile.from_dataframe()
-
     def get_hits(self, detector):
         """Get times of ucn hits
 
@@ -233,14 +209,15 @@ class ucnbase(object):
         """
 
         # get the tree
-        hit_tree = self.tfile[self.DET_NAMES[detector]['hits']] # maybe should be a copy?
-        if type(hit_tree) is not pd.DataFrame:
-            hit_tree = hit_tree.to_dataframe()
+        tree = self.tfile[self.DET_NAMES[detector]['hits']]
 
-        # get times only when a hit is registered
-        hit_tree = hit_tree.loc[hit_tree.tIsUCN.astype(bool)]
+        # filter hits only
+        tree.set_filter('tIsUCN>0')
 
-        return hit_tree
+        # purge bad timestamps
+        tree.set_filter('tUnixTimePrecise > 15e8')
+
+        return tree.tUnixTimePrecise.to_dataframe()
 
     def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False):
         """Get histogram of UCNHits ttree times
@@ -251,7 +228,7 @@ class ucnbase(object):
             as_datetime (bool): if true, convert bin_centers to datetime objects
 
         Returns:
-            tuple: (bin_centers, histogram counts)
+            rootloader.th1: histogram object
 
         Example:
             ```python
@@ -267,48 +244,35 @@ class ucnbase(object):
         """
 
         # get data
-        df = self.tfile[self.DET_NAMES[detector]['hits']]
+        tree = self.tfile[self.DET_NAMES[detector]['hits']]
 
-        # to dataframe
-        if not isinstance(df, pd.DataFrame):
-            df = df.to_dataframe()
-
-        # early end: no data
-        if df.size == 0:
-            return (np.array(np.nan), np.array(np.nan))
-
-        # get hits only
-        df = df.tIsUCN
-        df = df[df.astype(bool)]
-
-        # get times of hits
-        times = df.index.values
+        # filter hits only
+        tree.set_filter('tIsUCN>0')
 
         # purge bad timestamps
-        if times[0] <= 15e8: 
-            times = times[times > 15e8]
-        
-        # check that run has times
-        if times.size == 0:
-            return (np.array(np.nan), np.array(np.nan))
-
-        # to dask array
-        times = da.from_array(times) # pick a chunk size?
-
-        # get histogram bin edges
-        bins = np.arange(times.min(), times.max()+bin_ms/1000, bin_ms/1000)
-        bins -= bin_ms/1000/2
+        tree.set_filter('tUnixTimePrecise > 15e8')
 
         # histogram
-        hist, bins = da.histogram(times, bins=bins)
-        hist = hist.compute()
-        bin_centers = (bins[1:] + bins[:-1])/2
+        hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
 
         # to datetime
         if as_datetime:
-            bin_centers = to_datetime(bin_centers)
+            hist.x = to_datetime(hist.x)
 
-        return (bin_centers, hist)
+        return hist
+
+    def get_nhits(self, detector):
+        """Get number of ucn hits"""
+        # get the tree
+        tree = self.tfile[self.DET_NAMES[detector]['hits']]
+
+        # filter hits only
+        tree.set_filter('tIsUCN>0')
+
+        # purge bad timestamps
+        tree.set_filter('tUnixTimePrecise > 15e8')
+
+        return tree.size
 
     def plot_psd(self, detector='Li6', cut=None):
         """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
@@ -369,36 +333,11 @@ class ucnbase(object):
         fig.supxlabel(r'$Q_{\mathrm{Long}}$')
         fig.supylabel(r'$(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
 
-    def to_dataframe(self):
-        """Convert self.tfile contents to pd.DataFrame
-
-        Returns:
-            None: converts in-place
-
-        Example:
-
-            ```python
-                >>> run = ucnrun(1846)
-
-                # check loaded type
-                >>> type(run.tfile.BeamlineEpics)
-                rootloader.ttree.ttree
-
-                # convert
-                >>> run.to_dataframe()
-                >>> type(run.tfile.BeamlineEpics)
-                pandas.core.frame.DataFrame
-            ```
-        """
-
-        # convert to dataframes
-        self.tfile.to_dataframe()
-
     # quick access properties
     @property
     def beam1a_current_uA(self):
         """Get beamline 1A current in uA (micro amps)
-        
+
         Returns:
             pd.Series: indexed by timestamps, current in uA
         """
@@ -406,11 +345,11 @@ class ucnbase(object):
             df = self.tfile.BeamlineEpics
         else:
             df = self.tfile.BeamlineEpics.to_dataframe()
-            
+
         return df.B1_FOIL_ADJCUR
-    
+
     @property
-    def beam_current_uA(self):
+    def beam1u_current_uA(self):
         """Get beam current in uA (micro amps)
 
         Returns:
@@ -438,10 +377,7 @@ class ucnbase(object):
             ```
         """
 
-        if type(self.tfile.BeamlineEpics) is pd.DataFrame:
-            df = self.tfile.BeamlineEpics
-        else:
-            df = self.tfile.BeamlineEpics.to_dataframe()
+        df = self.tfile.BeamlineEpics
 
         # PREDCUR is the predicted current in beamline 1U.
         # PREDCUR is calculated by using the beamline 1V extraction foil current
@@ -449,10 +385,10 @@ class ucnbase(object):
         # of beam that is going to the 1U beamline (as opposed to 1A beamline).
         # So if the extraction foil current is 100uA and we are kicking 1 bucket
         # out of 10 buckets to 1U, then PREDCUR will be 10uA
-        predcur = df.B1V_KSM_PREDCUR
+        predcur = df.B1V_KSM_PREDCUR.to_dataframe()
 
         # BONPRD is a bool, which indicates if there is beam down 1U
-        bonprd = df.B1V_KSM_BONPRD
+        bonprd = df.B1V_KSM_BONPRD.to_dataframe()
 
         # current in the 1U beamline
         return predcur*bonprd

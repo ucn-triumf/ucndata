@@ -13,7 +13,7 @@ import numpy as np
 from functools import partial
 import os, ROOT
 
-def read(path, as_dataframe=True, nproc=-1, header_only=False, hit_detail='hits', onlyucn=True):
+def read(path, header_only=False, hit_detail='hits', onlyucn=True):
     """Read out single or multiple UCN run files from ROOT
 
     Args:
@@ -92,8 +92,8 @@ def read(path, as_dataframe=True, nproc=-1, header_only=False, hit_detail='hits'
         nproc = max((cpu_count()+nproc, 1))
 
     with Pool(nproc) as pool:
-        fn = partial(ucnrun, 
-                     header_only=header_only, 
+        fn = partial(ucnrun,
+                     header_only=header_only,
                      hit_detail=hit_detail,
                      onlyucn=onlyucn)
         iterable = tqdm(pool.imap_unordered(fn, read_in_paths),
@@ -113,10 +113,6 @@ def read(path, as_dataframe=True, nproc=-1, header_only=False, hit_detail='hits'
     # do the merging
     for to_merge in items_to_merge:
         output = merge_inlist(output, to_merge)
-
-    # to dataframe
-    if as_dataframe:
-        output.to_dataframe()
 
     # return single run
     if len(output) == 1:
