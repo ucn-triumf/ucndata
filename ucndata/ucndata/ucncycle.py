@@ -58,6 +58,20 @@ class ucncycle(ucnbase):
         self.cycle_start = start
         self.cycle_stop = stop
 
+
+    def __next__(self):
+        # permit iteration over object like it was a list
+
+        #
+        if self._iter_current < self.cycle_param.nperiods:
+            cyc = self[self._iter_current]
+            self._iter_current += 1
+            return cyc
+
+        # end of iteration
+        else:
+            raise StopIteration()
+
     def __repr__(self):
         klist = [d for d in self.__dict__.keys() if d[0] != '_']
         if klist:
@@ -279,88 +293,6 @@ class ucncycle(ucnbase):
 
         return True
 
-    def get_counts(self, detector, period=None, bkgd=None, dbkgd=None, norm=None, dnorm=None):
-        """Get counts for a/each period
-        Args:
-            detector (str): one of the keys to self.DET_NAMES
-            period (None|int):  if None get for entire cycle
-                                elif < 0 get for each period
-                                elif >=0 get for that period
-            bkgd (float|None): background counts
-            dbkgd(float|None): error in background counts
-            norm (float|None): normalize to this value
-            dnorm (float|None): error in normalization
-
-        Returns:
-            tuple: (value, error) number of hits
-
-        Example:
-            ```python
-            >>> cycle = run[0]
-
-            # counts for full cycle
-            >>> cycle.get_counts('Li6')
-            (25397, np.float64(159.3643623900902))
-
-            # counts for all periods
-            >>> cycle.get_counts('Li6', -1)
-            (array([  352,     5, 24720]),
-             array([ 18.76166304,   2.23606798, 157.22595206]))
-
-            # counts for single period (in this case period 0)
-            >>> cycle.get_counts('Li6', 0)
-            (np.int64(352), np.float64(18.76166303929372))
-            ```
-        """
-
-        # check input
-        nperiods = self.cycle_param.nperiods
-        if period is not None and period > nperiods:
-            raise RuntimeError(f"Run {self.run_number}, cycle {self.cycle}: Period index must be less than {self.cycle_param.nperiods}")
-
-        # get ucn hits
-        hit_tree = self.get_hits(detector)
-
-        if period is None:
-            counts = len(hit_tree.index)
-        else:
-
-            # make histogram of counts
-            edges = np.concatenate(([self.cycle_start], self.cycle_param.period_end_times))
-            counts, _ = np.histogram(hit_tree.index, bins=edges)
-
-            # trim to nperiods
-            if period < 0:
-                counts = counts[:nperiods]
-                edges = edges[:nperiods+1]
-
-            # select single period
-            else:
-                counts = counts[period]
-                edges = edges[period:period+2]
-
-        # error assumed poissonian
-        dcounts = np.sqrt(counts)
-
-        # subtract background
-        if bkgd is not None:
-            if isinstance(counts (int, np.int64)):  zero = 0
-            else:                                   zero = np.zeros(len(counts))
-            counts = np.max(counts-bkgd, zero)
-
-            if dbkgd is not None:
-                dcounts = (dcounts**2 + dbkgd**2)**0.5
-
-        # normalize
-        if norm is not None:
-
-            if dnorm is not None:
-                dcounts = counts*((dcounts/counts)**2 + (dnorm/norm)**2)**0.5
-
-            counts /= norm
-
-        return (counts, dcounts)
-
     def get_period(self, period=None):
         """Return a copy of this object, but trees are trimmed to only one period.
 
@@ -396,31 +328,3 @@ class ucncycle(ucnbase):
             return applylist(map(self.get_period, range(nperiods)))
         else:
             return ucnperiod(self, period)
-
-    def get_rate(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None):
-        """Get count rate for each period
-        Args:
-            detector (str): one of the keys to self.DET_NAMES
-            bkgd (float|None): background counts
-            dbkgd(float|None): error in background counts
-            norm (float|None): normalize to this value
-            dnorm (float|None): error in normalization
-
-        Returns:
-            applylist: count rate each period and error
-                [(period0_value, period0_error),
-                 (period1_value, period1_error),
-                 ...
-                ]
-
-        Example:
-            ```python
-            >>> cycle = run[0]
-            >>> cycle.get_rate('Li6')
-            [(np.float64(5.783333333333333), np.float64(0.3104656001699526)),
-             (np.float64(4.0), np.float64(1.4142135623730951)),
-             (np.float64(247.07), np.float64(1.5718460484411316))]
-            ```
-        """
-        rate = [p.get_rate(detector, bkgd=bkgd, dbkgd=dbkgd, norm=norm, dnorm=dnorm) for p in self.get_period()]
-        return applylist(rate)

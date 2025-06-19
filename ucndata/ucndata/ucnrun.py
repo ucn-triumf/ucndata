@@ -192,7 +192,7 @@ class ucnrun(ucnbase):
 
         # get cycle times
         cycle_failed = False
-        for mode in ['default', 'matched', 'li6', 'he3', 'sequencer', 'beamon']:
+        for mode in self.cycle_times_mode:
             try:
                 self.set_cycle_times(mode=mode)
             except (AttributeError, IndexError):
@@ -207,6 +207,31 @@ class ucnrun(ucnbase):
 
         if cycle_failed:
             print(f'Run {self.run_number}: Set cycle times based on {mode} detection mode')
+
+    def __next__(self):
+        # permit iteration over object like it was a list
+
+        if self._iter_current < self.cycle_param.ncycles:
+
+            # skip elements that should be filtered
+            if self.cycle_param.filter is not None:
+
+                # skip
+                while not self.cycle_param.filter[self._iter_current]:
+                    self._iter_current += 1
+
+                    # end condition
+                    if self._iter_current >= self.cycle_param.ncycles:
+                        raise StopIteration()
+
+            # iterate
+            cyc = self[self._iter_current]
+            self._iter_current += 1
+            return cyc
+
+        # end of iteration
+        else:
+            raise StopIteration()
 
     def __repr__(self):
         klist = [d for d in self.__dict__.keys() if d[0] != '_']
@@ -416,8 +441,12 @@ class ucnrun(ucnbase):
 
         return True
 
-    def draw_cycle_times(self):
+    def draw_cycle_times(self, ax=None, x_is_datetime=False):
         """Draw cycle start times as thick black lines, period end times as dashed lines
+
+        Args:
+            ax (plt.Axes): axis to draw in, if None, draw in current axes
+            x_is_datetime (bool): if true, convert to datetime first, else draw as epoch time
 
         Notes:
             Assumed periods:    0 - irradiation
@@ -425,12 +454,38 @@ class ucnrun(ucnbase):
                                 2 - count
         """
 
+        # get axis to draw ing
+        if ax is None:
+            ax = plt.gca()
+
+        # draw liness
         for cyc in self.get_cycle():
-            plt.axvline(cyc.cycle_start, color='k', ls='-', lw=2)
-            plt.axvline(cyc.cycle_stop, color='r', ls='-', lw=2)
-            plt.axvline(cyc.cycle_param.period_end_times[0], color='r', ls=':', lw=1)
-            plt.axvline(cyc.cycle_param.period_end_times[1], color='g', ls=':', lw=1)
-            plt.axvline(cyc.cycle_param.period_end_times[2], color='b', ls=':', lw=1)
+
+            # get x value
+            if x_is_datetime:
+                start = pd.to_datetime(cyc.cycle_start, unit='s')
+                stop = pd.to_datetime(cyc.cycle_stop, unit='s')
+            else:
+                start = cyc.cycle_start
+                stop = cyc.cycle_stop
+
+            ax.axvline(start, color='k', ls='-', lw=2)
+            ax.axvline(stop, color='r', ls='-', lw=2)
+
+            for i, per in enumerate(cyc):
+
+                # skip zero length periods
+                if per.period_start == per.period_stop:
+                    continue
+
+                # get x value
+                if x_is_datetime:
+                    x = pd.to_datetime(per.period_stop, unit='s')
+                else:
+                    x = per.period_stop
+
+                # draw
+                ax.axvline(x, color=f'C{i}', ls=':', lw=1)
 
             # get cycle text - strikeout if not good
             text = f'Cycle {cyc.cycle}'
@@ -444,63 +499,14 @@ class ucnrun(ucnbase):
 
             text += ' $\\downarrow$'
 
-            ypos = plt.ylim()[1]
-            plt.text(cyc.cycle_start, ypos, text,
+            ypos = ax.get_ylim()[1]
+            ax.text(start, ypos, text,
                     va='top',
                     ha='left',
                     fontsize='xx-small',
                     color=color,
-                    rotation='vertical')
-
-    def draw_hits(self, detector, period=None):
-        """Draw hits histogram for each cycle
-        """
-
-        plt.figure(figsize=(6,6))
-
-        # force iteration over all cycles
-        for i in range(self.cycle_param.ncycles):
-
-            # get cycle and check if it passed filter
-            cycle = self[i]
-            if self.cycle_param.filter is None:
-                is_good = True
-            else:
-                is_good = self.cycle_param.filter[i]
-
-            # get cycle or period
-            dat = cycle if period is None else cycle[period]
-
-            # check that data exists
-            if dat.tfile[self.DET_NAMES[detector]['hits']].empty:
-                continue
-
-            # plot histogram
-            bins, hist = dat.get_hits_histogram(detector, as_datetime=True)
-            line = plt.plot(bins, hist, label=f'Cycle {cycle.cycle}',
-                            color=None if is_good else 'k')
-
-            # get cycle text - strikeout if not good
-            text = f'Cycle {cycle.cycle}'
-            if not is_good:
-                text = '\u0336'.join(text) + '\u0336'
-            plt.text(bins[0], -1, text,
-                    va='top',
-                    ha='left',
-                    fontsize='xx-small',
-                    color=line[0].get_color(),
-                    rotation='vertical')
-
-        # plot elements
-        plt.ylabel('UCN Counts')
-        plt.ylim(-30, None)
-        plt.xticks(rotation=90)
-        plt.gca().tick_params(axis='x', which='major', labelsize='x-small')
-        plt.tight_layout()
-
-        # plot elements for viewing
-        plt.title(f'Run {self.run_number}')
-        plt.tight_layout()
+                    rotation='vertical',
+                    clip_on=True,)
 
     def gen_cycle_filter(self, period_production=None, period_count=None,
                          period_background=None, quiet=False):
@@ -574,24 +580,66 @@ class ucnrun(ucnbase):
         else:
             return ucncycle(self, cycle)
 
-        fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True,
+    def inspect(self, detector='Li6', bin_ms=100):
+        """Draw counts and BL1A current with indicated periods to determine data quality
+
+        Args:
+            detector (str): detector from which to get the counts from. Li6|He3
+            bin_ms (int): histogram bin size in ms
+
+        Notes:
+            line colors:
+                solid black: cycle start
+                solid red: run end
+                dashed red: first period end
+                dashed green: second period end
+                dashed blue: third period end
+        """
+
+        # make figure
+        _, axes = plt.subplots(nrows=2, ncols=1, sharex=True,
                         layout='constrained', figsize=(8,10))
 
-    def inspect_beam(self, detector='Li6'):
-        fig, ax = plt.subplots(nrows=2, ncols=1, sharex=True,
-                        layout='constrained', figsize=(8,10))
-        self.beam1a_current_uA.plot(ax=ax[0])
-        plt.sca(ax[0])
-        self.draw_cycle_times()
+        # get current and histogram
+        current = self.beam1a_current_uA
+        current.sort_index(inplace=True)
+        hist = self.get_hits_histogram(detector, bin_ms=bin_ms).to_dataframe()
+        hist.set_index('tUnixTimePrecise', inplace=True)
+        hist = hist['Count']
 
-        plt.sca(ax[1])
-        self.get_hits_histogram(detector).plot()
-        plt.yscale('log')
-        ax[0].set_title(self.run_number,fontsize='x-small')
-        self.draw_cycle_times()
+        for cyc in self:
+            for i, per in enumerate(cyc):
 
-        ax[0].set_ylabel('BL1A Current (uA)')
-        ax[1].set_ylabel('UCN Counts')
+                # draw current
+                cur = current.loc[per.period_start:per.period_stop]
+                cur.index = pd.to_datetime(cur.index, unit='s')
+                cur.plot(ax=axes[0], color=f'C{i}')
+
+                # draw histogram
+                hi = hist.loc[per.period_start:per.period_stop]
+                hi.index = pd.to_datetime(hi.index, unit='s')
+                hi.plot(ax=axes[1], color=f'C{i}')
+
+            # draw the rest of the run - current
+            cur = current.loc[per.period_stop:cyc.cycle_stop]
+            cur.index = pd.to_datetime(cur.index, unit='s')
+            cur.plot(ax=axes[0], color=f'k')
+
+            # draw the rest of the run - histogram
+            hi = hist.loc[per.period_stop:cyc.cycle_stop]
+            hi.index = pd.to_datetime(hi.index, unit='s')
+            hi.plot(ax=axes[1], color=f'k')
+
+        # draw vertical markers
+        self.draw_cycle_times(ax=axes[0], x_is_datetime=True)
+        self.draw_cycle_times(ax=axes[1], x_is_datetime=True)
+
+        # plot elements
+        axes[0].set_title(self.run_number,fontsize='x-small')
+        axes[0].set_ylabel('BL1A Current (uA)')
+        axes[1].set_ylabel('UCN Counts')
+        axes[1].set_xlabel('')
+        axes[1].set_yscale('log')
 
     def keyfilter(self, name):
         """Don't load all the data in each file, only that which is needed"""
@@ -606,59 +654,6 @@ class ucnrun(ucnbase):
                 return False
 
         return True
-
-    def set_cut(self, detector, psd_bounds, qlong_bounds):
-        """Apply a box cut to the ucn hits tree. Sets values in the tIsUCN column
-
-        Args:
-            detector (str): Li6|He3
-            psd_bounds (iterable): set ranges. If within bounds, set tIsUCN to true, else false
-                format can be a list [lower, upper] or a dict of lists: {ch:[lower, upper]}
-                the former applies to all channels
-                If the latter is missing a channel, keep all hits from that channel
-                set to [-np.inf, np.inf] to disable
-            qlong_bounds (iterable): similar to psd_bounds
-        """
-
-        # get tree
-        hit_tree = self.tfile[self.DET_NAMES[detector]['hits']]
-
-        # default: accept zero hits as UCN
-        hit_tree.loc[:, 'tIsUCN'] = 0.0
-
-        # calculate new psd
-        hit_tree = hit_tree.loc[hit_tree.tChargeL>0]
-        hit_tree = hit_tree.loc[hit_tree.tChargeL < 5e4]
-        hit_tree['tPSD'] = (hit_tree.tChargeL-hit_tree.tChargeS)/hit_tree.tChargeL
-
-        # force dict inputs
-        if not isinstance(psd_bounds, dict):
-            psd_bounds = {i: psd_bounds for i in range(9)}
-        if not isinstance(qlong_bounds, dict):
-            qlong_bounds = {i: qlong_bounds for i in range(9)}
-
-        # detect channels from inputs
-        channels = np.unique(np.concat((list(psd_bounds.keys()),
-                                        list(qlong_bounds.keys()))))
-
-        # iterate and get new ucn tags
-        for ch in channels:
-            if ch in psd_bounds.keys(): pbnd = psd_bounds[ch]
-            else:                       pbnd = [-np.inf, np.inf]
-
-            if ch in qlong_bounds.keys(): qbnd = qlong_bounds[ch]
-            else:                         qbnd = [-np.inf, np.inf]
-
-            idx = hit_tree.tChannel == ch
-            ch_tree = hit_tree.loc[idx]
-            print(max(ch_tree.tPSD))
-            hit_tree.loc[idx, 'tIsUCN'] = ((ch_tree.tChargeL > qbnd[0]) & \
-                                           (ch_tree.tChargeL < qbnd[1]) & \
-                                           (ch_tree.tPSD > pbnd[0]) & \
-                                           (ch_tree.tPSD < pbnd[1])).astype(int)
-
-        # set the new tree
-        self.tfile[self.DET_NAMES[detector]['hits']] = hit_tree
 
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating
@@ -729,7 +724,7 @@ class ucnrun(ucnbase):
         # set
         self.cycle_param.filter = cfilter
 
-    def set_cycle_times(self, mode='default'):
+    def set_cycle_times(self, mode):
         """Get start and end times of each cycle from the sequencer and save
         into self.cycle_param.cycle_times
 
@@ -774,8 +769,6 @@ class ucnrun(ucnbase):
                                  index=[self.cycle])
 
         # get mode
-        if mode in 'default':
-            mode = self.cycle_times_mode
         mode = mode.lower()
 
         # get run end time from control trees - used in matched and detector cycles times

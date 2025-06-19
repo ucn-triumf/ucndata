@@ -49,8 +49,8 @@ class ucnbase(object):
     # timezone for datetime conversion
     timezone = 'America/Vancouver'
 
-    # cycle times finding mode
-    cycle_times_mode = 'matched'
+    # cycle times finding mode order
+    cycle_times_mode = ['matched', 'li6', 'he3', 'sequencer', 'beamon']
 
     # filter what trees and branches to load in each file. If unspecified then load the whole tree
     # treename: (filter, columns). See [rootloader documentation](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree-1) for details
@@ -101,31 +101,6 @@ class ucnbase(object):
         # setup iteration
         self._iter_current = 0
         return self
-
-    def __next__(self):
-        # permit iteration over object like it was a list
-
-        if self._iter_current < self.cycle_param.ncycles:
-
-            # skip elements that should be filtered
-            if self.cycle_param.filter is not None:
-
-                # skip
-                while not self.cycle_param.filter[self._iter_current]:
-                    self._iter_current += 1
-
-                    # end condition
-                    if self._iter_current >= self.cycle_param.ncycles:
-                        raise StopIteration()
-
-            # iterate
-            cyc = self[self._iter_current]
-            self._iter_current += 1
-            return cyc
-
-        # end of iteration
-        else:
-            raise StopIteration()
 
     def _get_beam_duration(self, on=True):
         # Get beam on/off durations
@@ -178,8 +153,8 @@ class ucnbase(object):
         """
         return applylist([fn_handle(c) for c in self])
 
-    def get_hits(self, detector):
-        """Get times of ucn hits
+    def get_hits_dataframe(self, detector):
+        """Get times of ucn hits as a pandas dataframe
 
         Args:
             detector (str): one of the keys to `self.DET_NAMES`
@@ -208,14 +183,18 @@ class ucnbase(object):
             ```
         """
 
+        # check input
+        if detector not in self.DET_NAMES.keys():
+            raise KeyError(f'Detector input "{detector}" not one of {tuple(self.DET_NAMES.keys())}')
+
         # get the tree
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
 
         # filter hits only
-        tree.set_filter('tIsUCN>0')
+        tree = tree.set_filter('tIsUCN>0')
 
         # purge bad timestamps
-        tree.set_filter('tUnixTimePrecise > 15e8')
+        tree = tree.set_filter('tUnixTimePrecise > 15e8')
 
         return tree.tUnixTimePrecise.to_dataframe()
 
@@ -243,14 +222,18 @@ class ucnbase(object):
             ```
         """
 
+        # check input
+        if detector not in self.DET_NAMES.keys():
+            raise KeyError(f'Detector input "{detector}" not one of {tuple(self.DET_NAMES.keys())}')
+
         # get data
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
 
         # filter hits only
-        tree.set_filter('tIsUCN>0')
+        tree = tree.set_filter('tIsUCN>0')
 
         # purge bad timestamps
-        tree.set_filter('tUnixTimePrecise > 15e8')
+        tree = tree.set_filter('tUnixTimePrecise > 15e8')
 
         # histogram
         hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
@@ -267,71 +250,71 @@ class ucnbase(object):
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
 
         # filter hits only
-        tree.set_filter('tIsUCN>0')
+        tree = tree.set_filter('tIsUCN>0')
 
         # purge bad timestamps
-        tree.set_filter('tUnixTimePrecise > 15e8')
+        tree = tree.set_filter('tUnixTimePrecise > 15e8')
 
         return tree.size
 
-    def plot_psd(self, detector='Li6', cut=None):
-        """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
+    # def plot_psd(self, detector='Li6', cut=None):
+    #     """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 
-        Args:
-            cut (tuple): lower left corner of box cut (QLong, PSD). If not none then draw
-        """
+    #     Args:
+    #         cut (tuple): lower left corner of box cut (QLong, PSD). If not none then draw
+    #     """
 
-        # get the data from the tree
-        df = self.tfile[self.DET_NAMES[detector]['hits']]
+    #     # get the data from the tree
+    #     df = self.tfile[self.DET_NAMES[detector]['hits']]
 
-        # calculate new psd
-        df = df.loc[df.tChargeL > 0]
-        df = df.loc[df.tChargeL < 5e4]
-        df['psd'] = (df.tChargeL-df.tChargeS)/df.tChargeL
+    #     # calculate new psd
+    #     df = df.loc[df.tChargeL > 0]
+    #     df = df.loc[df.tChargeL < 5e4]
+    #     df['psd'] = (df.tChargeL-df.tChargeS)/df.tChargeL
 
-        # Li detector figures
-        fig, axes = plt.subplots(nrows=3, ncols=3, sharex=True, sharey=True,
-                                layout='constrained',
-                                figsize=(10,8))
-        axes = np.concat(axes)
+    #     # Li detector figures
+    #     fig, axes = plt.subplots(nrows=3, ncols=3, sharex=True, sharey=True,
+    #                             layout='constrained',
+    #                             figsize=(10,8))
+    #     axes = np.concat(axes)
 
-        hist_edges = []
-        max_chargeL = df.tChargeL.max()
+    #     hist_edges = []
+    #     max_chargeL = df.tChargeL.max()
 
-        # histogram
-        for i in range(9):
-            ch = df.loc[df.tChannel == i]
-            xbins = np.linspace(0,max_chargeL, 1000)
-            ybins = np.arange(-1,1.01,0.01)
-            hist, xedge, yedge = np.histogram2d(ch.tChargeL, ch.psd,
-                        bins=[xbins, ybins])
+    #     # histogram
+    #     for i in range(9):
+    #         ch = df.loc[df.tChannel == i]
+    #         xbins = np.linspace(0,max_chargeL, 1000)
+    #         ybins = np.arange(-1,1.01,0.01)
+    #         hist, xedge, yedge = np.histogram2d(ch.tChargeL, ch.psd,
+    #                     bins=[xbins, ybins])
 
-            hist_edges.append((hist, xedge, yedge))
+    #         hist_edges.append((hist, xedge, yedge))
 
-        # get max
-        max_bin_count = np.max([np.max(h[0]) for h in hist_edges])
+    #     # get max
+    #     max_bin_count = np.max([np.max(h[0]) for h in hist_edges])
 
 
-        # draw
-        for i in range(9):
-            ax = axes[i]
-            hist, xbins, ybins = hist_edges[i]
-            c = ax.pcolormesh(xbins, ybins, hist.transpose(),
-                              cmap='RdBu',
-                              vmin=0, vmax=max_bin_count/10)
-            if i in (2, 5, 8):
-                plt.gcf().colorbar(c, ax=ax)
-            ax.set_title(f'CH {i}', fontsize='x-small')
+    #     # draw
+    #     for i in range(9):
+    #         ax = axes[i]
+    #         hist, xbins, ybins = hist_edges[i]
+    #         c = ax.pcolormesh(xbins, ybins, hist.transpose(),
+    #                           cmap='RdBu',
+    #                           vmin=0, vmax=max_bin_count/10)
+    #         if i in (2, 5, 8):
+    #             plt.gcf().colorbar(c, ax=ax)
+    #         ax.set_title(f'CH {i}', fontsize='x-small')
 
-            if cut is not None:
-                dx = max_chargeL - cut[0]
-                dy = 1 - cut[1]
-                rec = Rectangle(cut, dx, dy, color='white', fc='none', lw=1)
-                ax.add_patch(rec)
+    #         if cut is not None:
+    #             dx = max_chargeL - cut[0]
+    #             dy = 1 - cut[1]
+    #             rec = Rectangle(cut, dx, dy, color='white', fc='none', lw=1)
+    #             ax.add_patch(rec)
 
-        fig.suptitle(f'Run {self.run_number}')
-        fig.supxlabel(r'$Q_{\mathrm{Long}}$')
-        fig.supylabel(r'$(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
+    #     fig.suptitle(f'Run {self.run_number}')
+    #     fig.supxlabel(r'$Q_{\mathrm{Long}}$')
+    #     fig.supylabel(r'$(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
 
     # quick access properties
     @property
@@ -377,21 +360,20 @@ class ucnbase(object):
             ```
         """
 
-        df = self.tfile.BeamlineEpics
-
         # PREDCUR is the predicted current in beamline 1U.
         # PREDCUR is calculated by using the beamline 1V extraction foil current
         # (the current as it leaves the cyclotron) and multiplid by the fraction
         # of beam that is going to the 1U beamline (as opposed to 1A beamline).
         # So if the extraction foil current is 100uA and we are kicking 1 bucket
         # out of 10 buckets to 1U, then PREDCUR will be 10uA
-        predcur = df.B1V_KSM_PREDCUR.to_dataframe()
 
         # BONPRD is a bool, which indicates if there is beam down 1U
-        bonprd = df.B1V_KSM_BONPRD.to_dataframe()
+
+        df = self.tfile.BeamlineEpics[['B1V_KSM_PREDCUR', 'B1V_KSM_BONPRD']]
+        df = df.to_dataframe()
 
         # current in the 1U beamline
-        return predcur*bonprd
+        return df.B1V_KSM_PREDCUR * df.B1V_KSM_BONPRD
 
     @property
     def beam_on_s(self):

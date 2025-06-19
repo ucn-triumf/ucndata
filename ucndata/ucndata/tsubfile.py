@@ -5,7 +5,7 @@
 from .exceptions import *
 import numpy as np
 import pandas as pd
-from rootloader import tfile
+from rootloader import tfile, ttree
 
 class tsubfile(tfile):
     """Wrapper for tfile which restricts access to values only within given times
@@ -29,29 +29,28 @@ class tsubfile(tfile):
         # get the data
         val = super().__getitem__(key)
 
-        # convert to dataframe
-        is_dataframe = type(val) is pd.DataFrame
-        if not is_dataframe:
+        # get sub range: pd.DataFrame
+        if isinstance(val, pd.DataFrame):
             try:
-                val = val.to_dataframe()
+                index_name = val.index.name.lower()
             except AttributeError:
-                return val
+                pass
+            else:
+                if 'time' in index_name:
+                    idx = (val.index >= self._start) & (val.index <= self._stop)
+                    val = val.loc[idx]
 
-        # get sub range
-        try:
-            index_name = val.index.name.lower()
-        except AttributeError:
-            pass
-        else:
-            if 'time' in index_name:
-                idx = (val.index >= self._start) & (val.index <= self._stop)
-                val = val.loc[idx]
+        # get sub range: rootloader.ttree
+        elif isinstance(val, ttree):
+            try:
+                index_name = val.index_name.lower()
+            except AttributeError:
+                pass
+            else:
+                if 'time' in index_name:
+                    val = val.loc[self._start:self._stop]
 
-        # convert back
-        if not is_dataframe:
-            return val.attrs['type'](val)
-        else:
-            return val
+        return val
 
     def __getattr__(self, name):
 
