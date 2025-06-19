@@ -53,6 +53,9 @@ class ucncycle(ucnbase):
         self.cycle_param.period_durations_s = self.cycle_param.period_durations_s[cycle]
         self.cycle_param.period_end_times = self.cycle_param.period_end_times[cycle]
 
+        if self.cycle_param.filter is not None:
+            self.cycle_param.filter = self.cycle_param.filter[cycle]
+
         self.cycle = cycle
         self.supercycle = supercycle
         self.cycle_start = start
