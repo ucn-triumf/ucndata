@@ -637,7 +637,7 @@ class ucnrun(ucnbase):
         # plot elements
         axes[0].set_title(self.run_number,fontsize='x-small')
         axes[0].set_ylabel('BL1A Current (uA)')
-        axes[1].set_ylabel('UCN Counts')
+        axes[1].set_ylabel(f'UCN Counts/{bin_ms/1000:g}s')
         axes[1].set_xlabel('')
         axes[1].set_yscale('log')
 
