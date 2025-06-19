@@ -21,10 +21,16 @@ class tsubfile(tfile):
         for key, value in tfileobj.items():
             self[key] = value
 
-        self._start = start
-        self._stop = stop
+        # self._start = start
+        # self._stop = stop
+        items = {'_start':start, '_stop':stop}
+        object.__setattr__(self, '_items', items)
 
     def __getitem__(self, key):
+
+        # quick return
+        if key in self._items.keys():
+            return self._items[key]
 
         # get the data
         val = super().__getitem__(key)
@@ -50,12 +56,16 @@ class tsubfile(tfile):
                 if 'time' in index_name:
                     val = val.loc[self._start:self._stop]
 
+        self._items[key] = val
+
         return val
 
     def __getattr__(self, name):
 
         if name in self.keys():
             return self[name]
+        elif name in self._items.keys():
+            return self._items[name]
         else:
             return self.__getattribute__(name)
 

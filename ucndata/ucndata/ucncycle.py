@@ -58,11 +58,13 @@ class ucncycle(ucnbase):
         self.cycle_start = start
         self.cycle_stop = stop
 
+        # store fetched periods
+        self._perioddict = dict()
 
     def __next__(self):
         # permit iteration over object like it was a list
 
-        #
+        # iterate
         if self._iter_current < self.cycle_param.nperiods:
             cyc = self[self._iter_current]
             self._iter_current += 1
@@ -326,5 +328,8 @@ class ucncycle(ucnbase):
         if period is None or period < 0:
             nperiods = self.cycle_param.nperiods
             return applylist(map(self.get_period, range(nperiods)))
+        elif period in self._perioddict.keys():
+            return self._perioddict[period]
         else:
-            return ucnperiod(self, period)
+            self._perioddict[period] = ucnperiod(self, period)
+            return self._perioddict[period]

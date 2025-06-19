@@ -208,6 +208,9 @@ class ucnrun(ucnbase):
         if cycle_failed:
             print(f'Run {self.run_number}: Set cycle times based on {mode} detection mode')
 
+        # dict for holding fetched cycles
+        self._cycledict = dict()
+
     def __next__(self):
         # permit iteration over object like it was a list
 
@@ -577,8 +580,11 @@ class ucnrun(ucnbase):
         if cycle is None or cycle < 0:
             ncycles = len(self.cycle_param.cycle_times.index)
             return applylist(map(self.get_cycle, range(ncycles)))
+        elif cycle in self._cycledict.keys():
+            return self._cycledict[cycle]
         else:
-            return ucncycle(self, cycle)
+            self._cycledict[cycle] = ucncycle(self, cycle)
+            return self._cycledict[cycle]
 
     def inspect(self, detector='Li6', bin_ms=100):
         """Draw counts and BL1A current with indicated periods to determine data quality

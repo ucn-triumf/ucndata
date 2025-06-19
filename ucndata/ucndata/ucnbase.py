@@ -119,13 +119,13 @@ class ucnbase(object):
 
         # get as dataframe
         if isinstance(beam, ttree):
-            beam = beam.to_dataframe()
+            beam = beam[epics_val].to_dataframe()
 
         # get durations closest to cycle start time
         for start in cycle_times.start:
 
             start_times = abs(beam.index.values - start)
-            durations = beam[epics_val].values*const.beam_bucket_duration_s
+            durations = beam.values*const.beam_bucket_duration_s
             idx = np.argmin(start_times)
             beam_dur.append(durations[idx])
 
@@ -134,6 +134,11 @@ class ucnbase(object):
 
         if len(out) == 1:
             return float(out.values[0])
+
+        # select single cycle
+        if hasattr(self, 'cycle'):
+            out = out[self.cycle]
+
         return out
 
     def apply(self, fn_handle):
@@ -246,6 +251,7 @@ class ucnbase(object):
 
     def get_nhits(self, detector):
         """Get number of ucn hits"""
+
         # get the tree
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
 
