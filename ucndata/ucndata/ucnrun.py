@@ -128,7 +128,7 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, header_only=False):
+    def __init__(self, run, header_only=False, ucn_only=True):
 
         # check if copying
         if run is None:
@@ -207,6 +207,20 @@ class ucnrun(ucnbase):
 
         if cycle_failed:
             print(f'Run {self.run_number}: Set cycle times based on {mode} detection mode')
+
+        # setup tree filters
+        for detector in self.DET_NAMES.keys():
+            tree = self.tfile[self.DET_NAMES[detector]['hits']]
+
+            # purge bad timestamps
+            tree.set_filter('tUnixTimePrecise > 15e8', inplace=True)
+
+            # filter on ucn hits
+            if ucn_only:
+                tree.set_filter('tIsUCN>0', inplace=True)
+
+        # store fetched cycles
+        self._cycledict = dict()
 
     def __next__(self):
         # permit iteration over object like it was a list
@@ -577,8 +591,11 @@ class ucnrun(ucnbase):
         if cycle is None or cycle < 0:
             ncycles = len(self.cycle_param.cycle_times.index)
             return applylist(map(self.get_cycle, range(ncycles)))
+        elif cycle in self._cycledict.keys():
+            return self._cycledict[cycle]
         else:
-            return ucncycle(self, cycle)
+            self._cycledict[cycle] = ucncycle(self, cycle)
+            return self._cycledict[cycle]
 
     def inspect(self, detector='Li6', bin_ms=100):
         """Draw counts and BL1A current with indicated periods to determine data quality
@@ -655,6 +672,85 @@ class ucnrun(ucnbase):
 
         return True
 
+    def modify_timing(self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True):
+        """Change start and end times of periods and cycles
+
+        Args:
+            cycle (int): cycle id number
+            period (int): period id number
+            dt_start_s (float): change to the period start time
+            dt_stop_s (float): change to the period stop time
+            update_duration (bool): if true, update period durations dataframe
+
+        Notes:
+            as a result of this, cycles may overlap or have gaps
+            periods are forced to not overlap and have no gaps
+        """
+
+        # get cycle parameters
+        cycpar = self.cycle_param
+
+        # start times - prevent unnecessary recursion
+        if dt_start_s != 0:
+
+            # adjust cycle start
+            if period == 0:
+                cycpar.cycle_times.loc[cycle, 'start'] += dt_start_s
+
+            # period start time adjustment
+            else:
+                cycpar.period_end_times.loc[period-1, cycle] += dt_start_s
+
+            # recursively adjust adjacent size zero periods
+            if period-1 > 0 and cycpar.period_durations_s.loc[period-1, cycle] == 0:
+                self.modify_timing(cycle, period-1,
+                                    dt_start_s = dt_start_s,
+                                    dt_stop_s  = 0,
+                                    update_duration = False)
+
+        # stop times - prevent unnecessary recursion
+        if dt_stop_s != 0:
+
+            # period end time adjustment
+            cycpar.period_end_times.loc[period, cycle] += dt_stop_s
+
+            # force periods to stay within cycle bounds
+            cycend = cycpar.cycle_times.loc[cycle, 'stop']
+            perend = cycpar.period_end_times.loc[period, cycle]
+            cycpar.period_end_times.loc[period, cycle] = min(perend, cycend)
+
+            # recursively adjust adjacent size zero periods
+            try:
+                if cycpar.period_durations_s.loc[period+1, cycle] == 0:
+                    self.modify_timing(cycle, period+1,
+                                        dt_start_s = 0,
+                                        dt_stop_s  = dt_stop_s,
+                                        update_duration = False)
+
+            # period not in durations dataframe
+            except KeyError:
+                pass
+
+        # adjust period and cycle durations
+        if update_duration:
+
+            start = cycpar.cycle_times.loc[cycle, 'start']
+            stop = cycpar.cycle_times.loc[cycle, 'stop']
+
+            df = cycpar.period_end_times
+            df_diff = df.diff()
+            df_diff.loc[0] = df.loc[0] - start
+            cycpar.period_durations_s = df_diff
+
+            cycpar.cycle_times.loc[cycle, 'duration (s)'] = stop-start
+
+        # set in memory
+        self.cycle_param = cycpar
+
+        # remove saved cycles to account for updated limits
+        if cycle in self._cycledict.keys():
+            del self._cycledict[cycle]
+
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating
 
@@ -723,6 +819,10 @@ class ucnrun(ucnbase):
 
         # set
         self.cycle_param.filter = cfilter
+
+        # set for already fetched cycles
+        for key, cyc in self._cycledict.items():
+            cyc.cycle_param.filter = self.cycle_param.filter[key]
 
     def set_cycle_times(self, mode):
         """Get start and end times of each cycle from the sequencer and save

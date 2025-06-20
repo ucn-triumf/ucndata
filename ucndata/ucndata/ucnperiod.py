@@ -29,10 +29,10 @@ class ucnperiod(ucnbase):
     def __init__(self, ucycle, period):
 
         # get start and stop time
-        if period > 0:      start = int(ucycle.cycle_param.period_end_times[period-1])
-        else:               start = int(ucycle.cycle_start)
+        if period > 0:      start = ucycle.cycle_param.period_end_times[period-1]
+        else:               start = ucycle.cycle_start
 
-        stop = int(ucycle.cycle_param.period_end_times[period])
+        stop = ucycle.cycle_param.period_end_times[period]
 
         # copy data
         for key, value in ucycle.__dict__.items():

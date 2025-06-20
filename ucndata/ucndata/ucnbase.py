@@ -195,12 +195,6 @@ class ucnbase(object):
         # get the tree
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
 
-        # filter hits only
-        tree = tree.set_filter('tIsUCN>0')
-
-        # purge bad timestamps
-        tree = tree.set_filter('tUnixTimePrecise > 15e8')
-
         return tree.tUnixTimePrecise.to_dataframe()
 
     def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False):
@@ -234,12 +228,6 @@ class ucnbase(object):
         # get data
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
 
-        # filter hits only
-        tree = tree.set_filter('tIsUCN>0')
-
-        # purge bad timestamps
-        tree = tree.set_filter('tUnixTimePrecise > 15e8')
-
         # histogram
         hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
 
@@ -254,13 +242,6 @@ class ucnbase(object):
 
         # get the tree
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
-
-        # filter hits only
-        tree = tree.set_filter('tIsUCN>0')
-
-        # purge bad timestamps
-        tree = tree.set_filter('tUnixTimePrecise > 15e8')
-
         return tree.size
 
     # def plot_psd(self, detector='Li6', cut=None):
