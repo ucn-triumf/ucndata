@@ -455,12 +455,12 @@ class ucnrun(ucnbase):
 
         return True
 
-    def draw_cycle_times(self, ax=None, x_is_datetime=False):
+    def draw_cycle_times(self, ax=None, xmode='datetime'):
         """Draw cycle start times as thick black lines, period end times as dashed lines
 
         Args:
             ax (plt.Axes): axis to draw in, if None, draw in current axes
-            x_is_datetime (bool): if true, convert to datetime first, else draw as epoch time
+            xmode (str): datetime|duration|epoch
 
         Notes:
             Assumed periods:    0 - irradiation
@@ -468,23 +468,31 @@ class ucnrun(ucnbase):
                                 2 - count
         """
 
-        # get axis to draw ing
+        # check input
+        if all((xmode not in i for i in ('datetime', 'duration', 'epoch'))):
+            raise RuntimeError('xmode must be one of datetime|duration|epoch')
+
+        # get axis to draw in
         if ax is None:
             ax = plt.gca()
+
+        # run start time
+        if xmode in 'duration':
+            run_start = self.cycle_param.cycle_times.loc[0, 'start']
+        else:
+            run_start = 0
 
         # draw lines
         for cyc in self.get_cycle():
 
             # get x value
-            if x_is_datetime:
+            if xmode in 'datetime':
                 start = pd.to_datetime(cyc.cycle_start, unit='s')
-                stop = pd.to_datetime(cyc.cycle_stop, unit='s')
             else:
-                start = cyc.cycle_start
-                stop = cyc.cycle_stop
+                start = cyc.cycle_start - run_start
 
+            # draw
             ax.axvline(start, color='k', ls='-', lw=2)
-            ax.axvline(stop, color='r', ls='-', lw=2)
 
             for i, per in enumerate(cyc):
 
@@ -493,10 +501,10 @@ class ucnrun(ucnbase):
                     continue
 
                 # get x value
-                if x_is_datetime:
+                if xmode in 'datetime':
                     x = pd.to_datetime(per.period_stop, unit='s')
                 else:
-                    x = per.period_stop
+                    x = per.period_stop - run_start
 
                 # draw
                 ax.axvline(x, color=f'C{i}', ls=':', lw=1)
@@ -597,12 +605,13 @@ class ucnrun(ucnbase):
             self._cycledict[cycle] = ucncycle(self, cycle)
             return self._cycledict[cycle]
 
-    def inspect(self, detector='Li6', bin_ms=100):
+    def inspect(self, detector='Li6', bin_ms=100, xmode='datetime'):
         """Draw counts and BL1A current with indicated periods to determine data quality
 
         Args:
             detector (str): detector from which to get the counts from. Li6|He3
             bin_ms (int): histogram bin size in ms
+            xmode (str): datetime|duration|epoch
 
         Notes:
             line colors:
@@ -612,6 +621,10 @@ class ucnrun(ucnbase):
                 dashed green: second period end
                 dashed blue: third period end
         """
+
+        # check input
+        if all((xmode not in i for i in ('datetime', 'duration', 'epoch'))):
+            raise RuntimeError('xmode must be one of datetime|duration|epoch')
 
         # make figure
         _, axes = plt.subplots(nrows=2, ncols=1, sharex=True,
@@ -624,38 +637,71 @@ class ucnrun(ucnbase):
         hist.set_index('tUnixTimePrecise', inplace=True)
         hist = hist['Count']
 
-        for cyc in self:
+        # run start time
+        run_start = self.cycle_param.cycle_times.loc[0, 'start']
+
+        for cyc in self.get_cycle():
             for i, per in enumerate(cyc):
 
                 # draw current
                 cur = current.loc[per.period_start:per.period_stop]
-                cur.index = pd.to_datetime(cur.index, unit='s')
-                cur.plot(ax=axes[0], color=f'C{i}')
+
+                if len(cur) > 0:
+                    if xmode in 'datetime':
+                        cur.index = pd.to_datetime(cur.index, unit='s')
+                    elif xmode in 'duration':
+                        cur.index -= run_start
+
+                    cur.plot(ax=axes[0], color=f'C{i}')
 
                 # draw histogram
                 hi = hist.loc[per.period_start:per.period_stop]
-                hi.index = pd.to_datetime(hi.index, unit='s')
-                hi.plot(ax=axes[1], color=f'C{i}')
+
+                if len(hi) > 0:
+                    if xmode in 'datetime':
+                        hi.index = pd.to_datetime(hi.index, unit='s')
+                    elif xmode in 'duration':
+                        hi.index -= run_start
+
+                    hi.plot(ax=axes[1], color=f'C{i}')
 
             # draw the rest of the run - current
             cur = current.loc[per.period_stop:cyc.cycle_stop]
-            cur.index = pd.to_datetime(cur.index, unit='s')
-            cur.plot(ax=axes[0], color=f'k')
+
+            if len(cur) > 0:
+                if xmode in 'datetime':
+                    cur.index = pd.to_datetime(cur.index, unit='s')
+                elif xmode in 'duration':
+                    cur.index -= run_start
+
+                cur.plot(ax=axes[0], color=f'k')
 
             # draw the rest of the run - histogram
             hi = hist.loc[per.period_stop:cyc.cycle_stop]
-            hi.index = pd.to_datetime(hi.index, unit='s')
-            hi.plot(ax=axes[1], color=f'k')
+
+            if len(hi) > 0:
+                if xmode in 'datetime':
+                    hi.index = pd.to_datetime(hi.index, unit='s')
+                elif xmode in 'duration':
+                    hi.index -= run_start
+
+                hi.plot(ax=axes[1], color=f'k')
 
         # draw vertical markers
-        self.draw_cycle_times(ax=axes[0], x_is_datetime=True)
-        self.draw_cycle_times(ax=axes[1], x_is_datetime=True)
+        self.draw_cycle_times(ax=axes[0], xmode=xmode)
+        self.draw_cycle_times(ax=axes[1], xmode=xmode)
 
         # plot elements
         axes[0].set_title(self.run_number,fontsize='x-small')
         axes[0].set_ylabel('BL1A Current (uA)')
         axes[1].set_ylabel(f'UCN Counts/{bin_ms/1000:g}s')
-        axes[1].set_xlabel('')
+
+        if xmode in 'datetime':
+            axes[1].set_xlabel('')
+        elif xmode in 'duration':
+            axes[1].set_xlabel('Time Since Run Start (s)')
+        else:
+            axes[1].set_xlabel('Epoch Time')
         axes[1].set_yscale('log')
 
     def keyfilter(self, name):
@@ -685,6 +731,7 @@ class ucnrun(ucnbase):
         Notes:
             as a result of this, cycles may overlap or have gaps
             periods are forced to not overlap and have no gaps
+            cannot change cycle end time, but can change cycle start time
         """
 
         # get cycle parameters
