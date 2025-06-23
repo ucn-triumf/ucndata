@@ -210,7 +210,10 @@ class ucnrun(ucnbase):
 
         # setup tree filters
         for detector in self.DET_NAMES.keys():
-            tree = self.tfile[self.DET_NAMES[detector]['hits']]
+            try:
+                tree = self.tfile[self.DET_NAMES[detector]['hits']]
+            except KeyError:
+                continue
 
             # purge bad timestamps
             tree.set_filter('tUnixTimePrecise > 15e8', inplace=True)
@@ -781,15 +784,15 @@ class ucnrun(ucnbase):
         # adjust period and cycle durations
         if update_duration:
 
-            start = cycpar.cycle_times.loc[cycle, 'start']
-            stop = cycpar.cycle_times.loc[cycle, 'stop']
+            start = cycpar.cycle_times['start']
+            stop = cycpar.cycle_times['stop']
 
             df = cycpar.period_end_times
             df_diff = df.diff()
             df_diff.loc[0] = df.loc[0] - start
             cycpar.period_durations_s = df_diff
 
-            cycpar.cycle_times.loc[cycle, 'duration (s)'] = stop-start
+            cycpar.cycle_times.loc[cycle, 'duration (s)'] = (stop-start).loc[0]
 
         # set in memory
         self.cycle_param = cycpar
