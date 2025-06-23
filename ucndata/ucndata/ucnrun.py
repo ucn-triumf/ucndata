@@ -22,6 +22,7 @@ import numpy as np
 import pandas as pd
 import itertools, warnings, os, ROOT
 import matplotlib.pyplot as plt
+from collections.abc import Iterable
 
 ROOT.gROOT.SetBatch(1)
 
@@ -634,8 +635,27 @@ class ucnrun(ucnbase):
         if all((xmode not in i for i in ('datetime', 'duration', 'epoch'))):
             raise RuntimeError('xmode must be one of datetime|duration|epoch')
 
+        # number of rows in figure
+        nrows = 2
+
+        # check input
+        if slow is not None:
+            if isinstance(slow, str):
+                if slow not in self.epics.columns:
+                    raise KeyError(f'Input slow ("{slow}") not found in tree "epics"')
+                slow = [slow]
+            elif isinstance(slow, Iterable):
+                for s in slow:
+                    if s not in self.epics.columns:
+                        raise KeyError(f'Input slow ("{slow}") not found in tree "epics"')
+            else:
+                raise RuntimeError('Input "slow" must be a string or iterable')
+
+            # extra row for slow control
+            nrows += len(slow)
+
         # make figure
-        _, axes = plt.subplots(nrows=2, ncols=1, sharex=True,
+        _, axes = plt.subplots(nrows=nrows, ncols=1, sharex=True,
                         layout='constrained', figsize=(8,10))
 
         # get current and histogram
@@ -644,6 +664,10 @@ class ucnrun(ucnbase):
         hist = self.get_hits_histogram(detector, bin_ms=bin_ms).to_dataframe()
         hist.set_index('tUnixTimePrecise', inplace=True)
         hist = hist['Count']
+
+        # get slow control
+        if slow is not None:
+            slow = {s:self.epics[s].to_dataframe() for s in slow}
 
         # run start time
         run_start = self.cycle_param.cycle_times.loc[0, 'start']
@@ -673,6 +697,17 @@ class ucnrun(ucnbase):
 
                     hi.plot(ax=axes[1], color=f'C{i}')
 
+                # draw slow control
+                if slow is not None:
+                    for j, (key, val) in enumerate(slow.items()):
+                        v = val.loc[per.period_start:per.period_stop]
+                        if len(v) > 0:
+                            if xmode in 'datetime':
+                                v.index = pd.to_datetime(v.index, unit='s')
+                            elif xmode in 'duration':
+                                v.index -= run_start
+                        v.plot(ax=axes[j+2], color=f'C{i}')
+
             # draw the rest of the run - current
             cur = current.loc[per.period_stop:cyc.cycle_stop]
 
@@ -695,21 +730,37 @@ class ucnrun(ucnbase):
 
                 hi.plot(ax=axes[1], color=f'k')
 
+            # draw slow control
+            if slow is not None:
+                for i, (key, val) in enumerate(slow.items()):
+                    v = val.loc[per.period_stop:cyc.cycle_stop]
+                    if len(v) > 0:
+                        if xmode in 'datetime':
+                            v.index = pd.to_datetime(v.index, unit='s')
+                        elif xmode in 'duration':
+                            v.index -= run_start
+                    v.plot(ax=axes[i+2], color=f'k')
+
         # draw vertical markers
-        self.draw_cycle_times(ax=axes[0], xmode=xmode)
-        self.draw_cycle_times(ax=axes[1], xmode=xmode)
+        for ax in axes:
+            self.draw_cycle_times(ax=ax, xmode=xmode)
 
         # plot elements
         axes[0].set_title(self.run_number,fontsize='x-small')
         axes[0].set_ylabel('BL1A Current (uA)')
         axes[1].set_ylabel(f'UCN Counts/{bin_ms/1000:g}s')
 
+        if slow is not None:
+            slow_keys = tuple(slow.keys())
+            for i, ax in enumerate(axes[2:]):
+                ax.set_ylabel(slow_keys[i].split('_')[-2])
+
         if xmode in 'datetime':
-            axes[1].set_xlabel('')
+            axes[-1].set_xlabel('')
         elif xmode in 'duration':
-            axes[1].set_xlabel('Time Since Run Start (s)')
+            axes[-1].set_xlabel('Time Since Run Start (s)')
         else:
-            axes[1].set_xlabel('Epoch Time')
+            axes[-1].set_xlabel('Epoch Time')
         axes[1].set_yscale('log')
 
     def keyfilter(self, name):
