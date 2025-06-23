@@ -6,6 +6,7 @@
 
 - [Exceptions](#exceptions)
   - [BeamError](#beamerror)
+  - [CycleError](#cycleerror)
   - [CycleWarning](#cyclewarning)
   - [DataError](#dataerror)
   - [DetectorError](#detectorerror)
@@ -24,6 +25,22 @@
 
 ```python
 class BeamError(DataError): ...
+```
+
+#### See also
+
+- [DataError](#dataerror)
+
+
+
+## CycleError
+
+[Show source in exceptions.py:14](../../exceptions.py#L14)
+
+#### Signature
+
+```python
+class CycleError(DataError): ...
 ```
 
 #### See also
@@ -58,7 +75,7 @@ class DataError(Exception): ...
 
 ## DetectorError
 
-[Show source in exceptions.py:14](../../exceptions.py#L14)
+[Show source in exceptions.py:15](../../exceptions.py#L15)
 
 #### Signature
 
@@ -134,7 +151,7 @@ class NotImplementedError(Exception): ...
 
 ## ValveError
 
-[Show source in exceptions.py:15](../../exceptions.py#L15)
+[Show source in exceptions.py:16](../../exceptions.py#L16)
 
 #### Signature
 
