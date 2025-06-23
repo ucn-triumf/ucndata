@@ -7,13 +7,11 @@
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
     - [ucncycle.check_data](#ucncyclecheck_data)
-    - [ucncycle.get_counts](#ucncycleget_counts)
     - [ucncycle.get_period](#ucncycleget_period)
-    - [ucncycle.get_rate](#ucncycleget_rate)
 
 ## ucncycle
 
-[Show source in ucncycle.py:24](../../ucncycle.py#L24)
+[Show source in ucncycle.py:23](../../ucncycle.py#L23)
 
 View for the data from a single UCN cycle
 
@@ -40,7 +38,7 @@ class ucncycle(ucnbase):
 
 ### ucncycle.check_data
 
-[Show source in ucncycle.py:108](../../ucncycle.py#L108)
+[Show source in ucncycle.py:126](../../ucncycle.py#L126)
 
 Run some checks to determine if the data is ok.
 
@@ -104,57 +102,9 @@ def check_data(
 ): ...
 ```
 
-### ucncycle.get_counts
-
-[Show source in ucncycle.py:243](../../ucncycle.py#L243)
-
-Get counts for a/each period
-
-#### Arguments
-
-- `detector` *str* - one of the keys to settings.DET_NAMES
-- `period` *None|int* - if None get for entire cycle
-                    elif < 0 get for each period
-                    elif >=0 get for that period
-- `bkgd` *float|None* - background counts
-- `dbkgd(float|None)` - error in background counts
-- `norm` *float|None* - normalize to this value
-- `dnorm` *float|None* - error in normalization
-
-#### Returns
-
-- `tuple` - (value, error) number of hits
-
-#### Examples
-
-```python
->>> cycle = run[0]
-
-# counts for full cycle
->>> cycle.get_counts('Li6')
-(25397, np.float64(159.3643623900902))
-
-# counts for all periods
->>> cycle.get_counts('Li6', -1)
-(array([  352,     5, 24720]),
- array([ 18.76166304,   2.23606798, 157.22595206]))
-
-# counts for single period (in this case period 0)
->>> cycle.get_counts('Li6', 0)
-(np.int64(352), np.float64(18.76166303929372))
-```
-
-#### Signature
-
-```python
-def get_counts(
-    self, detector, period=None, bkgd=None, dbkgd=None, norm=None, dnorm=None
-): ...
-```
-
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:325](../../ucncycle.py#L325)
+[Show source in ucncycle.py:301](../../ucncycle.py#L301)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -191,42 +141,4 @@ run 1846 (cycle 0, period 0):
 
 ```python
 def get_period(self, period=None): ...
-```
-
-### ucncycle.get_rate
-
-[Show source in ucncycle.py:361](../../ucncycle.py#L361)
-
-Get count rate for each period
-
-#### Arguments
-
-- `detector` *str* - one of the keys to settings.DET_NAMES
-- `bkgd` *float|None* - background counts
-- `dbkgd(float|None)` - error in background counts
-- `norm` *float|None* - normalize to this value
-- `dnorm` *float|None* - error in normalization
-
-#### Returns
-
-- [applylist](./applylist.md#applylist) - count rate each period and error
-    [(period0_value, period0_error),
-     (period1_value, period1_error),
-     ...
-    ]
-
-#### Examples
-
-```python
->>> cycle = run[0]
->>> cycle.get_rate('Li6')
-[(np.float64(5.783333333333333), np.float64(0.3104656001699526)),
- (np.float64(4.0), np.float64(1.4142135623730951)),
- (np.float64(247.07), np.float64(1.5718460484411316))]
-```
-
-#### Signature
-
-```python
-def get_rate(self, detector, bkgd=None, dbkgd=None, norm=None, dnorm=None): ...
 ```

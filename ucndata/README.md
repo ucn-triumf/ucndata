@@ -20,8 +20,6 @@ These are the main workhorses of the ucndata project:
 * [applylist](docs/applylist.md) - for working with sets of runs or cycles or periods. Does element-wise attribute access and operators
 * [merge](docs/merge.md) - merge runs into a single run
 * [merge_inlist](docs/merge.md#merge_inlist) - function for merging runs within a list
-* [read](docs/read.md) - convenience function for reading ucnruns from file
-* [settings](docs/settings.md) - change behaviour of ucnrun objects
 * [ucnrun](docs/ucnrun.md) - workhorse object representing a single run
 
 ## Generate documentation

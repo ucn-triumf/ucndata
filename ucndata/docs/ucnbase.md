@@ -7,23 +7,45 @@
 - [ucnbase](#ucnbase)
   - [ucnbase](#ucnbase-1)
     - [ucnbase.apply](#ucnbaseapply)
-    - [ucnbase.beam_current_uA](#ucnbasebeam_current_ua)
+    - [ucnbase.beam1a_current_uA](#ucnbasebeam1a_current_ua)
+    - [ucnbase.beam1u_current_uA](#ucnbasebeam1u_current_ua)
     - [ucnbase.beam_off_s](#ucnbasebeam_off_s)
     - [ucnbase.beam_on_s](#ucnbasebeam_on_s)
-    - [ucnbase.from_dataframe](#ucnbasefrom_dataframe)
-    - [ucnbase.get_hits](#ucnbaseget_hits)
+    - [ucnbase.get_hits_dataframe](#ucnbaseget_hits_dataframe)
     - [ucnbase.get_hits_histogram](#ucnbaseget_hits_histogram)
-    - [ucnbase.to_dataframe](#ucnbaseto_dataframe)
+    - [ucnbase.get_nhits](#ucnbaseget_nhits)
 
 ## ucnbase
 
-[Show source in ucnbase.py:15](../../ucnbase.py#L15)
+[Show source in ucnbase.py:16](../../ucnbase.py#L16)
+
+#### Attributes
+
+- `datadir` - path to the directory which contains the root files: '/data3/ucn/root_files'
+
+- `timezone` - timezone for datetime conversion: 'America/Vancouver'
+
+- `cycle_times_mode` - cycle times finding mode order: ['matched', 'li6', 'he3', 'sequencer', 'beamon']
+
+- `tree_filter` - filter what trees and branches to load in each file. If unspecified then load the whole tree
+  treename: (filter, columns). See [rootloader documentation](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree-1) for details: {}
+
+- `DET_NAMES` - detector tree names: {'He3': {'hits': 'UCNHits_He3', 'hits_orig': 'UCNHits_He3', 'charge': 'He3_Charge', 'rate': 'He3_Rate', 'transitions': 'RunTransitions_He3', 'hitsseq': 'hitsinsequence_he3', 'hitsseqcumul': 'hitsinsequencecumul_he3'}, 'Li6': {'hits': 'UCNHits_Li6', 'hits_orig': 'UCNHits_Li-6', 'charge': 'Li6_Charge', 'rate': 'Li6_Rate', 'transitions': 'RunTransitions_Li6', 'hitsseq': 'hitsinsequence_li6', 'hitsseqcumul': 'hitsinsequencecumul_li6'}}
+
+- `DATAFRAME_TREES` - make these trees dataframes, ok since they're small - also resets the index: ('CycleParamTree', 'RunTransitions_He3', 'RunTransitions_Li6')
+
+- `SLOW_TREES` - needed slow control trees: for checking data quality: ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
+
+- `DATA_CHECK_THRESH` - data thresholds for checking data: {'beam_min_current': 0.1, 'beam_max_current_std': 0.2, 'max_bkgd_count_rate': 4, 'count_period_last_s_is_bkgd': 5, 'min_total_counts': 20, 'pileup_cnt_per_ms': 10, 'pileup_within_first_s': 1}
+
+- `DET_BKGD` - default detector backgrounds - from 2019: {'Li6': 80, 'Li6_err': 0.009, 'He3': 0.0349, 'He3_err': 0.0023}
+
 
 UCN run data. Cleans data and performs analysis
 
 #### Arguments
 
-- `run` *int|str* - if int, generate filename with settings.datadir
+- `run` *int|str* - if int, generate filename with self.datadir
     elif str then run is the path to the file
 - `header_only` *bool* - if true, read only the header
 
@@ -31,7 +53,7 @@ UCN run data. Cleans data and performs analysis
 
 - `comment` *str* - comment input by users
 - `cycle` *int|none* - cycle number, none if no cycle selected
-- `cycle_param` *attrdict* - cycle parameters from sequencer settings
+- `cycle_param` *attrdict* - cycle parameters
 - `experiment_number` *str* - experiment number input by users
 - `month` *int* - month of run start
 - `run_number` *int* - run number
@@ -46,7 +68,7 @@ UCN run data. Cleans data and performs analysis
 #### Notes
 
 Can access attributes of tfile directly from top-level object
-Need to define the values in ucndata.settings if you want non-default
+Need to redefine the values if you want non-default
 behaviour
 Object is indexed as [cycle, period] for easy access to sub time frames
 
@@ -58,7 +80,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:109](../../ucnbase.py#L109)
+[Show source in ucnbase.py:144](../../ucnbase.py#L144)
 
 Apply function to each cycle
 
@@ -83,9 +105,26 @@ fn_handle (function handle): function to be applied to each cycle
 def apply(self, fn_handle): ...
 ```
 
-### ucnbase.beam_current_uA
+### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:271](../../ucnbase.py#L271)
+[Show source in ucnbase.py:307](../../ucnbase.py#L307)
+
+Get beamline 1A current in uA (micro amps)
+
+#### Returns
+
+- `pd.Series` - indexed by timestamps, current in uA
+
+#### Signature
+
+```python
+@property
+def beam1a_current_uA(self): ...
+```
+
+### ucnbase.beam1u_current_uA
+
+[Show source in ucnbase.py:321](../../ucnbase.py#L321)
 
 Get beam current in uA (micro amps)
 
@@ -120,12 +159,12 @@ Length: 1093, dtype: float64
 
 ```python
 @property
-def beam_current_uA(self): ...
+def beam1u_current_uA(self): ...
 ```
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:354](../../ucnbase.py#L354)
+[Show source in ucnbase.py:400](../../ucnbase.py#L400)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -167,7 +206,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:319](../../ucnbase.py#L319)
+[Show source in ucnbase.py:365](../../ucnbase.py#L365)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -207,47 +246,15 @@ dtype: float64
 def beam_on_s(self): ...
 ```
 
-### ucnbase.from_dataframe
+### ucnbase.get_hits_dataframe
 
-[Show source in ucnbase.py:126](../../ucnbase.py#L126)
+[Show source in ucnbase.py:161](../../ucnbase.py#L161)
 
-Convert self.tfile contents to rootfile struture types
-
-#### Returns
-
-- `None` - acts in-place
-
-#### Examples
-
-```python
->>> run = ucnrun(1846)
-
-# convert to dataframe
->>> run.to_dataframe()
->>> type(run.tfile.BeamlineEpics)
-pandas.core.frame.DataFrame
-
-# convert back
->>> run.from_dataframe()
->>> type(run.tfile.BeamlineEpics)
-rootloader.ttree.ttree
-```
-
-#### Signature
-
-```python
-def from_dataframe(self): ...
-```
-
-### ucnbase.get_hits
-
-[Show source in ucnbase.py:150](../../ucnbase.py#L150)
-
-Get times of ucn hits
+Get times of ucn hits as a pandas dataframe
 
 #### Arguments
 
-- `detector` *str* - one of the keys to [DET_NAMES](./settings.md#det_names)
+- `detector` *str* - one of the keys to `self.DET_NAMES`
 
 #### Returns
 
@@ -277,12 +284,12 @@ tUnixTimePrecise                                       ...
 #### Signature
 
 ```python
-def get_hits(self, detector): ...
+def get_hits_dataframe(self, detector): ...
 ```
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:190](../../ucnbase.py#L190)
+[Show source in ucnbase.py:200](../../ucnbase.py#L200)
 
 Get histogram of UCNHits ttree times
 
@@ -294,7 +301,7 @@ Get histogram of UCNHits ttree times
 
 #### Returns
 
-- `tuple` - (bin_centers, histogram counts)
+- `rootloader.th1` - histogram object
 
 #### Examples
 
@@ -315,33 +322,14 @@ array([1, 0, 0, ..., 0, 0, 0]))
 def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 ```
 
-### ucnbase.to_dataframe
+### ucnbase.get_nhits
 
-[Show source in ucnbase.py:245](../../ucnbase.py#L245)
+[Show source in ucnbase.py:240](../../ucnbase.py#L240)
 
-Convert self.tfile contents to pd.DataFrame
-
-#### Returns
-
-- `None` - converts in-place
-
-#### Examples
-
-```python
->>> run = ucnrun(1846)
-
-# check loaded type
->>> type(run.tfile.BeamlineEpics)
-rootloader.ttree.ttree
-
-# convert
->>> run.to_dataframe()
->>> type(run.tfile.BeamlineEpics)
-pandas.core.frame.DataFrame
-```
+Get number of ucn hits
 
 #### Signature
 
 ```python
-def to_dataframe(self): ...
+def get_nhits(self, detector): ...
 ```

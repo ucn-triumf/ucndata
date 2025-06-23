@@ -7,21 +7,25 @@
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
     - [ucnrun.check_data](#ucnruncheck_data)
+    - [ucnrun.draw_cycle_times](#ucnrundraw_cycle_times)
     - [ucnrun.gen_cycle_filter](#ucnrungen_cycle_filter)
     - [ucnrun.get_cycle](#ucnrunget_cycle)
+    - [ucnrun.inspect](#ucnruninspect)
+    - [ucnrun.keyfilter](#ucnrunkeyfilter)
+    - [ucnrun.modify_timing](#ucnrunmodify_timing)
     - [ucnrun.set_cycle_filter](#ucnrunset_cycle_filter)
     - [ucnrun.set_cycle_times](#ucnrunset_cycle_times)
   - [new_format](#new_format)
 
 ## ucnrun
 
-[Show source in ucnrun.py:35](../../ucnrun.py#L35)
+[Show source in ucnrun.py:34](../../ucnrun.py#L34)
 
 UCN run data. Cleans data and performs analysis
 
 #### Arguments
 
-- `run` *int|str* - if int, generate filename with settings.datadir
+- `run` *int|str* - if int, generate filename with self.datadir
     elif str then run is the path to the file
 - `header_only` *bool* - if true, read only the header
 
@@ -44,8 +48,7 @@ UCN run data. Cleans data and performs analysis
 #### Notes
 
 * Can access attributes of tfile directly from top-level object
-* Need to define the values in ucndata.settings if you want non-default
-behaviour
+* Need to define the values if you want non-default behaviour
 * Object is indexed as [cycle, period] for easy access to sub time frames
 
 Cycle param contents
@@ -72,7 +75,7 @@ from ucndata import ucnrun, settings
 # load from filename
 ucnrun('/path/to/file/ucn_run_00001846.root')
 # load from run number
-settings.datadir = '/path/to/file/'
+self.datadir = '/path/to/file/'
 ucnrun(1846)
 ```
 
@@ -125,7 +128,7 @@ hits = run.get_hits('Li6')
 
 ```python
 class ucnrun(ucnbase):
-    def __init__(self, run, header_only=False): ...
+    def __init__(self, run, header_only=False, ucn_only=True): ...
 ```
 
 #### See also
@@ -134,7 +137,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:351](../../ucnrun.py#L351)
+[Show source in ucnrun.py:395](../../ucnrun.py#L395)
 
 Run some checks to determine if the data is ok.
 
@@ -148,7 +151,7 @@ Run some checks to determine if the data is ok.
 
 #### Notes
 
-* Do the settings.SLOW_TREES exist and have entries?
+* Do the self.SLOW_TREES exist and have entries?
 * Are there nonzero counts in UCNHits?
 
 #### Examples
@@ -164,9 +167,32 @@ True
 def check_data(self, raise_error=False): ...
 ```
 
+### ucnrun.draw_cycle_times
+
+[Show source in ucnrun.py:458](../../ucnrun.py#L458)
+
+Draw cycle start times as thick black lines, period end times as dashed lines
+
+#### Arguments
+
+- `ax` *plt.Axes* - axis to draw in, if None, draw in current axes
+- `xmode` *str* - datetime|duration|epoch
+
+#### Notes
+
+- `Assumed` *periods* - 0 - irradiation
+                    1 - storage
+                    2 - count
+
+#### Signature
+
+```python
+def draw_cycle_times(self, ax=None, xmode="datetime"): ...
+```
+
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:414](../../ucnrun.py#L414)
+[Show source in ucnrun.py:533](../../ucnrun.py#L533)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -209,7 +235,7 @@ def gen_cycle_filter(
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:452](../../ucnrun.py#L452)
+[Show source in ucnrun.py:571](../../ucnrun.py#L571)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -246,9 +272,76 @@ run 1846 (cycle 0):
 def get_cycle(self, cycle=None): ...
 ```
 
+### ucnrun.inspect
+
+[Show source in ucnrun.py:608](../../ucnrun.py#L608)
+
+Draw counts and BL1A current with indicated periods to determine data quality
+
+#### Arguments
+
+- `detector` *str* - detector from which to get the counts from. Li6|He3
+- `bin_ms` *int* - histogram bin size in ms
+- `xmode` *str* - datetime|duration|epoch
+
+#### Notes
+
+line colors:
+    - `solid` *black* - cycle start
+    - `solid` *red* - run end
+    - `dashed` *red* - first period end
+    - `dashed` *green* - second period end
+    - `dashed` *blue* - third period end
+
+#### Signature
+
+```python
+def inspect(self, detector="Li6", bin_ms=100, xmode="datetime"): ...
+```
+
+### ucnrun.keyfilter
+
+[Show source in ucnrun.py:707](../../ucnrun.py#L707)
+
+Don't load all the data in each file, only that which is needed
+
+#### Signature
+
+```python
+def keyfilter(self, name): ...
+```
+
+### ucnrun.modify_timing
+
+[Show source in ucnrun.py:721](../../ucnrun.py#L721)
+
+Change start and end times of periods and cycles
+
+#### Arguments
+
+- `cycle` *int* - cycle id number
+- `period` *int* - period id number
+- `dt_start_s` *float* - change to the period start time
+- `dt_stop_s` *float* - change to the period stop time
+- `update_duration` *bool* - if true, update period durations dataframe
+
+#### Notes
+
+as a result of this, cycles may overlap or have gaps
+periods are forced to not overlap and have no gaps
+cannot change cycle end time, but can change cycle start time
+
+#### Signature
+
+```python
+def modify_timing(
+    self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True
+): ...
+```
+
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:486](../../ucnrun.py#L486)
+[Show source in ucnrun.py:801](../../ucnrun.py#L801)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -319,7 +412,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:555](../../ucnrun.py#L555)
+[Show source in ucnrun.py:874](../../ucnrun.py#L874)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
@@ -328,11 +421,12 @@ Run this if you want to change how cycle start times are calculated
 
 #### Arguments
 
-- `mode` *str* - default|matched|sequencer|he3|li6
+- `mode` *str* - default|matched|sequencer|he3|li6|beamon
     - `if` *matched* - look for identical timestamps in RunTransitions from detectors
     - `if` *sequencer* - look for inCycle timestamps in SequencerTree
     - `if` *he3* - use He3 detector cycle start times
     - `if` *li6* - use Li6 detector cycle start times
+    - `if` *beamon* - use rise of beam current to determine start time
 
 #### Returns
 
@@ -359,7 +453,7 @@ Run this if you want to change how cycle start times are calculated
 #### Signature
 
 ```python
-def set_cycle_times(self, mode="default"): ...
+def set_cycle_times(self, mode): ...
 ```
 
 
