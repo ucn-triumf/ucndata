@@ -15,6 +15,7 @@ from rootloader import tfile, ttree, attrdict
 from .exceptions import *
 from .applylist import applylist
 from .ucnbase import ucnbase
+from .ttreeslow import ttreeslow
 from .ucncycle import ucncycle
 import ROOT
 import numpy as np
@@ -221,6 +222,9 @@ class ucnrun(ucnbase):
             # filter on ucn hits
             if ucn_only:
                 tree.set_filter('tIsUCN>0', inplace=True)
+
+        # make slow control tree
+        self.epics = ttreeslow(self.tfile[name] for name in self.EPICS_TREES)
 
         # store fetched cycles
         self._cycledict = dict()
@@ -608,13 +612,14 @@ class ucnrun(ucnbase):
             self._cycledict[cycle] = ucncycle(self, cycle)
             return self._cycledict[cycle]
 
-    def inspect(self, detector='Li6', bin_ms=100, xmode='datetime'):
+    def inspect(self, detector='Li6', bin_ms=100, xmode='datetime', slow=None):
         """Draw counts and BL1A current with indicated periods to determine data quality
 
         Args:
             detector (str): detector from which to get the counts from. Li6|He3
             bin_ms (int): histogram bin size in ms
             xmode (str): datetime|duration|epoch
+            slow (list|str): name of slow control tree to add in a separate axis
 
         Notes:
             line colors:

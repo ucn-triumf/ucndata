@@ -81,6 +81,13 @@ class ucnbase(object):
     # needed slow control trees: for checking data quality
     SLOW_TREES = ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
 
+    # EPICS trees to group into a single slow control tree
+    EPICS_TREES = [ 'BeamlineEpics',        'UCN2EpPha5Last',   'UCN2EpicsPhase2B',
+                    'UCN2EpPha5Oth',        'UCN2EpicsPhase3',  'UCN2EpPha5Pre',
+                    'UCN2EpicsPressures',   'UCN2EpPha5Tmp',    'UCN2EpicsTemperature',
+                    'UCN2Epics',            'UCN2Pur',          'UCN2EpicsOthers',
+                  ]
+
     # data thresholds for checking data
     DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA
                          'beam_max_current_std': 0.2, # uA
@@ -430,3 +437,5 @@ class ucnbase(object):
             ```
         """
         return self._get_beam_duration(on=False)
+
+
