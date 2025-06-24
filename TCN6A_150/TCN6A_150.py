@@ -13,14 +13,14 @@ from iminuit.cost import LeastSquares
 
 # settings
 run_numbers = [2685, 2686, 2687, 2688, 2689, 2690]
-dirname = 'TCN6A_150'
+dirname = 'greater3s_storage'
 ucnrun.cycle_times_mode = ['li6'] # force detection mode
-filename_summary = f'{dirname}/summary.csv'
-savefig = False
-plt_suffix = ''
+filename_summary = f'summary.csv'
+savefig = True
+plt_suffix = '_greater3s_storage'
 
-# make output dir
-os.makedirs(dirname, exist_ok=True)
+if dirname != '.':
+    os.makedirs(dirname, exist_ok=True)
 
 # define filter on good/bad cycles
 def cycle_filter(run):
@@ -197,6 +197,7 @@ if True:
         # drop background measurements and get data
         df_bkgd = df.loc[df['bkgd_s'] > 200]
         df = df.loc[df['bkgd_s'] < 200]
+        df = df.loc[df.storage_s > 3]
         x, y, dy = df.storage_s, df.counts, df.dcounts
 
         # background corrections
