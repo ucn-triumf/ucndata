@@ -15,7 +15,7 @@ from iminuit.cost import LeastSquares
 run_numbers = [2685, 2686, 2687, 2688, 2689, 2690]
 dirname = 'TCN6A_150'
 ucnrun.cycle_times_mode = ['li6'] # force detection mode
-filename_summary = f'{dirname}/summary2.csv'
+filename_summary = f'{dirname}/summary.csv'
 savefig = False
 plt_suffix = ''
 
