@@ -16,6 +16,8 @@ run_numbers = [2685, 2686, 2687, 2688, 2689, 2690]
 dirname = 'TCN6A_150'
 ucnrun.cycle_times_mode = ['li6'] # force detection mode
 filename_summary = f'{dirname}/summary.csv'
+savefig = True
+plt_suffix = ''
 
 # make output dir
 os.makedirs(dirname, exist_ok=True)
@@ -170,8 +172,8 @@ if True:
 
     # rounded beam currents
     df['beam1u_rounded'] = df.beam1u_current_uA.round()
-    df.beam1u_rounded.loc[(df.run==2690) & (df.cycle==8)] = 20
-    df.beam1u_rounded.loc[df.beam1u_rounded > 18] = 20
+    df.loc[(df.run==2690) & (df.cycle==8), 'beam1u_rounded'] = 20
+    df.loc[df.beam1u_rounded > 18, 'beam1u_rounded'] = 20
 
     # normalize to rounded current
     df.dcounts = df.beam1u_rounded*df.counts/df.beam1u_current_uA * ((df.dcounts/df.counts)**2 + (df.dbeam1u_current_uA/df.beam1u_current_uA)**2)**0.5
@@ -194,14 +196,11 @@ if True:
         df = df.loc[df['bkgd_s'] < 200]
         x, y, dy = df.storage_s, df.counts, df.dcounts
 
-        # if current > 18:
-        #     break
-
         # background corrections
         bk_mean = df_bkgd.mean()
         bk_std = df_bkgd.std()/np.sqrt(len(df_bkgd))
 
-        bk_counts = bk_mean.counts_bkgd * bk_mean.bkgd_s/df.count_s
+        bk_counts = bk_mean.counts_bkgd / bk_mean.bkgd_s * df.count_s
         dbk_counts = bk_mean.dcounts_bkgd
 
         y -= bk_counts
@@ -234,14 +233,15 @@ if True:
     plt.ylabel('UCN Hits')
     plt.yscale('log')
     # plt.legend(fontsize='small', loc='upper right')
-    plt.text(125, 36, r'1 $\mu$A', ha='right', color='C0', fontsize='x-small')
-    plt.text(125, 228, r'5 $\mu$A', ha='right', color='C1', fontsize='x-small')
-    plt.text(125, 590, r'10 $\mu$A', ha='right', color='C2', fontsize='x-small')
+    plt.text(125, 70, r'1 $\mu$A', ha='right', color='C0', fontsize='x-small')
+    plt.text(125, 308, r'5 $\mu$A', ha='right', color='C1', fontsize='x-small')
+    plt.text(125, 650, r'10 $\mu$A', ha='right', color='C2', fontsize='x-small')
     plt.text(125, 1446, r'20 $\mu$A', ha='right', color='C3', fontsize='x-small')
 
 
     plt.tight_layout()
-    plt.savefig(f'{dirname}/{dirname}_fits.pdf')
+    if savefig:
+        plt.savefig(f'{dirname}/{dirname}_fits{plt_suffix}.pdf')
 
 
     # draw result
@@ -255,7 +255,8 @@ if True:
         plt.xlabel('Beam Current ($\\mu$A)')
         plt.ylabel(ylabel)
         plt.tight_layout()
-        plt.savefig(f'{dirname}/{dirname}_{parname}.pdf')
+        if savefig:
+            plt.savefig(f'{dirname}/{dirname}_{parname}{plt_suffix}.pdf')
 
     # print
     print(f'Chisq mean: {np.mean(chisq)}')
