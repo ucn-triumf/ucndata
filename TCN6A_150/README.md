@@ -5,7 +5,13 @@
 * 120 seconds counting
 * varying uA
 
-Fitting output:
+## Notes
+
+* 20 uA had a beam trip during the background run.. kept this anyway
+* Looks like tau vs energy is exponential, other than 20 uA (suspicious)
+
+
+## Fitting output
 
 ```
 1.0 uA ======================================================================
