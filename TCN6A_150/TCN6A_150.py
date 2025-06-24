@@ -15,8 +15,8 @@ from iminuit.cost import LeastSquares
 run_numbers = [2685, 2686, 2687, 2688, 2689, 2690]
 dirname = 'TCN6A_150'
 ucnrun.cycle_times_mode = ['li6'] # force detection mode
-filename_summary = f'{dirname}/summary.csv'
-savefig = True
+filename_summary = f'{dirname}/summary2.csv'
+savefig = False
 plt_suffix = ''
 
 # make output dir
@@ -133,6 +133,9 @@ def extract(save_diagnostic=False):
             filt = run.cycle_param.filter
             filt[8] = True
             run.set_cycle_filter(filt)
+
+        for cyc in run:
+            run.modify_timing(cycle=cyc.cycle, period=2, dt_start_s=10, dt_stop_s=0)
 
         # save inspect figure
         if save_diagnostic:
