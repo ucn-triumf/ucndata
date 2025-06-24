@@ -620,7 +620,7 @@ class ucnrun(ucnbase):
             detector (str): detector from which to get the counts from. Li6|He3
             bin_ms (int): histogram bin size in ms
             xmode (str): datetime|duration|epoch
-            slow (list|str): name of slow control tree to add in a separate axis
+            slow (list|str): name of slow control tree to add in a separate axis, can be a list of names
 
         Notes:
             line colors:
