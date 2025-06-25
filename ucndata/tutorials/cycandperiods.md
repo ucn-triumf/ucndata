@@ -21,14 +21,15 @@ A simple example of usage:
 
 ```python
 In [0]: from ucndata import ucnrun
-In [1]: run = ucnrun('ucn_run_00001846.root')
+In [1]: run = ucnrun(2687)
 
 In [2]: run.get_cycle(0)
 Out[2]:
-run 1846 (cycle 0):
-  comment            cycle_start        month              shifters           supercycle
-  cycle              cycle_stop         run_number         start_time         tfile
-  cycle_param        experiment_number  run_title          stop_time          year
+run 2687 (cycle 0):
+  comment            cycle_stop         path               start_time         year
+  cycle              epics              run_number         stop_time
+  cycle_param        experiment_number  run_title          supercycle
+  cycle_start        month              shifters           tfile
 ```
 
 As you can see the cycle knows it's cycle 0, and will tell the user as such. It also gains the attributes
@@ -42,15 +43,23 @@ However its contents are now restricted to the time frame associated with that c
 ```python
 In [3]: run.get_cycle(0).tfile.BeamlineEpics
 Out[3]:
-            B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
-timestamp                                       ...
-1572461640          0.000000          0.000000  ...                  0.0       40.876598
-1572461645          0.009375          0.015625  ...                  0.0       40.876598
-1572461650          0.000000          0.003125  ...                  0.0       40.876598
-1572461655          0.000000          0.000000  ...                  0.0       40.876598
-...
-
-[58 rows x 49 columns]
+ttree branches:
+    B1UT_CM01_RDCOND        B1U_COL2RIGHT_RDTEMP    B1U_TNIM2_10MINAVG      B1U_YCB0_RDCUR
+    B1UT_CM02_RDCOND        B1U_COL2UP_RDTEMP       B1U_TNIM2_10MINTRIP     B1U_YCB0_STATON
+    B1UT_LM50_RDLVL         B1U_HARP0_RDUPDATE      B1U_TNIM2_10SECAVG      B1U_YCB1_RDCUR
+    B1UT_PT01_RDPRESS       B1U_HARP2_RDUPDATE      B1U_TNIM2_10SECTRIP     B1V_KICK_RDHICUR
+    B1UT_PT02_RDPRESS       B1U_IV0_STATON          B1U_TNIM2_1SECAVG       B1V_KICK_STATON
+    B1UT_PT50_RDPRESS       B1U_IV2_STATON          B1U_TNIM2_1SECTRIP      B1V_KSM_BONPRD
+    B1U_B0_RDCUR            B1U_PNG0_RDVAC          B1U_TNIM2_5MINAVG       B1V_KSM_INSEQ
+    B1U_B0_STATON           B1U_PNG2_RDVAC          B1U_TNIM2_RAW           B1V_KSM_PREDCUR
+    B1U_BPM2A_RDCUR         B1U_Q1_STATON           B1U_TPMBOTTOM_RDVOL     B1V_KSM_RDBEAMOFF_VAL1
+    B1U_BPM2A_RDX           B1U_Q1_VT_RDCUR         B1U_TPMHALO_RDVOL       B1V_KSM_RDBEAMON_VAL1
+    B1U_BPM2A_RDY           B1U_Q2_RDCUR            B1U_TPMLEFT_RDVOL       B1V_KSM_RDFRCTN_VAL1
+    B1U_BPM2B_RDCUR         B1U_Q2_STATON           B1U_TPMRIGHT_RDVOL      B1V_KSM_RDMODE_VAL1
+    B1U_BPM2B_RDX           B1U_SEPT_RDCUR          B1U_TPMTOP_RDVOL        B1_FOIL_ADJCUR
+    B1U_BPM2B_RDY           B1U_SEPT_STATON         B1U_WTEMP1_RDTEMP       timestamp
+    B1U_COL2DOWN_RDTEMP     B1U_TGTTEMP1_RDTEMP     B1U_WTEMP2_RDTEMP
+    B1U_COL2LEFT_RDTEMP     B1U_TGTTEMP2_RDTEMP     B1U_XCB1_RDCUR
 ```
 
 Similarly, once a cycle is fetched, one can then access the periods within with [`ucncycle.get_period()`](../docs/ucndata.md#ucncycle). One can fetch all the cycles/periods by passing no parameter (or None) to the function.
@@ -126,7 +135,7 @@ Cycle start and end times can be calculated in a few different ways. When the [u
 * **matched (default)**: look at He3 and Li6 detector transitions and find pairs which are the closest in time to each other. Start times are then set to the He3 transition state and the difference is saved as the offset. Raises a warning if unmatched pairs exist.
 * **sequencer**: Look at the `inCycle` flag of the `SequencerTree` and determine times from this parameter
 * **he3**: Uses the He3 detector transitions only (`RunTransitions_He3`)
-* **li6**: Uses the Li6 detector transitions only (`RunTransitions_Li-6`)
+* **li6**: Uses the Li6 detector transitions only (`RunTransitions_Li6`)
 
 For runs without a sequencer, this function returns the run start and stop times as the cycle timing.
 

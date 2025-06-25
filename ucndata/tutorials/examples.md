@@ -18,31 +18,44 @@ Here we present some examples of simple usage, mostly focusing on things not alr
 
 ## Reading Files
 
-```python
-from ucndata import read, settings
+Using the default path (`/data3/ucn/root_files`)
 
-settings.datadir = '/path/to/root_files'
-runs = read([1846, 1847, 1848])
+```python
+from ucndata import ucnrun
+runs = ucnrun(2687)
 ```
+
+Using a custom path
+```python
+from ucndata import ucnrun
+ucnrun.datadir = 'mypath'
+runs = ucnrun(2687)
+```
+
+Specify the file directly
+```python
+from ucndata import ucnrun
+runs = ucnrun('/path/ucn_run_00002687.root')
+```
+
 
 ## Drawing hits histograms
 
 Using the [hits histogram function](../docs/ucnbase.md#ucnbaseget_hits_histogram).
 
 ```python
-from ucndata import read, settings
+from ucndata import ucnrun
 import matplotlib.pyplot as plt
-settings.datadir = '/path/to/root_files'
-
-data = read(1846)
+data = ucnrun(2687)
 
 # draw entire run hits, need to pass detector type
-plt.plot(*data.get_hits_histogram('Li6'))
+hist = data.get_hits_histogram('He3')
+hist.plot()
 
 # draw each cycle individually
 plt.figure()
 for cycle in data:
-    plt.plot(*cycle.get_hits_histogram('Li6'), label=f'Cycle {cycle.cycle}')
+    cycle.get_hits_histogram('He3').plot(label=f'Cycle {cycle.cycle}')
 plt.legend(fontsize='xx-small')
 ```
 
@@ -51,55 +64,42 @@ plt.legend(fontsize='xx-small')
 Using the get_counts function for either [cycles](../docs/ucncycle.md#ucncycleget_counts) or [periods](../docs/ucnperiod.md#ucnperiodget_counts)
 
 ```python
-from ucndata import read, settings
-settings.datadir = '/path/to/root_files'
-
-data = read(1846)
+from ucndata import ucnrun
+data = ucnrun(2087)
 
 # counts in each cycle, overall
 # note this returns an array that looks like [(x, dx), (x, dx), ...] so useful to transpose
-counts, count_err = data[:].get_counts('Li6').transpose()
+counts = data[:].get_nhits('He3')
 
-# counts in period 0 of each cycle
-counts, count_err = data[:, 0].get_counts('Li6').transpose()
-
-# lets use those counts in period 0 as background counts and subtract it from another period
-# the background counts are passed as a list and are broadcast across the list
-result = data[:, 2].get_counts('Li6', bkgd=counts, dbkgd=count_err)
-counts2, counts2_err = result.transpose()
+# counts in period 2 of each cycle
+counts = data[:, 2].get_nhits('He3')
 ```
 
 ## Get list of hits in each cycle or period
 
-We can do the same thing, but get all the data for each hit, without summing or histogramming, using the [get_hits](../docs/ucnbase.md#ucnbaseget_hits) function:
+We can do the same thing, but get all the data for each hit, without summing or histogramming, using the [get_hits_dataframe](../docs/ucnbase.md#ucnbaseget_hits_dataframe) function. Be careful, this can easily take more memory than your machine is capable of handling.
 
 ```python
-from ucndata import read, settings
-settings.datadir = '/path/to/root_files'
-
-data = read(1846)
-
-hits = data[:].get_hits('Li6')
+from ucndata import ucndata
+data = read(2687)
+hits = data[:].get_hits_dataframe('He3')
 ```
 
 Lets look at the output
 ```python
 >>> hits[0]
-                 tBaseline tChannel tChargeL tChargeS  tEntry tIsUCN tLength      tPSD  tTimeE  tTimeStamp     tUnixTime
-tUnixTimePrecise
-1.572462e+09             0        0     4151     2399    7392      1       0  0.422058       0  1740808338  1.572462e+09
-1.572462e+09             0        7     6962     4098    7393      1       0  0.411377       0  1741174495  1.572462e+09
-1.572462e+09             0        7     4925     2274    7397      1       0  0.538330       0  1775598081  1.572462e+09
-1.572462e+09             0        5     5984     2557    7398      1       0  0.572754       0  1782866912  1.572462e+09
-1.572462e+09             0        7     6050     2782    7404      1       0  0.540161       0  1815743551  1.572462e+09
-...                    ...      ...      ...      ...     ...    ...     ...       ...     ...         ...           ...
-1.572462e+09             0        1     5424     2510   39943      1       0  0.537231       0   187622428  1.572462e+09
-1.572462e+09             0        1     4999     3008   39970      1       0  0.398254       0   734846517  1.572462e+09
-1.572462e+09             0        2     3915     2269   39972      1       0  0.420410       0   772926231  1.572462e+09
-1.572462e+09             0        1     5741     2474   39978      1       0  0.569092       0   873705149  1.572462e+09
-1.572462e+09             0        2     7849     3801   39984      1       0  0.515747       0   946840691  1.572462e+09
+                 tBaseline tChannel tChargeL tChargeS  ...      tPSD tTimeE  tTimeStamp     tUnixTime
+tUnixTimePrecise                                       ...
+1.750164e+09             0        0    65535    32767  ...  0.500000      0  1937476768  1.750164e+09
+1.750164e+09             0        0    65535    32767  ...  0.500000      0    43272024  1.750164e+09
+1.750164e+09             0        0    65535    32767  ...  0.500000      0   426009476  1.750164e+09
+...
+1.750164e+09             0        0    65535    32767  ...  0.500000      0   796146636  1.750164e+09
+1.750164e+09             0        0    65535    32767  ...  0.500000      0  1268468856  1.750164e+09
+1.750164e+09             0        0    65535    32767  ...  0.500000      0  1648070648  1.750164e+09
 
-[25397 rows x 11 columns]
+[37 rows x 11 columns]
+
 ```
 
 [**Back to Index**](index.md)\

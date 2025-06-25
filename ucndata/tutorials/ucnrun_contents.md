@@ -16,29 +16,30 @@
 Recall that when we load our run we have the following header values:
 
 ```python
-In [1]: from ucndata import read
-In [2]: run = read('ucn_run_00001846.root', as_dataframe=False)
+In [1]: from ucndata import ucnrun
+In [2]: run = ucnrun(2687)
 In [3]: run
 Out[3]:
-run 1846:
-  comment            month              shifters           tfile
-  cycle_param        run_number         start_time         year
-  experiment_number  run_title          stop_time
+run 2687:
+  comment            experiment_number  run_number         start_time         year
+  cycle_param        month              run_title          stop_time
+  epics              path               shifters           tfile
 ```
 
 These are defined as follows:
 
 * `comment`: Comment input by users at start of run
-* `month`: Month in which the run was started
-* `shifters`: Names of those on shift at the time
-* `tfile`: All file contents which were read
 * `cycle_param`: Cycle and period parameters and timings
-* `run_number`: Run number
-* `start_time`: Start time, human-readable
-* `year`: Year in which the run was conducted
+* `epics`: object with all the epics ttree branches for easy access
 * `experiment_number`: Experiment number, actually a string
+* `month`: Month in which the run was started
+* `run_number`: Run number
 * `run_title`: A title for the run
-* `stop_time`: Stop time, human-readable
+* `shifters`: Names of those on shift at the time
+* `start_time`: Start time, human-readable
+* `stop_time`: Stop time, human-readable (may not be accurate?)
+* `tfile`: All file contents which were read
+* `year`: Year in which the run was conducted
 
 Most of these variables are simple strings or integers but there are two important attributes you should pay attention to: `cycle_param` and `tfile`.
 
@@ -62,8 +63,8 @@ These are the various settings and properties of each cycle and period.
 * `cycle`: Cycle ID numbers
 * `supercycle`: Supercycle ID numbers
 * `valve_states`: Valve states in each period and cycle
-* `period_end_times`: End time of each period in each cycle in epoch time
-* `period_durations_s`: Duration in sections of each period in each cycle
+* `period_end_times`: End time of each period in each cycle in epoch time - used to calculate period timings
+* `period_durations_s`: Duration in sections of each period in each cycle (calculated from `period_end_times`)
 * `ncycles`: Number of total cycles contained in the run
 * `filter`: A list indicating how we should filter cycles. More on that in [filters](filters.md)
 * `cycle_time`: The start and end times of each cycle
@@ -85,19 +86,27 @@ contents:
 In [6]: run.tfile.BeamlineEpics
 Out[6]:
 ttree branches:
-    B1UT_CM01_RDCOND        B1U_HARP2_RDUPDATE      B1U_TNIM2_10MINAVG      B1U_YCB1_RDCUR
-    B1UT_CM02_RDCOND        B1U_IV0_STATON          B1U_TNIM2_10MINTRIP     B1V_KICK_RDHICUR
-    B1UT_LM50_RDLVL         B1U_IV2_STATON          B1U_TNIM2_10SECAVG      B1V_KSM_BONPRD
-    B1UT_PT01_RDPRESS       B1U_PNG0_RDVAC          B1U_TNIM2_10SECTRIP     B1V_KSM_INSEQ
-    B1UT_PT02_RDPRESS       B1U_PNG2_RDVAC          B1U_TNIM2_1SECAVG       B1V_KSM_PREDCUR
-    B1UT_PT50_RDPRESS       B1U_Q1_STATON           B1U_TNIM2_1SECTRIP      B1V_KSM_RDBEAMOFF_VAL1
-    B1U_B0_RDCUR            B1U_Q1_VT_RDCUR         B1U_TNIM2_5MINAVG       B1V_KSM_RDBEAMON_VAL1
-    B1U_B0_STATON           B1U_Q2_RDCUR            B1U_TNIM2_RAW           B1V_KSM_RDFRCTN_VAL1
-    B1U_COL2DOWN_RDTEMP     B1U_Q2_STATON           B1U_WTEMP1_RDTEMP       B1V_KSM_RDMODE_VAL1
-    B1U_COL2LEFT_RDTEMP     B1U_SEPT_RDCUR          B1U_WTEMP2_RDTEMP       B1_FOIL_ADJCUR
-    B1U_COL2RIGHT_RDTEMP    B1U_SEPT_STATON         B1U_XCB1_RDCUR          timestamp
-    B1U_COL2UP_RDTEMP       B1U_TGTTEMP1_RDTEMP     B1U_YCB0_RDCUR
-    B1U_HARP0_RDUPDATE      B1U_TGTTEMP2_RDTEMP     B1U_YCB0_STATON
+    B1UT_CM01_RDCOND        B1U_IV2_STATON          B1U_TPMLEFT_RDVOL
+    B1UT_CM02_RDCOND        B1U_PNG0_RDVAC          B1U_TPMRIGHT_RDVOL
+    B1UT_LM50_RDLVL         B1U_PNG2_RDVAC          B1U_TPMTOP_RDVOL
+    B1UT_PT01_RDPRESS       B1U_Q1_STATON           B1U_WTEMP1_RDTEMP
+    B1UT_PT02_RDPRESS       B1U_Q1_VT_RDCUR         B1U_WTEMP2_RDTEMP
+    B1UT_PT50_RDPRESS       B1U_Q2_RDCUR            B1U_XCB1_RDCUR
+    B1U_B0_RDCUR            B1U_Q2_STATON           B1U_YCB0_RDCUR
+    B1U_B0_STATON           B1U_SEPT_RDCUR          B1U_YCB0_STATON
+    B1U_BPM2A_RDCUR         B1U_SEPT_STATON         B1U_YCB1_RDCUR
+    B1U_BPM2A_RDX           B1U_TGTTEMP1_RDTEMP     B1V_KICK_RDHICUR
+    B1U_BPM2A_RDY           B1U_TGTTEMP2_RDTEMP     B1V_KICK_STATON
+    B1U_BPM2B_RDCUR         B1U_TNIM2_10MINAVG      B1V_KSM_BONPRD
+    B1U_BPM2B_RDX           B1U_TNIM2_10MINTRIP     B1V_KSM_INSEQ
+    B1U_BPM2B_RDY           B1U_TNIM2_10SECAVG      B1V_KSM_PREDCUR
+    B1U_COL2DOWN_RDTEMP     B1U_TNIM2_10SECTRIP     B1V_KSM_RDBEAMOFF_VAL1
+    B1U_COL2LEFT_RDTEMP     B1U_TNIM2_1SECAVG       B1V_KSM_RDBEAMON_VAL1
+    B1U_COL2RIGHT_RDTEMP    B1U_TNIM2_1SECTRIP      B1V_KSM_RDFRCTN_VAL1
+    B1U_COL2UP_RDTEMP       B1U_TNIM2_5MINAVG       B1V_KSM_RDMODE_VAL1
+    B1U_HARP0_RDUPDATE      B1U_TNIM2_RAW           B1_FOIL_ADJCUR
+    B1U_HARP2_RDUPDATE      B1U_TPMBOTTOM_RDVOL     timestamp
+    B1U_IV0_STATON          B1U_TPMHALO_RDVOL
 ```
 
 Then converting to [DataFrame]s in-place:
