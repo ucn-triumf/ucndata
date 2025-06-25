@@ -165,8 +165,8 @@ class ucnbase(object):
         """
         return applylist([fn_handle(c) for c in self])
 
-    def get_hits_dataframe(self, detector):
-        """Get times of ucn hits as a pandas dataframe
+    def get_hits_array(self, detector):
+        """Get times of ucn hits as a numpy array
 
         Args:
             detector (str): one of the keys to `self.DET_NAMES`
@@ -176,7 +176,7 @@ class ucnbase(object):
 
         Example:
             ```python
-            >>> run.get_hits('Li6')
+            >>> run.get_hits_array('Li6')
                              tBaseline tChannel tChargeL tChargeS  ...      tPSD tTimeE  tTimeStamp     tUnixTime
             tUnixTimePrecise                                       ...
             4.072601e-02             0        2     3613     2126  ...  0.411560      0   260181502  4.072601e-02
@@ -202,7 +202,7 @@ class ucnbase(object):
         # get the tree
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
 
-        return tree.tUnixTimePrecise.to_dataframe()
+        return tree.tUnixTimePrecise.to_dataframe().index.values
 
     def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False):
         """Get histogram of UCNHits ttree times
@@ -217,14 +217,28 @@ class ucnbase(object):
 
         Example:
             ```python
-            >>> run.get_hits_histogram('Li6')
-            (array([1.57246100e+09, 1.57246100e+09, 1.57246100e+09, ...,
-                    1.57246647e+09, 1.57246647e+09, 1.57246647e+09]),
-            array([1, 0, 0, ..., 0, 0, 0]))
+            >>> run.get_hits_histogram('He3')
+            TH1D: "HisttUnixTimePrecise", 557053 entries, sum = 557053.0
 
             # quick plotting with timestamps
-            >>> import matplotlib.pyplot as plt
-            >>> plt.plot(*run.get_hits_histogram('Li6', as_datetime=True))
+            >>> run.get_hits_histogram('He3', as_datetime=True).plot()
+
+            # get result as a dataframe
+            >>> run.get_hits_histogram('He3').to_dataframe()
+                    tUnixTimePrecise  Count  Count error
+            0         1.750164e+09    0.0     0.000000
+            1         1.750164e+09    1.0     1.000000
+            2         1.750164e+09    0.0     0.000000
+            3         1.750164e+09    0.0     0.000000
+            4         1.750164e+09    0.0     0.000000
+            ...                ...    ...          ...
+            7528      1.750165e+09    0.0     0.000000
+            7529      1.750165e+09    0.0     0.000000
+            7530      1.750165e+09  415.0    20.371549
+            7531      1.750165e+09  507.0    22.516660
+            7532      1.750165e+09  509.0    22.561028
+
+            [7533 rows x 3 columns]
             ```
         """
 

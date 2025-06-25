@@ -17,8 +17,8 @@ def from_datetime(item):
 
     Example:
         ```python
-        >>> run = read(1846)
-        >>> df = to_datetime(run.tfile.BeamlineEpics)
+        >>> run = ucnrun(1846)
+        >>> df = to_datetime(run.tfile.BeamlineEpics.to_dataframe())
         >>> df2 = from_datetime(df)
         >>> df2
                     B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
@@ -82,8 +82,8 @@ def to_datetime(item):
 
     Example:
         ```python
-        >>> run = read(1846)
-        >>> to_datetime(run.tfile.BeamlineEpics)
+        >>> run = ucnrun(1846)
+        >>> to_datetime(run.tfile.BeamlineEpics.to_dataframe())
                            B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
         timestamp                                                      ...
         2019-10-30 11:43:17-07:00          0.018750           0.00000  ...                  0.0        0.000000

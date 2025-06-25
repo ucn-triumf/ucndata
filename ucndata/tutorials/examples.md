@@ -77,29 +77,19 @@ counts = data[:, 2].get_nhits('He3')
 
 ## Get list of hits in each cycle or period
 
-We can do the same thing, but get all the data for each hit, without summing or histogramming, using the [get_hits_dataframe](../docs/ucnbase.md#ucnbaseget_hits_dataframe) function. Be careful, this can easily take more memory than your machine is capable of handling.
+We can do the same thing, but get all the data for each hit, without summing or histogramming, using the [get_hits_array](../docs/ucnbase.md#ucnbaseget_hits_array) function. Be careful, this can easily take more memory than your machine is capable of handling.
 
 ```python
-from ucndata import ucndata
-data = read(2687)
-hits = data[:].get_hits_dataframe('He3')
+from ucndata import ucnrun
+data = ucnrun(2687)
+hits = data[:].get_hits_array('He3')
 ```
 
 Lets look at the output
 ```python
 >>> hits[0]
-                 tBaseline tChannel tChargeL tChargeS  ...      tPSD tTimeE  tTimeStamp     tUnixTime
-tUnixTimePrecise                                       ...
-1.750164e+09             0        0    65535    32767  ...  0.500000      0  1937476768  1.750164e+09
-1.750164e+09             0        0    65535    32767  ...  0.500000      0    43272024  1.750164e+09
-1.750164e+09             0        0    65535    32767  ...  0.500000      0   426009476  1.750164e+09
-...
-1.750164e+09             0        0    65535    32767  ...  0.500000      0   796146636  1.750164e+09
-1.750164e+09             0        0    65535    32767  ...  0.500000      0  1268468856  1.750164e+09
-1.750164e+09             0        0    65535    32767  ...  0.500000      0  1648070648  1.750164e+09
-
-[37 rows x 11 columns]
-
+array([1.75016417e+09, 1.75016417e+09, 1.75016417e+09, ...,
+       1.75016448e+09, 1.75016448e+09, 1.75016448e+09])
 ```
 
 [**Back to Index**](index.md)\

@@ -40,6 +40,7 @@ class ucnrun(ucnbase):
         run (int|str): if int, generate filename with self.datadir
             elif str then run is the path to the file
         header_only (bool): if true, read only the header
+        ucn_only (bool): if true set filter tIsUCN==1 on all hit trees
 
     Attributes:
         comment (str): comment input by users
@@ -82,16 +83,16 @@ class ucnrun(ucnbase):
         ```python
         from ucndata import ucnrun, settings
         # load from filename
-        ucnrun('/path/to/file/ucn_run_00001846.root')
+        ucnrun('/path/to/file/ucn_run_00002684.root')
         # load from run number
         self.datadir = '/path/to/file/'
-        ucnrun(1846)
+        ucnrun(2684)
         ```
 
         Slicing
         ```python
         from ucndata import ucnrun
-        run = ucnrun(1846)
+        run = ucnrun(2684)
         run[0, 0]   # cycle 0, period 0
         run[:]      # all cycles, no distinction on period
         run[:, 0]   # get all cycles, period 0
@@ -102,7 +103,7 @@ class ucnrun(ucnbase):
         Get beam properties
         ```python
         from ucndata import ucnrun
-        run = ucnrun(1846)
+        run = ucnrun(2684)
         run.beam_current_uA # beam current in uA
         run.beam_on_s       # beam duration on in s
         run.beam_off_s      # beam duration off in s
@@ -112,21 +113,21 @@ class ucnrun(ucnbase):
         ```python
         import matplotlib.pyplot as plt
         from ucndata import ucnrun
-        run = ucnrun(1846)
+        run = ucnrun(2684)
 
         # draw all hits in the file
-        plt.plot(*run.get_hits_histogram('Li6'))
+        run.get_hits_histogram('Li6').plot()
 
         # draw hits in each cycle (some differences due to binning)
         for cycle in run:
-            plt.plot(*cycle.get_hits_histogram('Li6'))
+            cycle.get_hits_histogram('Li6').plot(label=cycle.cycle)
         ```
 
-        Get hits as a pandas dataframe
+        Get hits as an array
         ```python
         from ucndata import ucnrun
-        run = ucnrun(1846)
-        hits = run.get_hits('Li6')
+        run = ucnrun(2684)
+        hits = run.get_hits_array('Li6')
         ```
     """
 
@@ -137,12 +138,15 @@ class ucnrun(ucnbase):
             return
 
         # make filename from defaults
-        elif type(run) is int:
-            filename = os.path.join(self.datadir, f'ucn_run_{run:0>8d}.root')
+        elif isinstance(run, (int, float)):
+            filename = os.path.join(self.datadir, f'ucn_run_{int(run):0>8d}.root')
 
         # fetch from specified path
-        elif type(run) is str:
+        elif isinstance(run, str):
             filename = run
+
+        else:
+            raise TypeError(f'Unknown input type "{type(run)}" for run')
 
         self.path = os.path.abspath(filename)
 
