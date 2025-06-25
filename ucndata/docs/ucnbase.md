@@ -17,7 +17,7 @@
 
 ## ucnbase
 
-[Show source in ucnbase.py:16](../../ucnbase.py#L16)
+[Show source in ucnbase.py:13](../../ucnbase.py#L13)
 
 #### Attributes
 
@@ -82,7 +82,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:151](../../ucnbase.py#L151)
+[Show source in ucnbase.py:148](../../ucnbase.py#L148)
 
 Apply function to each cycle
 
@@ -109,7 +109,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:328](../../ucnbase.py#L328)
+[Show source in ucnbase.py:312](../../ucnbase.py#L312)
 
 Get beamline 1A current in uA (micro amps)
 
@@ -126,7 +126,7 @@ def beam1a_current_uA(self): ...
 
 ### ucnbase.beam1u_current_uA
 
-[Show source in ucnbase.py:342](../../ucnbase.py#L342)
+[Show source in ucnbase.py:326](../../ucnbase.py#L326)
 
 Get beam current in uA (micro amps)
 
@@ -166,7 +166,7 @@ def beam1u_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:421](../../ucnbase.py#L421)
+[Show source in ucnbase.py:405](../../ucnbase.py#L405)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -208,7 +208,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:386](../../ucnbase.py#L386)
+[Show source in ucnbase.py:370](../../ucnbase.py#L370)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -250,7 +250,7 @@ def beam_on_s(self): ...
 
 ### ucnbase.get_hits_array
 
-[Show source in ucnbase.py:168](../../ucnbase.py#L168)
+[Show source in ucnbase.py:165](../../ucnbase.py#L165)
 
 Get times of ucn hits as a numpy array
 
@@ -260,27 +260,14 @@ Get times of ucn hits as a numpy array
 
 #### Returns
 
-- `pd.DataFrame` - hits tree as a dataframe, only the values when a hit is registered
+- `np.array` - array of timestamps corresponding to an UCN hit. Note that this returns all events in the case where ucn_only=False
 
 #### Examples
 
 ```python
 >>> run.get_hits_array('Li6')
-                 tBaseline tChannel tChargeL tChargeS  ...      tPSD tTimeE  tTimeStamp     tUnixTime
-tUnixTimePrecise                                       ...
-4.072601e-02             0        2     3613     2126  ...  0.411560      0   260181502  4.072601e-02
-1.572461e+09             0        3     4796     3185  ...  0.335876      0   883762351  1.572461e+09
-1.572461e+09             0        3    40777    26278  ...  0.355591      0   746477328  1.572461e+09
-1.572461e+09             0        1     6386     3663  ...  0.426392      0   862122800  1.572461e+09
-1.572461e+09             0        4     4328     2246  ...  0.481079      0   694451573  1.572461e+09
-...                    ...      ...      ...      ...  ...       ...    ...         ...           ...
-1.572466e+09             0        2     6076     3536  ...  0.418030      0  1993850662  1.572466e+09
-1.572466e+09             0        5     4027     1845  ...  0.541870      0    41459150  1.572466e+09
-1.572466e+09             0        4     6475     2903  ...  0.551636      0   517358805  1.572466e+09
-1.572466e+09             0        7     3836     2604  ...  0.321167      0   536381628  1.572466e+09
-1.572466e+09             0        4     5751     3028  ...  0.473511      0   851762669  1.572466e+09
-
-[242540 rows x 11 columns]
+array([1.75016403e+09, 1.75016405e+09, 1.75016405e+09, ...,
+       1.75016479e+09, 1.75016479e+09, 1.75016479e+09])
 ```
 
 #### Signature
@@ -291,7 +278,7 @@ def get_hits_array(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:207](../../ucnbase.py#L207)
+[Show source in ucnbase.py:191](../../ucnbase.py#L191)
 
 Get histogram of UCNHits ttree times
 
@@ -340,7 +327,7 @@ def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 
 ### ucnbase.get_nhits
 
-[Show source in ucnbase.py:261](../../ucnbase.py#L261)
+[Show source in ucnbase.py:245](../../ucnbase.py#L245)
 
 Get number of ucn hits
 

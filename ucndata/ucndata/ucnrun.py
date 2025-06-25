@@ -2,15 +2,6 @@
 # Derek Fujimoto
 # June 2024
 
-"""
-    TODO List, things which haven't been ported from WS code
-
-    * get temperature
-    * get vapour pressure
-    * data checks for periods
-    * check that period durations match between detector frontends
-"""
-
 from rootloader import tfile, ttree, attrdict
 from .exceptions import *
 from .applylist import applylist
@@ -85,7 +76,7 @@ class ucnrun(ucnbase):
         # load from filename
         ucnrun('/path/to/file/ucn_run_00002684.root')
         # load from run number
-        self.datadir = '/path/to/file/'
+        ucnrun.datadir = '/path/to/file/'
         ucnrun(2684)
         ```
 
@@ -118,16 +109,15 @@ class ucnrun(ucnbase):
         # draw all hits in the file
         run.get_hits_histogram('Li6').plot()
 
-        # draw hits in each cycle (some differences due to binning)
+        # draw hits in each cycle
         for cycle in run:
             cycle.get_hits_histogram('Li6').plot(label=cycle.cycle)
-        ```
 
-        Get hits as an array
-        ```python
-        from ucndata import ucnrun
-        run = ucnrun(2684)
-        hits = run.get_hits_array('Li6')
+        # adjust the timing of cycles and periods
+        run.modify_timing(cycle=0, period=0, dt_start_s=1, dt_start_s=0)
+
+        # inspect the data: draw a figure with hits histogram, beam current, and optional slow control data
+        run.inspect('Li6', bin_ms=100, xmode='dur')
         ```
     """
 

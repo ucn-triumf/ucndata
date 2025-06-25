@@ -9,9 +9,6 @@ from .applylist import applylist
 import ucndata.constants as const
 import numpy as np
 import pandas as pd
-import time
-import matplotlib.pyplot as plt
-from matplotlib.patches import Rectangle
 
 class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
@@ -172,26 +169,13 @@ class ucnbase(object):
             detector (str): one of the keys to `self.DET_NAMES`
 
         Returns:
-            pd.DataFrame: hits tree as a dataframe, only the values when a hit is registered
+            np.array: array of timestamps corresponding to an UCN hit. Note that this returns all events in the case where ucn_only=False
 
         Example:
             ```python
             >>> run.get_hits_array('Li6')
-                             tBaseline tChannel tChargeL tChargeS  ...      tPSD tTimeE  tTimeStamp     tUnixTime
-            tUnixTimePrecise                                       ...
-            4.072601e-02             0        2     3613     2126  ...  0.411560      0   260181502  4.072601e-02
-            1.572461e+09             0        3     4796     3185  ...  0.335876      0   883762351  1.572461e+09
-            1.572461e+09             0        3    40777    26278  ...  0.355591      0   746477328  1.572461e+09
-            1.572461e+09             0        1     6386     3663  ...  0.426392      0   862122800  1.572461e+09
-            1.572461e+09             0        4     4328     2246  ...  0.481079      0   694451573  1.572461e+09
-            ...                    ...      ...      ...      ...  ...       ...    ...         ...           ...
-            1.572466e+09             0        2     6076     3536  ...  0.418030      0  1993850662  1.572466e+09
-            1.572466e+09             0        5     4027     1845  ...  0.541870      0    41459150  1.572466e+09
-            1.572466e+09             0        4     6475     2903  ...  0.551636      0   517358805  1.572466e+09
-            1.572466e+09             0        7     3836     2604  ...  0.321167      0   536381628  1.572466e+09
-            1.572466e+09             0        4     5751     3028  ...  0.473511      0   851762669  1.572466e+09
-
-            [242540 rows x 11 columns]
+            array([1.75016403e+09, 1.75016405e+09, 1.75016405e+09, ...,
+                   1.75016479e+09, 1.75016479e+09, 1.75016479e+09])
             ```
         """
 
