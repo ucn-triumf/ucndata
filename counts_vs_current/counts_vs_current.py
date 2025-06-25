@@ -54,7 +54,8 @@ def extract_withfoil():
         df.to_csv('withfoil.csv', index=False)
 
 # get run data - 6A no foil
-def extract_nofoil():
+def extract_nofoil_10storage():
+    """100/10/120"""
     runs = [2548,2551,2549,2575,2579,2585]
 
     df = {'current': [],
@@ -142,8 +143,200 @@ def extract_nofoil():
     df = pd.DataFrame(df)
     df.to_csv('nofoil.csv', index=False)
 
+# get run data - 6A no foil
+def extract_nofoil_0storage():
+    """60/0/120"""
+    runs = [2530, 2558, 2573, 2578, 2593]
+
+    df = {'current': [],
+          'counts': [],
+          'background': [],
+          'run': [],
+          'cycle_count': [],
+          'cycle_bkgd': []}
+    for runn in runs:
+
+        run = ucnrun(runn)
+
+        if runn == 2530:
+
+            i=0
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            run.modify_timing(1,1,0,-40)
+            df['background'].append(run[i+1,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i+1)
+
+            i=8
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            run.modify_timing(9,1,0,-40)
+            df['background'].append(run[9,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i+1)
+
+            i=16
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[9,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(9)
+
+        elif runn==2558:
+            i=0
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i+1,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i+1)
+
+            i=9
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i+1,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i+1)
+
+            i=18
+            run.modify_timing(i,2,1,1)
+            run.modify_timing(i-1,3,1,1)
+            run.modify_timing(i-1,3,0,-120)
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i-1,3].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i-1)
+
+        elif runn==2573:
+            i=0
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i+1,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i+1)
+
+            i=9
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i+1,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i+1)
+
+            i=18
+            run.modify_timing(i,2,1,1)
+            run.modify_timing(i-1,3,1,1)
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            run.modify_timing(i-1,3,0,-120)
+            df['background'].append(run[i-1,3].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i-1)
+
+            i=27
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i+1,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i+1)
+
+        elif runn==2578:
+            i=0
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i+1,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i+1)
+
+            i=9
+            run.modify_timing(i,2,1,1)
+            run.modify_timing(i-1,3,1,1)
+            run.modify_timing(i-1,3,0,-120)
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i-1,3].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i-1)
+
+            i=18
+            run.modify_timing(i,2,1,1)
+            run.modify_timing(i-1,3,1,1)
+            run.modify_timing(i-1,3,0,-120)
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i-1,3].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i-1)
+
+        elif runn==2593:
+            i=0
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i+1,2].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i+1)
+
+            i=9
+            run.modify_timing(i,2,1,1)
+            run.modify_timing(i-1,3,1,1)
+            run.modify_timing(i-1,3,0,-120)
+            current = run[i,0].beam1u_current_uA
+            current = current[current > 0]
+            df['current'].append(current.mean())
+            df['counts'].append(run[i,2].get_nhits('Li6'))
+            df['background'].append(run[i-1,3].get_nhits('Li6'))
+            df['run'].append(run.run_number)
+            df['cycle_count'].append(i)
+            df['cycle_bkgd'].append(i-1)
+
+    df = pd.DataFrame(df)
+    df.to_csv('nofoil_0s.csv', index=False)
+
 # extract_withfoil()
-extract_nofoil()
+# extract_nofoil_10storage()
+# extract_nofoil_0storage()
 
 # draw sim data
 plt.figure()
@@ -152,7 +345,7 @@ for col, m in zip(sim.columns, markers):
     sim[col].plot(marker=m, fillstyle='none', ls='none', label=col)
 
 # draw with no foil
-df = pd.read_csv('nofoil.csv')
+df = pd.read_csv('nofoil_0s.csv')
 x = df.current
 y = df.counts
 by = df.background
