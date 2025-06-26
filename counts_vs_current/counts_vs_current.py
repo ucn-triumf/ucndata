@@ -17,128 +17,6 @@ sim = pd.DataFrame({'current': [1, 5.5, 8.16, 11, 16.12, 22, 24.08, 32.04, 36.6,
                     'HePak':[3.00e4, np.nan, 2.45e5, np.nan, 4.28e5, np.nan, 5.38e5, 6.13e5, np.nan, 6.46e5, ]})
 sim.set_index('current', inplace=True)
 
-# get run data - 6A with foil
-def extract_withfoil(draw=False):
-    runs = [2666] # 2663, 2665,
-
-    df = {'current': [],
-          'counts': [],
-          'background': [],
-          'run': [],
-          'cycle_count': [],
-          'cycle_bkgd': []}
-    for runn in runs:
-
-        run = ucnrun(runn)
-
-        if runn == 2663:
-            run.modify_timing(0,2,1,0)
-            run.modify_timing(1,1,1,0)
-            fetch(run, 0, 1, 1, df, draw)
-
-        elif runn == 2665:
-            run.modify_timing(0,2,1,0)
-            fetch(run, 0, 1, 1, df, draw)
-
-        if runn == 2666:
-            fetch(run, 0, 1, 1, df, draw)
-
-            run.modify_timing(8,3,0,-120)
-            fetch(run, 9, 8, 3, df, draw)
-
-        df = pd.DataFrame(df)
-        df.to_csv('withfoil.csv', index=False)
-
-# get run data - 6A no foil
-def extract_nofoil_10storage():
-    """100/10/120"""
-    runs = [2548,2551,2549,2575,2579,2585]
-
-    df = {'current': [],
-          'counts': [],
-          'background': []}
-    for runn in runs:
-
-        run = ucnrun(runn)
-
-        if runn == 2548:
-            current = run[0,0].beam1u_current_uA
-            current = current[current > 0]
-            df['current'].append(current.mean())
-            df['counts'].append(run[0,2].get_nhits('Li6'))
-            df['background'].append(run[1,3].get_nhits('Li6'))
-
-            current = run[2,0].beam1u_current_uA
-            current = current[current > 0]
-            df['current'].append(current.mean())
-            df['counts'].append(run[2,2].get_nhits('Li6'))
-            df['background'].append(run[3,3].get_nhits('Li6'))
-
-        elif runn == 2551:
-
-            current = run[0,0].beam1u_current_uA
-            current = current[current > 0]
-            df['current'].append(current.mean())
-            df['counts'].append(run[0,2].get_nhits('Li6'))
-            df['background'].append(run[1,3].get_nhits('Li6'))
-
-            current = run[2,0].beam1u_current_uA
-            current = current[current > 0]
-            df['current'].append(current.mean())
-            df['counts'].append(run[2,2].get_nhits('Li6'))
-            df['background'].append(run[1,3].get_nhits('Li6'))
-
-        elif runn == 2549:
-            current = run[0,0].beam1u_current_uA
-            current = current[current > 0]
-            df['current'].append(current.mean())
-            df['counts'].append(run[0,2].get_nhits('Li6'))
-            df['background'].append(run[1,3].get_nhits('Li6'))
-
-            current = run[2,0].beam1u_current_uA
-            current = current[current > 0]
-            df['current'].append(current.mean())
-            df['counts'].append(run[2,2].get_nhits('Li6'))
-            df['background'].append(run[1,3].get_nhits('Li6'))
-
-        elif runn == 2575:
-            current = run[0,0].beam1u_current_uA
-            current = current[current > 0]
-            df['current'].append(current.mean())
-            df['counts'].append(run[0,2].get_nhits('Li6'))
-            df['background'].append(run[4,3].get_nhits('Li6'))
-
-            current = run[2,0].beam1u_current_uA
-            current = current[current > 0]
-            df['current'].append(current.mean())
-            df['counts'].append(run[2,2].get_nhits('Li6'))
-            df['background'].append(run[4,3].get_nhits('Li6'))
-
-            current = run[3,0].beam1u_current_uA
-            current = current[current > 0]
-            df['current'].append(current.mean())
-            df['counts'].append(run[3,2].get_nhits('Li6'))
-            df['background'].append(run[4,3].get_nhits('Li6'))
-
-        elif runn == 2579:
-            for i in [5,6,9,11,12]:
-                current = run[i,0].beam1u_current_uA
-                current = current[current > 0]
-                df['current'].append(current.mean())
-                df['counts'].append(run[i,2].get_nhits('Li6'))
-                df['background'].append(run[10,3].get_nhits('Li6'))
-
-        elif runn == 2585:
-            for i in [0,2,3]:
-                current = run[i,0].beam1u_current_uA
-                current = current[current > 0]
-                df['current'].append(current.mean())
-                df['counts'].append(run[i,2].get_nhits('Li6'))
-                df['background'].append(run[1,3].get_nhits('Li6'))
-
-    df = pd.DataFrame(df)
-    df.to_csv('nofoil.csv', index=False)
-
 # worker fn
 def fetch(run, countc, bkdgc, bkdgp, df, draw=False):
     current = run[countc,0].beam1u_current_uA
@@ -184,6 +62,38 @@ def fetch(run, countc, bkdgc, bkdgp, df, draw=False):
         os.makedirs('figures', exist_ok=True)
         plt.savefig(f'figures/r{run.run_number}_c{countc}_b{bkdgc}.pdf')
         plt.pause(1)
+
+# get run data - 6A with foil
+def extract_withfoil(draw=False):
+    runs = [2666, 2665]
+
+    df = {'current': [],
+          'counts': [],
+          'background': [],
+          'run': [],
+          'cycle_count': [],
+          'cycle_bkgd': [],
+          'cycle_last_20s': [],
+          'bkgd_last_20s': []}
+
+    for runn in runs:
+
+        run = ucnrun(runn)
+
+        if runn == 2665:
+            run.modify_timing(0,2,1,1)
+            run.modify_timing(1,1,1,1)
+            fetch(run, 0, 1, 1, df, draw)
+
+        elif runn == 2666:
+            fetch(run, 0, 1, 1, df, draw)
+
+            run.modify_timing(8,3,0,-120)
+            fetch(run, 9, 8, 3, df, draw)
+
+    df = pd.DataFrame(df)
+    df.to_csv('withfoil.csv', index=False)
+
 
 # get run data - 6A no foil
 def extract_nofoil_0storage(draw=False):
@@ -255,8 +165,7 @@ def extract_nofoil_0storage(draw=False):
     df = pd.DataFrame(df)
     df.to_csv('nofoil_0s.csv', index=False)
 
-# extract_withfoil(True)
-# extract_nofoil_10storage()
+extract_withfoil(True)
 # extract_nofoil_0storage(True)
 
 # draw sim data
@@ -286,7 +195,7 @@ dfactor = factor * ((dby_last/by_last)**2 + (dy_last/y_last)**2)**0.5
 dby = factor*by * ((dby/by)**2 + (dfactor/factor)**2)**0.5
 by *= factor
 
-# backgground subtraction
+# background subtraction
 dy = (dy**2+dby**2)**0.5
 y -= by
 
@@ -300,6 +209,7 @@ fn = lambda x, a: a*x
 par, cov = curve_fit(fn, x, y, sigma=dy, absolute_sigma=True)
 std = np.diag(cov)**0.5
 fitx = np.linspace(0,40,10)
+slope = par[0]
 plt.plot(fitx, fn(fitx, *par), color='k')
 
 # get with foil data
@@ -308,11 +218,24 @@ df_foil = pd.read_csv('withfoil.csv')
 xf = df_foil.current
 yf = df_foil.counts.copy()
 byf = df_foil.background.copy()
-dyf = y**0.5
-dbyf = by**0.5
+dyf = yf**0.5
+dbyf = byf**0.5
 
-dyf = (dy**2+dby**2)**0.5
-yf -= by
+# rescale the background
+byf_last = df_foil.bkgd_last_20s
+yf_last = df_foil.cycle_last_20s
+
+dbyf_last = byf_last**0.5
+dyf_last = yf_last**0.5
+
+factor = yf_last / byf_last
+dfactor = factor * ((dbyf_last/byf_last)**2 + (dyf_last/yf_last)**2)**0.5
+
+dbyf = factor*byf * ((dbyf/byf)**2 + (dfactor/factor)**2)**0.5
+byf *= factor
+
+dyf = (dyf**2+dbyf**2)**0.5
+yf -= byf
 
 df_foil['counts_corr'] = yf
 df_foil['dcounts_corr'] = dyf
