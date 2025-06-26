@@ -18,40 +18,35 @@ sim = pd.DataFrame({'current': [1, 5.5, 8.16, 11, 16.12, 22, 24.08, 32.04, 36.6,
 sim.set_index('current', inplace=True)
 
 # get run data - 6A with foil
-def extract_withfoil():
+def extract_withfoil(draw=False):
     runs = [2666] # 2663, 2665,
 
-    withfoil = {'current': [],
-                'counts': [],
-                'background': []}
+    df = {'current': [],
+          'counts': [],
+          'background': [],
+          'run': [],
+          'cycle_count': [],
+          'cycle_bkgd': []}
     for runn in runs:
 
         run = ucnrun(runn)
 
-        # if runn == 2663:
-        #     run.modify_timing(0,2,1,0)
-        #     run.modify_timing(1,1,1,0)
-        #     withfoil['current'].append(run[0,0].beam1u_current_uA.mean())
-        #     withfoil['counts'].append(run[0,2].get_nhits('Li6'))
-        #     withfoil['background'].append(run[1,1].get_nhits('Li6'))
+        if runn == 2663:
+            run.modify_timing(0,2,1,0)
+            run.modify_timing(1,1,1,0)
+            fetch(run, 0, 1, 1, df, draw)
 
-        # elif runn == 2665:
-        #     run.modify_timing(0,2,1,0)
-        #     withfoil['current'].append(run[0,0].beam1u_current_uA.mean())
-        #     withfoil['counts'].append(run[0,2].get_nhits('Li6'))
-        #     withfoil['background'].append(run[1,1].get_nhits('Li6'))
+        elif runn == 2665:
+            run.modify_timing(0,2,1,0)
+            fetch(run, 0, 1, 1, df, draw)
 
         if runn == 2666:
-            withfoil['current'].append(run[0,0].beam1u_current_uA.mean())
-            withfoil['counts'].append(run[0,2].get_nhits('Li6'))
-            withfoil['background'].append(run[1,1].get_nhits('Li6'))
+            fetch(run, 0, 1, 1, df, draw)
 
             run.modify_timing(8,3,0,-120)
-            withfoil['current'].append(run[9,0].beam1u_current_uA.mean())
-            withfoil['counts'].append(run[9,2].get_nhits('Li6'))
-            withfoil['background'].append(run[8,3].get_nhits('Li6'))
+            fetch(run, 9, 8, 3, df, draw)
 
-        df = pd.DataFrame(withfoil)
+        df = pd.DataFrame(df)
         df.to_csv('withfoil.csv', index=False)
 
 # get run data - 6A no foil
@@ -144,7 +139,6 @@ def extract_nofoil_10storage():
     df = pd.DataFrame(df)
     df.to_csv('nofoil.csv', index=False)
 
-
 # worker fn
 def fetch(run, countc, bkdgc, bkdgp, df, draw=False):
     current = run[countc,0].beam1u_current_uA
@@ -156,6 +150,17 @@ def fetch(run, countc, bkdgc, bkdgp, df, draw=False):
     df['cycle_count'].append(countc)
     df['cycle_bkgd'].append(bkdgc)
 
+    # get last 20s of the background and cycle
+    run.modify_timing(countc, 2, 100, 0)
+    run.modify_timing(bkdgc, bkdgp, 100, 0)
+
+    df['cycle_last_20s'].append(run[countc,2].get_nhits('Li6'))
+    df['bkgd_last_20s'].append(run[bkdgc, bkdgp].get_nhits('Li6'))
+
+    # undo modify
+    run.modify_timing(countc, 2, -100, 0)
+    run.modify_timing(bkdgc, bkdgp, -100, 0)
+
     if draw:
         hist = run[countc,2].get_hits_histogram('Li6', bin_ms=1000)
         histb = run[bkdgc,bkdgp].get_hits_histogram('Li6', bin_ms=1000)
@@ -164,11 +169,16 @@ def fetch(run, countc, bkdgc, bkdgp, df, draw=False):
         histb.x -= histb.x[0]
 
         plt.figure()
-        hist.plot(ax=plt.gca(), color='k')
-        histb.plot(ax=plt.gca(), color='r')
+        hist.plot(ax=plt.gca(), color='k', label='Count period')
+        histb.plot(ax=plt.gca(), color='r', label='Background period')
+
+        histb.y *= df['cycle_last_20s'][-1]/df['bkgd_last_20s'][-1]
+        histb.plot(ax=plt.gca(), color='g', label='Background rescaled')
+
         plt.xlabel('Time since period start (s)', fontsize='medium')
         plt.ylabel('UCN Counts')
         plt.yscale('linear')
+        plt.legend(fontsize='xx-small')
         plt.title(f'Run {run.run_number}, cycle {countc}, bkgd cycle {bkdgc}', fontsize='x-small')
         plt.tight_layout()
         os.makedirs('figures', exist_ok=True)
@@ -185,7 +195,9 @@ def extract_nofoil_0storage(draw=False):
           'background': [],
           'run': [],
           'cycle_count': [],
-          'cycle_bkgd': []}
+          'cycle_bkgd': [],
+          'cycle_last_20s': [],
+          'bkgd_last_20s': []}
     for runn in runs:
 
         run = ucnrun(runn)
@@ -243,7 +255,7 @@ def extract_nofoil_0storage(draw=False):
     df = pd.DataFrame(df)
     df.to_csv('nofoil_0s.csv', index=False)
 
-# extract_withfoil()
+# extract_withfoil(True)
 # extract_nofoil_10storage()
 # extract_nofoil_0storage(True)
 
@@ -261,21 +273,63 @@ by = df.background.copy()
 dy = y**0.5
 dby = by**0.5
 
+# rescale the background
+by_last = df.bkgd_last_20s
+y_last = df.cycle_last_20s
+
+dby_last = by_last**0.5
+dy_last = y_last**0.5
+
+factor = y_last / by_last
+dfactor = factor * ((dby_last/by_last)**2 + (dy_last/y_last)**2)**0.5
+
+dby = factor*by * ((dby/by)**2 + (dfactor/factor)**2)**0.5
+by *= factor
+
+# backgground subtraction
 dy = (dy**2+dby**2)**0.5
 y -= by
+
+df['counts_corr'] = y
+df['dcounts_corr'] = dy
 
 plt.errorbar(x, y, dy, fmt='o', label='Phase 6A (measured)', color='k', fillstyle='none')
 
 # linear fit
 fn = lambda x, a: a*x
 par, cov = curve_fit(fn, x, y, sigma=dy, absolute_sigma=True)
+std = np.diag(cov)**0.5
 fitx = np.linspace(0,40,10)
 plt.plot(fitx, fn(fitx, *par), color='k')
 
+# get with foil data
+df_foil = pd.read_csv('withfoil.csv')
+
+xf = df_foil.current
+yf = df_foil.counts.copy()
+byf = df_foil.background.copy()
+dyf = y**0.5
+dbyf = by**0.5
+
+dyf = (dy**2+dby**2)**0.5
+yf -= by
+
+df_foil['counts_corr'] = yf
+df_foil['dcounts_corr'] = dyf
+
+idx = df.current < 2
+scaling_factor = df_foil.counts_corr.mean()/df.loc[idx, 'counts_corr'].mean()
+dscaling_factor = scaling_factor*((df_foil.counts_corr.std()/df_foil.counts_corr.mean())**2 + \
+                    (df.loc[idx, 'counts_corr'].std()/df.loc[idx, 'counts_corr'].mean())**2)**0.5
+
+central_slope = par[0] * scaling_factor
+dcentral_slope = par[0] * scaling_factor * ((std[0]/par[0])**2 + (dscaling_factor/scaling_factor)**2)**0.5
+
+plt.fill_between(fitx, fn(fitx, central_slope-dcentral_slope), fn(fitx, central_slope+dcentral_slope),
+                color='gray', alpha=0.2, label='Phase 6A (rescaled for foil)')
 
 plt.ylabel('UCN Counts / 120 s')
 plt.xlabel(r'Beam Current ($\mu$A)')
-# plt.yscale('log')
 plt.legend(fontsize='x-small')
 plt.tight_layout()
 plt.savefig('6A_counts.pdf')

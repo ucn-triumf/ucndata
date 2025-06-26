@@ -7,7 +7,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 
 run = ucnrun(2573)
-cyc = run[0]
+cyc = run[9]
 
 # get histogram
 hist = cyc.get_hits_histogram('Li6', bin_ms=10)
