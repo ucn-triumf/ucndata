@@ -52,10 +52,29 @@ data = ucnrun(2687)
 hist = data.get_hits_histogram('He3')
 hist.plot()
 
-# draw each cycle individually
+# draw each cycle individually - note that this method is slow
 plt.figure()
 for cycle in data:
     cycle.get_hits_histogram('He3').plot(label=f'Cycle {cycle.cycle}')
+plt.legend(fontsize='xx-small')
+
+# draw each cycle individually - this is a much faster, but less convineint method
+plt.figure()
+hist = data.get_hits_histogram('He3')  # histogram of full run
+df = hist.to_dataframe() # to pandas dataframe
+df.set_index('tUnixTimePrecise', inplace=True) # set the index to be time
+df.sort_index(inplace=True) # sort ascending times
+
+for cycle in data:
+  # start and stop times
+  start = cycle.cycle_start
+  stop = cycle.cycle_stop
+
+  # get histogram just for that cycle
+  df_cycle = df.loc[start:stop]
+
+  # draw
+  df_cycle.Counts.plot(ax=plt.gca(), label=f'Cycle {cycle.cycle}')
 plt.legend(fontsize='xx-small')
 ```
 
