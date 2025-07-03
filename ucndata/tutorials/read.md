@@ -38,15 +38,6 @@ run = ucnrun(2050)
 
 By default, the data directory is `/data3/ucn/root_files`, which should be the case on the `daq01.ucn.triumf.ca` and `daq04.ucn.triumf.ca` machines.
 
-## Loading Multiple Files
-
-In general, it is recommended that one uses the [read] function:
-
-```python
-from ucndata import read
-runlist = read([2050, 2051, 2052])
-```
-
 This automatically parallelizes the reading and should decrease runtimes significantly. By default this also converts all [tfile] entries to [DataFrame]s. This returns an [applylist] which allows for easy processing of files.
 
 ## Efficient Loading
@@ -74,10 +65,10 @@ It takes as input the key name for a given tree or histogram and returns a boole
 One can define this in the same way as with the data directory:
 
 ```python
-from ucndata import settings
+from ucndata import ucnrun
 
 # this function loads all the data in the file
-settings.keyfilter = lambda x: True
+ucnrun.keyfilter = lambda x: True
 ```
 
 Note that by default empty trees and histograms are not loaded into memory.
