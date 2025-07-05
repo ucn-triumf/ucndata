@@ -42,7 +42,7 @@ def extract_nofoil():
             }
     for runn in runs:
 
-        run = ucnrun(runn)
+        run = ucnrun(runn, ucn_only=False)
 
         # get histogram for faster counting
         hist = run.get_hits_histogram('Li6', bin_ms=100)
@@ -106,6 +106,7 @@ ax.set_ylabel('UCN Counts / 60 s')
 ax.set_xlabel(r'Beam Current ($\mu$A)')
 secax.set_ylabel('UCN Count Rate (MHz)')
 plt.legend(fontsize='x-small')
+ax.tick_params(axis='y', right=False)
 plt.tight_layout()
 plt.savefig('6A_counts_irradiation.pdf')
 
