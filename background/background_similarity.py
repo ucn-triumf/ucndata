@@ -181,6 +181,7 @@ for filen in glob('hists/*.csv'):
     plt.figure(ax.get_figure().number)
     plt.legend(fontsize='xx-small')
     plt.tight_layout()
+    plt.savefig(f'figures/{current_rounded}uA.pdf')
 
     # save results
     for i, name in enumerate(['amp', 'frac', 'tau1', 'tau2', 'off']):
