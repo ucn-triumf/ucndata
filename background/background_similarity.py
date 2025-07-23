@@ -203,11 +203,6 @@ for i in fitpar.index:
 # save fit results
 fitpar.to_csv('fit_results.csv', index=False)
 
-for cur, ax in currents.items():
-    plt.figure(ax.get_figure().number)
-    plt.savefig(f'fits/{cur}.pdf')
-
-
 # plot fit results - amplitude
 name = 'amp'
 x = fitpar['current']
