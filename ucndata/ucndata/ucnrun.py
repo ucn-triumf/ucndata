@@ -14,6 +14,7 @@ import pandas as pd
 import itertools, warnings, os, ROOT
 import matplotlib.pyplot as plt
 from collections.abc import Iterable
+from tqdm import tqdm
 
 ROOT.gROOT.SetBatch(1)
 
@@ -532,8 +533,7 @@ class ucnrun(ucnbase):
                     rotation='vertical',
                     clip_on=True,)
 
-    def gen_cycle_filter(self, period_production=None, period_count=None,
-                         period_background=None, quiet=False):
+    def gen_cycle_filter(self, quiet=False):
         """Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
         Args:
@@ -563,11 +563,10 @@ class ucnrun(ucnbase):
         """
 
         cycles = self.get_cycle()
-        cfilter = [c.check_data(period_background=period_background,
-                                period_count=period_count,
-                                period_production=period_production,
-                                quiet=quiet,
-                                raise_error=False) for c in cycles]
+        iterator = tqdm(cycles, desc=f'Run {self.run_number}: Scanning cycles',
+                                leave=False,
+                                total=self.cycle_param.ncycles)
+        cfilter = [c.check_data(quiet=quiet, raise_error=False) for c in iterator]
         return np.array(cfilter)
 
     def get_cycle(self, cycle=None):

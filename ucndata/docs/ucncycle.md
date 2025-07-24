@@ -38,7 +38,7 @@ class ucncycle(ucnbase):
 
 ### ucncycle.check_data
 
-[Show source in ucncycle.py:126](../../ucncycle.py#L126)
+[Show source in ucncycle.py:127](../../ucncycle.py#L127)
 
 Run some checks to determine if the data is ok.
 
@@ -92,19 +92,12 @@ False
 #### Signature
 
 ```python
-def check_data(
-    self,
-    period_production=None,
-    period_count=None,
-    period_background=None,
-    raise_error=False,
-    quiet=False,
-): ...
+def check_data(self, raise_error=False, quiet=False): ...
 ```
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:301](../../ucncycle.py#L301)
+[Show source in ucncycle.py:226](../../ucncycle.py#L226)
 
 Return a copy of this object, but trees are trimmed to only one period.
 

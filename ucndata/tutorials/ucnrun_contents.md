@@ -11,6 +11,7 @@
     - [Table of Contents](#table-of-contents)
   - [`cycle_param`](#cycle_param)
   - [`tfile`](#tfile)
+  - [`ttree` objects](#ttree-objects)
 
 
 Recall that when we load our run we have the following header values:
@@ -109,71 +110,41 @@ ttree branches:
     B1U_IV0_STATON          B1U_TPMHALO_RDVOL
 ```
 
-Then converting to [DataFrame]s in-place:
+## `ttree` objects
+
+Most of the contents of the `tfile` object in a [ucnrun] are [ttree]s from the [rootloader] package. Because the trees with the UCN hits can be large, we may not be able to load the entire tree into memory. Thus, beware of the `ttree.to_dataframe()` function. While very useful on smaller trees, this can crash your computer if the tree is too large. To avoid this problem, the [ttree] uses [pyroot](https://root.cern/manual/python/) under the hood to compute the key quantities that most users will need. This also implements ROOT's implicit multithreading support to improve performance.
+
+For consistency with most analysis the [ttree] is written to look similar to a pandas [DataFrame]. In actuality, the data is stored in a ROOT [RDataFrame](https://root.cern/doc/master/classROOT_1_1RDataFrame.html) and makes heavy use of the [Filter](https://root.cern/doc/master/classROOT_1_1RDF_1_1RInterface.html#ad6a94ba7e70fc8f6425a40a4057d40a0) function. This allows one to pre-select rows based on a set of conditions. However, it means that for all operations, all rows get evaluated. Thus, if you want to histogram the counts in a particular cycle, first a filter is applied to select UCN hits, then on the timestamps to select the cycle. Then, the entire dataset is evaluated to determine whether the conditions are met. While the process is fast and exceedingly memory-efficient, it can still take a long time for large datasets.
+
+Thus it is more efficient to do this:
 
 ```python
-In [7]: run.to_dataframe()
+run = ucnrun(2575)
 
-In [8]: run.tfile.BeamlineEpics
-Out[8]:
-            B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
-timestamp                                       ...
-1572460997          0.018750           0.00000  ...                  0.0        0.000000
-1572461002          0.000000           0.01875  ...                  0.0        2.151400
-1572461007          0.021875           0.01250  ...                  0.0        2.151400
-1572461012          0.012500           0.00000  ...                  0.0        2.151400
-1572461017          0.000000           0.00000  ...                  0.0        2.151400
-...                      ...               ...  ...                  ...             ...
-1572466463          0.000000           0.01250  ...                  0.0       38.294899
-1572466468          0.000000           0.00000  ...                  0.0       38.294899
-1572466473          0.018750           0.00000  ...                  0.0       37.864700
-1572466478          0.034375           0.00000  ...                  0.0       37.864700
-1572466479          0.000000           0.01250  ...                  0.0       38.294899
-
-[1093 rows x 49 columns]
 ```
 
-We see that the [ucnrun] object knows to set the `timestamp` as the index. Thus, one can access values directly from their timestamp:
+
+vs this:
 
 ```python
-In [9]: run.tfile.BeamlineEpics.loc[1572460997:1572461017]
-Out[9]:
-            B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
-timestamp                                       ...
-1572460997          0.018750           0.00000  ...                  0.0          0.0000
-1572461002          0.000000           0.01875  ...                  0.0          2.1514
-1572461007          0.021875           0.01250  ...                  0.0          2.1514
-1572461012          0.012500           0.00000  ...                  0.0          2.1514
-1572461017          0.000000           0.00000  ...                  0.0          2.1514
+run = ucnrun(2575)
 
-[5 rows x 49 columns]
 ```
 
-It is often the case that we want to index on datetime objects. In that case we can instead to the following:
+To improve efficiency, the [ttree]s try to save any and all results computed at the conclusion of the computation, such that if they are requested a second time, the code returns the alread-computed result. For example:
 
 ```python
-In [7]: run.to_dataframe(datetime=True)
-
-In [8]: run.tfile.BeamlineEpics
-Out[8]:
-                           B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
-timestamp                                                      ...
-2019-10-30 11:43:17-07:00          0.018750           0.00000  ...                  0.0        0.000000
-2019-10-30 11:43:22-07:00          0.000000           0.01875  ...                  0.0        2.151400
-2019-10-30 11:43:27-07:00          0.021875           0.01250  ...                  0.0        2.151400
-2019-10-30 11:43:32-07:00          0.012500           0.00000  ...                  0.0        2.151400
-2019-10-30 11:43:37-07:00          0.000000           0.00000  ...                  0.0        2.151400
-...                                     ...               ...  ...                  ...             ...
-2019-10-30 13:14:23-07:00          0.000000           0.01250  ...                  0.0       38.294899
-2019-10-30 13:14:28-07:00          0.000000           0.00000  ...                  0.0       38.294899
-2019-10-30 13:14:33-07:00          0.018750           0.00000  ...                  0.0       37.864700
-2019-10-30 13:14:38-07:00          0.034375           0.00000  ...                  0.0       37.864700
-2019-10-30 13:14:39-07:00          0.000000           0.01250  ...                  0.0       38.294899
-
-[1093 rows x 49 columns]
+In [1]: from ucndata import ucnrun
+In [2]: import time
+In [3]: run = ucnrun(2575)
+Run 2575: Cycle time detection mode matched failed
+Run 2575: Set cycle times based on li6 detection mode
+In [4]: t0=time.time(); run.tfile.UCNHits_Li6.size; print(f'{time.time()-t0:g} s')
+10.2543 s
+In [5]: t0=time.time(); run.tfile.UCNHits_Li6.size; print(f'{time.time()-t0:g} s')
+3.71933e-05 s
 ```
 
-In general if each [ttree] structure is simple enough to convert to a [DataFrame] it is recommended that one does so.
 
 ---
 
