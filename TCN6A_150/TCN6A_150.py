@@ -10,6 +10,7 @@ from datetime import datetime
 import os
 from iminuit import Minuit
 from iminuit.cost import LeastSquares
+import matplotlib.pyplot as plt
 
 # settings
 run_numbers = [2685, 2686, 2687, 2688, 2689, 2690]
@@ -266,3 +267,13 @@ if True:
     print(f'Chisq mean: {np.mean(chisq)}')
     print(f'Chisq stdev: {np.std(chisq)}')
 
+    # save fit results
+    params = np.array(params)
+    stds = np.array(stds)
+    df_fitpar = pd.DataFrame({'amp': params[:,0],
+             'tau': params[:,1],
+             'damp': stds[:,0],
+             'dtau': stds[:,1],
+             'current (uA)': currents,
+             })
+    df_fitpar.to_csv('TCN6A_150_fitpar.csv')
