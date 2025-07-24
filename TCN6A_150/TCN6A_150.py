@@ -276,4 +276,4 @@ if True:
              'dtau': stds[:,1],
              'current (uA)': currents,
              })
-    df_fitpar.to_csv('TCN6A_150_fitpar.csv')
+    df_fitpar.to_csv('TCN6A_150_fitpar.csv', index=False)

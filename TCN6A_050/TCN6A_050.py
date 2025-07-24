@@ -427,19 +427,39 @@ plt.savefig('TCN6A_050_fit.pdf')
 pars = np.array(pars)
 stds = np.array(stds)
 
+# save fitpar
+df_fitpar = pd.DataFrame({'tau': pars[:,0],
+             'amp': pars[:,1],
+             'dtau': stds[:,0],
+             'damp': stds[:,1],
+             'current (uA)': cur,
+             })
+df_fitpar.to_csv('TCN6A_050_fitpar.csv', index=False)
+
+# get He3 parameters
+df_he3 = pd.read_csv('../TCN6A_150/TCN6A_150_fitpar.csv')
+
 # draw storage lifetimes
 plt.figure()
-plt.errorbar(curs, pars[:, 0], stds[:, 0], fmt='o', fillstyle='none')
+plt.errorbar(curs, pars[:, 0], stds[:, 0], fmt='o', fillstyle='none', label='$^6$Li')
+plt.errorbar(df_he3['current (uA)'], df_he3.tau, df_he3.dtau, fmt='o', fillstyle='none', label='$^3$He')
 plt.ylabel('Storage Lifetime (s)')
 plt.xlabel('Beam Current ($\\mu$A)')
+# plt.legend(fontsize='x-small')
+plt.text(30, 26.3,'$^6$Li', color='C0')
+plt.text(8.3, 26.3,'$^3$He', color='C1')
 plt.tight_layout()
 plt.savefig('TCN6A_050_tau.pdf')
 
 # draw amp
 plt.figure()
-plt.errorbar(curs, pars[:, 1], stds[:, 1], fmt='o', fillstyle='none')
+plt.errorbar(curs, pars[:, 1], stds[:, 1], fmt='o', fillstyle='none', label='$^6$Li')
+plt.errorbar(df_he3['current (uA)'], df_he3.amp, df_he3.damp, fmt='o', fillstyle='none', label='$^3$He')
 plt.ylabel('UCN Counts at Time Zero')
 plt.xlabel('Beam Current ($\\mu$A)')
+plt.legend(fontsize='x-small')
+plt.text(24, 5.5e5,'$^6$Li', color='C0')
+plt.text(22, 8.5e4,'$^3$He', color='C1')
 plt.tight_layout()
 plt.savefig('TCN6A_050_amp.pdf')
 
