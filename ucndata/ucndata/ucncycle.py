@@ -136,26 +136,10 @@ class ucncycle(ucnbase):
             * is at least one valve opened during at least one period?
             * are there counts in each detector?
 
-            If production period specified:
-
-                * beam data exists during production
-                * beam doesn't drop too low (`beam_min_current`)
-                * beam current stable (`beam_max_current_std`)
-
-            If background period specified:
-
-                * background count rate too high (`max_bkgd_count_rate`)
-                * no background counts at all
-
-            If count period specified:
-
-                * check too few counts (`min_total_counts`)
-                * does pileup exist? (>`pileup_cnt_per_ms` in the first `pileup_within_first_s`)
-
         Example:
             ```python
             >>> cycle = run[0]
-            >>> x = cycle.check_data(period_production=0)
+            >>> x = cycle.check_data()
             Run 1846, cycle 0: Beam current dropped to 0.0 uA
             >>> x
             False
@@ -200,16 +184,16 @@ class ucncycle(ucnbase):
             return warn(DataError, f'{msg} cycle duration ({actual_duration:.1f} s) shorter than sum of periods ({expected_duration:.1f} s)')
 
         # drop cycles where the 1A beam drops to zero during any time in the cycle
-        if any(self.beam1a_current_uA < 0.1):
-            return warn(BeamError, f'{msg} 1A current dropped below 0.1 uA')
+        if any(self.beam1a_current_uA < self.DATA_CHECK_THRESH['beam_min_current']):
+            return warn(BeamError, f'{msg} 1A current dropped below {self.DATA_CHECK_THRESH["beam_min_current"]} uA')
 
         # drop cycles where the 1A beam drops to zero within 5 s of the cycle starting
         if self.cycle > 0:
             cyc_last = self._run[self.cycle-1]
             current = cyc_last.beam1a_current_uA
             idx = current.index > self.cycle_start-20
-            if any(current.loc[idx] < 0.1):
-                return warn(BeamError, f'{msg} 1A current dropped below 0.1 uA within 20 seconds of the cycle starting')
+            if any(current.loc[idx] < self.DATA_CHECK_THRESH["beam_min_current"]):
+                return warn(BeamError, f'{msg} 1A current dropped below {self.DATA_CHECK_THRESH["beam_min_current"]} uA within 20 seconds of the cycle starting')
 
         return True
 

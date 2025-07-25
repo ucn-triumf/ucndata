@@ -39,9 +39,7 @@
 
 - `EPICS_TREES` - EPICS trees to group into a single slow control tree: ['BeamlineEpics', 'UCN2EpPha5Last', 'UCN2EpicsPhase2B', 'UCN2EpPha5Oth', 'UCN2EpicsPhase3', 'UCN2EpPha5Pre', 'UCN2EpicsPressures', 'UCN2EpPha5Tmp', 'UCN2EpicsTemperature', 'UCN2Epics', 'UCN2Pur', 'UCN2EpicsOthers']
 
-- `DATA_CHECK_THRESH` - data thresholds for checking data: {'beam_min_current': 0.1, 'beam_max_current_std': 0.2, 'max_bkgd_count_rate': 4, 'count_period_last_s_is_bkgd': 5, 'min_total_counts': 20, 'pileup_cnt_per_ms': 10, 'pileup_within_first_s': 1}
-
-- `DET_BKGD` - default detector backgrounds - from 2019: {'Li6': 80, 'Li6_err': 0.009, 'He3': 0.0349, 'He3_err': 0.0023}
+- `DATA_CHECK_THRESH` - data thresholds for checking data: {'beam_min_current': 0.1, 'pileup_cnt_per_ms': 10, 'pileup_within_first_s': 1}
 
 
 UCN run data. Cleans data and performs analysis
@@ -83,7 +81,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:151](../../ucnbase.py#L151)
+[Show source in ucnbase.py:141](../../ucnbase.py#L141)
 
 Apply function to each cycle
 
@@ -110,7 +108,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:327](../../ucnbase.py#L327)
+[Show source in ucnbase.py:323](../../ucnbase.py#L323)
 
 Get beamline 1A current in uA (micro amps)
 
@@ -127,7 +125,7 @@ def beam1a_current_uA(self): ...
 
 ### ucnbase.beam1u_current_uA
 
-[Show source in ucnbase.py:341](../../ucnbase.py#L341)
+[Show source in ucnbase.py:337](../../ucnbase.py#L337)
 
 Get beam current in uA (micro amps)
 
@@ -167,7 +165,7 @@ def beam1u_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:420](../../ucnbase.py#L420)
+[Show source in ucnbase.py:416](../../ucnbase.py#L416)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -209,7 +207,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:385](../../ucnbase.py#L385)
+[Show source in ucnbase.py:381](../../ucnbase.py#L381)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -251,7 +249,7 @@ def beam_on_s(self): ...
 
 ### ucnbase.get_hits_array
 
-[Show source in ucnbase.py:168](../../ucnbase.py#L168)
+[Show source in ucnbase.py:158](../../ucnbase.py#L158)
 
 Get times of ucn hits as a numpy array
 
@@ -279,7 +277,7 @@ def get_hits_array(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:194](../../ucnbase.py#L194)
+[Show source in ucnbase.py:185](../../ucnbase.py#L185)
 
 Get histogram of UCNHits ttree times
 
@@ -328,19 +326,24 @@ def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 
 ### ucnbase.get_nhits
 
-[Show source in ucnbase.py:248](../../ucnbase.py#L248)
+[Show source in ucnbase.py:239](../../ucnbase.py#L239)
 
 Get number of ucn hits
+
+#### Arguments
+
+- `detector` *str* - Li6|He3
+- `bin_ms` *int* - if bin_ms == 0, use tree size to get number of hits, otherwise use histogram method.
 
 #### Signature
 
 ```python
-def get_nhits(self, detector): ...
+def get_nhits(self, detector, bin_ms=0): ...
 ```
 
 ### ucnbase.plot_psd
 
-[Show source in ucnbase.py:255](../../ucnbase.py#L255)
+[Show source in ucnbase.py:251](../../ucnbase.py#L251)
 
 Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 

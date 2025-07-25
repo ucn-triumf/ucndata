@@ -8,11 +8,12 @@ from .applylist import applylist
 from .ucnbase import ucnbase
 from .ttreeslow import ttreeslow
 from .ucncycle import ucncycle
-import ROOT
+import itertools, warnings, os, ROOT
+
 import numpy as np
 import pandas as pd
-import itertools, warnings, os, ROOT
 import matplotlib.pyplot as plt
+import matplotlib.patches as mpatches
 from collections.abc import Iterable
 from tqdm import tqdm
 
@@ -224,6 +225,11 @@ class ucnrun(ucnbase):
 
         # store fetched cycles
         self._cycledict = dict()
+
+        # store fetched histogram
+        self._hist = {'detector':None,
+                      'bin_ms': None,
+                      'hist':None}
 
     def __next__(self):
         # permit iteration over object like it was a list
@@ -458,12 +464,13 @@ class ucnrun(ucnbase):
 
         return True
 
-    def draw_cycle_times(self, ax=None, xmode='datetime'):
+    def draw_cycle_times(self, ax=None, xmode='datetime', do_legend=False):
         """Draw cycle start times as thick black lines, period end times as dashed lines
 
         Args:
             ax (plt.Axes): axis to draw in, if None, draw in current axes
             xmode (str): datetime|duration|epoch
+            do_legend (bool): if true draw legend colors for period numbers
 
         Notes:
             Assumed periods:    0 - irradiation
@@ -486,6 +493,7 @@ class ucnrun(ucnbase):
             run_start = 0
 
         # draw lines
+        non_zero_periods = []
         for cyc in self.get_cycle():
 
             # get x value
@@ -511,6 +519,7 @@ class ucnrun(ucnbase):
 
                 # draw
                 ax.axvline(x, color=f'C{i}', ls=':', lw=1)
+                non_zero_periods.append(i)
 
             # get cycle text - strikeout if not good
             text = f'Cycle {cyc.cycle}'
@@ -532,6 +541,12 @@ class ucnrun(ucnbase):
                     color=color,
                     rotation='vertical',
                     clip_on=True,)
+
+        # add periods to legend
+        if do_legend:
+            handles = [mpatches.Patch(color=f'C{period}', label=f'Period {period}') \
+                    for period in np.unique(non_zero_periods)]
+            ax.legend(handles=handles)
 
     def gen_cycle_filter(self, quiet=False):
         """Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
@@ -606,7 +621,7 @@ class ucnrun(ucnbase):
             self._cycledict[cycle] = ucncycle(self, cycle)
             return self._cycledict[cycle]
 
-    def inspect(self, detector='Li6', bin_ms=100, xmode='datetime', slow=None):
+    def inspect(self, detector='Li6', bin_ms=100, xmode='duration', slow=None):
         """Draw counts and BL1A current with indicated periods to determine data quality
 
         Args:
@@ -735,8 +750,8 @@ class ucnrun(ucnbase):
                     v.plot(ax=axes[i+2], color=f'k')
 
         # draw vertical markers
-        for ax in axes:
-            self.draw_cycle_times(ax=ax, xmode=xmode)
+        for i, ax in enumerate(axes):
+            self.draw_cycle_times(ax=ax, xmode=xmode, do_legend=(i==0))
 
         # plot elements
         axes[0].set_title(self.run_number,fontsize='x-small')

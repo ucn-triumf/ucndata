@@ -19,7 +19,7 @@
 
 ## ucnrun
 
-[Show source in ucnrun.py:28](../../ucnrun.py#L28)
+[Show source in ucnrun.py:29](../../ucnrun.py#L29)
 
 UCN run data. Cleans data and performs analysis
 
@@ -136,7 +136,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:398](../../ucnrun.py#L398)
+[Show source in ucnrun.py:404](../../ucnrun.py#L404)
 
 Run some checks to determine if the data is ok.
 
@@ -168,7 +168,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.draw_cycle_times
 
-[Show source in ucnrun.py:461](../../ucnrun.py#L461)
+[Show source in ucnrun.py:467](../../ucnrun.py#L467)
 
 Draw cycle start times as thick black lines, period end times as dashed lines
 
@@ -176,6 +176,7 @@ Draw cycle start times as thick black lines, period end times as dashed lines
 
 - `ax` *plt.Axes* - axis to draw in, if None, draw in current axes
 - `xmode` *str* - datetime|duration|epoch
+- `do_legend` *bool* - if true draw legend colors for period numbers
 
 #### Notes
 
@@ -186,12 +187,12 @@ Draw cycle start times as thick black lines, period end times as dashed lines
 #### Signature
 
 ```python
-def draw_cycle_times(self, ax=None, xmode="datetime"): ...
+def draw_cycle_times(self, ax=None, xmode="datetime", do_legend=False): ...
 ```
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:536](../../ucnrun.py#L536)
+[Show source in ucnrun.py:551](../../ucnrun.py#L551)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -232,7 +233,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:572](../../ucnrun.py#L572)
+[Show source in ucnrun.py:587](../../ucnrun.py#L587)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -271,7 +272,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:609](../../ucnrun.py#L609)
+[Show source in ucnrun.py:624](../../ucnrun.py#L624)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -294,12 +295,12 @@ line colors:
 #### Signature
 
 ```python
-def inspect(self, detector="Li6", bin_ms=100, xmode="datetime", slow=None): ...
+def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 ```
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:759](../../ucnrun.py#L759)
+[Show source in ucnrun.py:774](../../ucnrun.py#L774)
 
 Don't load all the data in each file, only that which is needed
 
@@ -311,7 +312,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.modify_timing
 
-[Show source in ucnrun.py:773](../../ucnrun.py#L773)
+[Show source in ucnrun.py:788](../../ucnrun.py#L788)
 
 Change start and end times of periods and cycles
 
@@ -339,7 +340,7 @@ def modify_timing(
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:853](../../ucnrun.py#L853)
+[Show source in ucnrun.py:868](../../ucnrun.py#L868)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -410,7 +411,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:926](../../ucnrun.py#L926)
+[Show source in ucnrun.py:941](../../ucnrun.py#L941)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
@@ -458,7 +459,7 @@ def set_cycle_times(self, mode): ...
 
 ## new_format
 
-[Show source in ucnrun.py:22](../../ucnrun.py#L22)
+[Show source in ucnrun.py:23](../../ucnrun.py#L23)
 
 #### Signature
 

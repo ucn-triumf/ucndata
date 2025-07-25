@@ -90,19 +90,9 @@ class ucnbase(object):
 
     # data thresholds for checking data
     DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA
-                         'beam_max_current_std': 0.2, # uA
-                         'max_bkgd_count_rate': 4, # fractional increase over DET_BKGD values
-                         'count_period_last_s_is_bkgd': 5, # check that the last seconds are within background
-                         'min_total_counts': 20, # number of counts total
                          'pileup_cnt_per_ms': 10, # if larger than this, then pileup and delete
                          'pileup_within_first_s': 1, # time frame for pileup in each period
                         }
-
-    # default detector backgrounds - from 2019
-    DET_BKGD = {'Li6':     80, # 2025 value
-                'Li6_err': 0.009,
-                'He3':     0.0349,
-                'He3_err': 0.0023}
 
     def __iter__(self):
         # setup iteration
@@ -191,6 +181,7 @@ class ucnbase(object):
 
         return tree.tUnixTimePrecise.to_dataframe().index.values
 
+    # TODO: UPDATE FOR FETCH FROM ALREADY COMPUTED
     def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False):
         """Get histogram of UCNHits ttree times
 
@@ -245,10 +236,15 @@ class ucnbase(object):
 
         return hist
 
-    def get_nhits(self, detector):
-        """Get number of ucn hits"""
+    def get_nhits(self, detector, bin_ms=0):
+        """Get number of ucn hits
 
-        # get the tree
+        Args:
+            detector (str): Li6|He3
+            bin_ms (int): if bin_ms == 0, use tree size to get number of hits, otherwise use histogram method.
+        """
+
+        # get hits by size
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
         return tree.size
 

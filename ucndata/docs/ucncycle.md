@@ -63,27 +63,11 @@ Checks performed
 * is at least one valve opened during at least one period?
 * are there counts in each detector?
 
-If production period specified:
-
-* beam data exists during production
-* beam doesn't drop too low (`beam_min_current`)
-* beam current stable (`beam_max_current_std`)
-
-If background period specified:
-
-* background count rate too high (`max_bkgd_count_rate`)
-* no background counts at all
-
-If count period specified:
-
-* check too few counts (`min_total_counts`)
-* does pileup exist? (>`pileup_cnt_per_ms` in the first `pileup_within_first_s`)
-
 #### Examples
 
 ```python
 >>> cycle = run[0]
->>> x = cycle.check_data(period_production=0)
+>>> x = cycle.check_data()
 Run 1846, cycle 0: Beam current dropped to 0.0 uA
 >>> x
 False
@@ -97,7 +81,7 @@ def check_data(self, raise_error=False, quiet=False): ...
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:216](../../ucncycle.py#L216)
+[Show source in ucncycle.py:200](../../ucncycle.py#L200)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
