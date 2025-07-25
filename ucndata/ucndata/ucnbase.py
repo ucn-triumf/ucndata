@@ -9,6 +9,9 @@ from .applylist import applylist
 import ucndata.constants as const
 import numpy as np
 import pandas as pd
+import matplotlib.pyplot as plt
+from matplotlib.patches import Rectangle
+from tqdm import tqdm
 
 class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
@@ -249,64 +252,76 @@ class ucnbase(object):
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
         return tree.size
 
-    # def plot_psd(self, detector='Li6', cut=None):
-    #     """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
+    def plot_psd(self, detector='Li6', cut=None, cmap='RdBu'):
+        """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 
-    #     Args:
-    #         cut (tuple): lower left corner of box cut (QLong, PSD). If not none then draw
-    #     """
+        Args:
+            detector (str): Li6|He3, select from which detector the data comes from
+            cut (tuple): lower left corner of box cut (QLong, PSD). If not none then draw
+            cmap (str): [matplotlib color map](https://matplotlib.org/stable/users/explain/colors/colormaps.html) To reverse the order of the colormap append "_r" to the end of the string
+        """
 
-    #     # get the data from the tree
-    #     df = self.tfile[self.DET_NAMES[detector]['hits']]
+        # get the data from the tree
+        tree = self.tfile[self.DET_NAMES[detector]['hits']].reset()
+        tree.set_filter("tUnixTimePrecise > 15e8", inplace=True)
 
-    #     # calculate new psd
-    #     df = df.loc[df.tChargeL > 0]
-    #     df = df.loc[df.tChargeL < 5e4]
-    #     df['psd'] = (df.tChargeL-df.tChargeS)/df.tChargeL
+        # calculate new psd
+        tree.set_filter("tChargeL > 0", inplace=True)
+        tree.set_filter("tChargeL < 5e3", inplace=True)
 
-    #     # Li detector figures
-    #     fig, axes = plt.subplots(nrows=3, ncols=3, sharex=True, sharey=True,
-    #                             layout='constrained',
-    #                             figsize=(10,8))
-    #     axes = np.concat(axes)
+        # Li detector figures
+        fig, axes = plt.subplots(nrows=3, ncols=3, sharex=True, sharey=True,
+                                layout='constrained',
+                                figsize=(10,8))
+        axes = np.concat(axes)
 
-    #     hist_edges = []
-    #     max_chargeL = df.tChargeL.max()
+        hist_edges = []
+        max_chargeL = tree.tChargeL.max()
 
-    #     # histogram
-    #     for i in range(9):
-    #         ch = df.loc[df.tChannel == i]
-    #         xbins = np.linspace(0,max_chargeL, 1000)
-    #         ybins = np.arange(-1,1.01,0.01)
-    #         hist, xedge, yedge = np.histogram2d(ch.tChargeL, ch.psd,
-    #                     bins=[xbins, ybins])
+        # histogram
+        for i in tqdm(range(9), desc='Generating Histograms', leave=False):
 
-    #         hist_edges.append((hist, xedge, yedge))
+            # hist single channel
+            treech = tree.set_filter(f'tChannel=={i}')
+            hist = treech.hist2d('tChargeL', 'tPSD', xstep=5, ystep=0.01)
 
-    #     # get max
-    #     max_bin_count = np.max([np.max(h[0]) for h in hist_edges])
+            # reconstruct histogram edges
+            xedge = hist.x
+            yedge = hist.y
+
+            xedge = np.append(xedge, xedge[-1] + xedge[1]-xedge[0])
+            yedge = np.append(yedge, yedge[-1] + yedge[1]-yedge[0])
+
+            xedge -= (xedge[1]-xedge[0])/2
+            yedge -= (yedge[1]-yedge[0])/2
+
+            # save
+            hist_edges.append((hist.z, xedge, yedge))
+
+        # get max
+        max_bin_count = np.max([np.max(h[0]) for h in hist_edges])
 
 
-    #     # draw
-    #     for i in range(9):
-    #         ax = axes[i]
-    #         hist, xbins, ybins = hist_edges[i]
-    #         c = ax.pcolormesh(xbins, ybins, hist.transpose(),
-    #                           cmap='RdBu',
-    #                           vmin=0, vmax=max_bin_count/10)
-    #         if i in (2, 5, 8):
-    #             plt.gcf().colorbar(c, ax=ax)
-    #         ax.set_title(f'CH {i}', fontsize='x-small')
+        # draw
+        for i in range(9):
+            ax = axes[i]
+            hist, xbins, ybins = hist_edges[i]
+            c = ax.pcolormesh(xbins, ybins, hist,
+                              cmap=cmap,
+                              vmin=0, vmax=max_bin_count/10)
+            if i in (2, 5, 8):
+                plt.gcf().colorbar(c, ax=ax)
+            ax.set_title(f'CH {i}', fontsize='x-small')
 
-    #         if cut is not None:
-    #             dx = max_chargeL - cut[0]
-    #             dy = 1 - cut[1]
-    #             rec = Rectangle(cut, dx, dy, color='white', fc='none', lw=1)
-    #             ax.add_patch(rec)
+            if cut is not None:
+                dx = max_chargeL - cut[0]
+                dy = 1 - cut[1]
+                rec = Rectangle(cut, dx, dy, color='white', fc='none', lw=1)
+                ax.add_patch(rec)
 
-    #     fig.suptitle(f'Run {self.run_number}')
-    #     fig.supxlabel(r'$Q_{\mathrm{Long}}$')
-    #     fig.supylabel(r'$(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
+        fig.suptitle(f'Run {self.run_number}')
+        fig.supxlabel(r'$Q_{\mathrm{Long}}$')
+        fig.supylabel(r'$(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
 
     # quick access properties
     @property

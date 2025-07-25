@@ -1,16 +1,6 @@
 # Open and analyze UCN data for a one cycle
 # Derek Fujimoto
 # Oct 2024
-
-"""
-    TODO List, things which haven't been ported from WS code
-
-    * get temperature
-    * get vapour pressure
-    * data checks for periods
-    * check that period durations match between detector frontends
-"""
-
 from .exceptions import *
 from .applylist import applylist
 from .ucnbase import ucnbase
