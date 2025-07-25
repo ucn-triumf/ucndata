@@ -181,7 +181,6 @@ class ucnbase(object):
 
         return tree.tUnixTimePrecise.to_dataframe().index.values
 
-    # TODO: UPDATE FOR FETCH FROM ALREADY COMPUTED
     def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False):
         """Get histogram of UCNHits ttree times
 
@@ -224,29 +223,50 @@ class ucnbase(object):
         if detector not in self.DET_NAMES.keys():
             raise KeyError(f'Detector input "{detector}" not one of {tuple(self.DET_NAMES.keys())}')
 
-        # get data
-        tree = self.tfile[self.DET_NAMES[detector]['hits']]
+        # check precomputed data
+        if self._run._hits_hist['detector'] == detector and \
+           self._run._hits_hist['bin_ms'] == bin_ms:
 
-        # histogram
-        hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
+            hist = self._run._hits_hist['hist']
+
+        else:
+            # get data
+            tree = self._run.tfile[self.DET_NAMES[detector]['hits']]
+
+            # histogram
+            hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
+            self._run._hits_hist['detector'] = detector
+            self._run._hits_hist['bin_ms'] = bin_ms
+            self._run._hits_hist['hist'] = hist
+
+        # make a copy
+        hist = hist.copy()
+
+        # trim axes
+        if hasattr(self, 'period_start'):
+            start = self.period_start
+            stop = self.period_stop
+        elif hasattr(self, 'cycle_start'):
+            start = self.cycle_start
+            stop = self.cycle_stop
+        else:
+            start = 0
+            stop = 0
+
+        if start > 0:
+            idx = (hist.x >= start) & (hist.x < stop)
+            hist.x = hist.x[idx]
+            hist.y = hist.y[idx]
+            hist.dy = hist.dy[idx]
+            hist.sum = np.sum(hist.y)
+            hist.entries = int(hist.sum)
+            hist.nbins = len(hist.x)
 
         # to datetime
         if as_datetime:
             hist.x = to_datetime(hist.x)
 
         return hist
-
-    def get_nhits(self, detector, bin_ms=0):
-        """Get number of ucn hits
-
-        Args:
-            detector (str): Li6|He3
-            bin_ms (int): if bin_ms == 0, use tree size to get number of hits, otherwise use histogram method.
-        """
-
-        # get hits by size
-        tree = self.tfile[self.DET_NAMES[detector]['hits']]
-        return tree.size
 
     def plot_psd(self, detector='Li6', cut=None, cmap='RdBu'):
         """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms

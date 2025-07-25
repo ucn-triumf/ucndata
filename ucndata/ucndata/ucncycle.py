@@ -6,6 +6,7 @@ from .applylist import applylist
 from .ucnbase import ucnbase
 from .ucnperiod import ucnperiod
 from .tsubfile import tsubfile
+from .datetime import to_datetime
 
 import numpy as np
 import os
@@ -50,7 +51,6 @@ class ucncycle(ucnbase):
         self.supercycle = supercycle
         self.cycle_start = start
         self.cycle_stop = stop
-        self._run = urun
 
         # store fetched periods
         self._perioddict = dict()
@@ -196,6 +196,14 @@ class ucncycle(ucnbase):
                 return warn(BeamError, f'{msg} 1A current dropped below {self.DATA_CHECK_THRESH["beam_min_current"]} uA within 20 seconds of the cycle starting')
 
         return True
+
+    def get_nhits(self, detector):
+        """Get number of ucn hits
+
+        Args:
+            detector (str): Li6|He3
+        """
+        return self._run.get_nhits(detector, cycle=self.cycle)
 
     def get_period(self, period=None):
         """Return a copy of this object, but trees are trimmed to only one period.

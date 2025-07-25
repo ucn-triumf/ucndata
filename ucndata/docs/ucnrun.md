@@ -10,6 +10,7 @@
     - [ucnrun.draw_cycle_times](#ucnrundraw_cycle_times)
     - [ucnrun.gen_cycle_filter](#ucnrungen_cycle_filter)
     - [ucnrun.get_cycle](#ucnrunget_cycle)
+    - [ucnrun.get_nhits](#ucnrunget_nhits)
     - [ucnrun.inspect](#ucnruninspect)
     - [ucnrun.keyfilter](#ucnrunkeyfilter)
     - [ucnrun.modify_timing](#ucnrunmodify_timing)
@@ -19,7 +20,7 @@
 
 ## ucnrun
 
-[Show source in ucnrun.py:29](../../ucnrun.py#L29)
+[Show source in ucnrun.py:30](../../ucnrun.py#L30)
 
 UCN run data. Cleans data and performs analysis
 
@@ -136,7 +137,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:404](../../ucnrun.py#L404)
+[Show source in ucnrun.py:412](../../ucnrun.py#L412)
 
 Run some checks to determine if the data is ok.
 
@@ -168,7 +169,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.draw_cycle_times
 
-[Show source in ucnrun.py:467](../../ucnrun.py#L467)
+[Show source in ucnrun.py:475](../../ucnrun.py#L475)
 
 Draw cycle start times as thick black lines, period end times as dashed lines
 
@@ -192,7 +193,7 @@ def draw_cycle_times(self, ax=None, xmode="datetime", do_legend=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:551](../../ucnrun.py#L551)
+[Show source in ucnrun.py:559](../../ucnrun.py#L559)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -233,7 +234,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:587](../../ucnrun.py#L587)
+[Show source in ucnrun.py:595](../../ucnrun.py#L595)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -270,9 +271,33 @@ run 1846 (cycle 0):
 def get_cycle(self, cycle=None): ...
 ```
 
+### ucnrun.get_nhits
+
+[Show source in ucnrun.py:632](../../ucnrun.py#L632)
+
+Get number ucn hits
+
+#### Arguments
+
+- `detector` *str* - Li6|He3
+- `cycle` *int* - cycle number, if None compute for whole run
+- `period` *int* - period number, if None compute for whole cycle, if cycle is not also None
+
+#### Notes
+
+Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
+The histogram bin quantities is saved as self._nhits_period or self._nhits_cycle
+Both ucncycle and ucnperiod classes call this function to get the counts
+
+#### Signature
+
+```python
+def get_nhits(self, detector, cycle=None, period=None): ...
+```
+
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:624](../../ucnrun.py#L624)
+[Show source in ucnrun.py:683](../../ucnrun.py#L683)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -300,7 +325,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:774](../../ucnrun.py#L774)
+[Show source in ucnrun.py:833](../../ucnrun.py#L833)
 
 Don't load all the data in each file, only that which is needed
 
@@ -312,7 +337,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.modify_timing
 
-[Show source in ucnrun.py:788](../../ucnrun.py#L788)
+[Show source in ucnrun.py:847](../../ucnrun.py#L847)
 
 Change start and end times of periods and cycles
 
@@ -340,7 +365,7 @@ def modify_timing(
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:868](../../ucnrun.py#L868)
+[Show source in ucnrun.py:931](../../ucnrun.py#L931)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -411,7 +436,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:941](../../ucnrun.py#L941)
+[Show source in ucnrun.py:1004](../../ucnrun.py#L1004)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
@@ -459,7 +484,7 @@ def set_cycle_times(self, mode): ...
 
 ## new_format
 
-[Show source in ucnrun.py:23](../../ucnrun.py#L23)
+[Show source in ucnrun.py:24](../../ucnrun.py#L24)
 
 #### Signature
 

@@ -13,7 +13,6 @@
     - [ucnbase.beam_on_s](#ucnbasebeam_on_s)
     - [ucnbase.get_hits_array](#ucnbaseget_hits_array)
     - [ucnbase.get_hits_histogram](#ucnbaseget_hits_histogram)
-    - [ucnbase.get_nhits](#ucnbaseget_nhits)
     - [ucnbase.plot_psd](#ucnbaseplot_psd)
 
 ## ucnbase
@@ -108,7 +107,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:323](../../ucnbase.py#L323)
+[Show source in ucnbase.py:343](../../ucnbase.py#L343)
 
 Get beamline 1A current in uA (micro amps)
 
@@ -125,7 +124,7 @@ def beam1a_current_uA(self): ...
 
 ### ucnbase.beam1u_current_uA
 
-[Show source in ucnbase.py:337](../../ucnbase.py#L337)
+[Show source in ucnbase.py:357](../../ucnbase.py#L357)
 
 Get beam current in uA (micro amps)
 
@@ -165,7 +164,7 @@ def beam1u_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:416](../../ucnbase.py#L416)
+[Show source in ucnbase.py:436](../../ucnbase.py#L436)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -207,7 +206,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:381](../../ucnbase.py#L381)
+[Show source in ucnbase.py:401](../../ucnbase.py#L401)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -277,7 +276,7 @@ def get_hits_array(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:185](../../ucnbase.py#L185)
+[Show source in ucnbase.py:184](../../ucnbase.py#L184)
 
 Get histogram of UCNHits ttree times
 
@@ -324,26 +323,9 @@ TH1D: "HisttUnixTimePrecise", 557053 entries, sum = 557053.0
 def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 ```
 
-### ucnbase.get_nhits
-
-[Show source in ucnbase.py:239](../../ucnbase.py#L239)
-
-Get number of ucn hits
-
-#### Arguments
-
-- `detector` *str* - Li6|He3
-- `bin_ms` *int* - if bin_ms == 0, use tree size to get number of hits, otherwise use histogram method.
-
-#### Signature
-
-```python
-def get_nhits(self, detector, bin_ms=0): ...
-```
-
 ### ucnbase.plot_psd
 
-[Show source in ucnbase.py:251](../../ucnbase.py#L251)
+[Show source in ucnbase.py:271](../../ucnbase.py#L271)
 
 Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 

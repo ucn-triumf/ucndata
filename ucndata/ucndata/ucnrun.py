@@ -8,6 +8,7 @@ from .applylist import applylist
 from .ucnbase import ucnbase
 from .ttreeslow import ttreeslow
 from .ucncycle import ucncycle
+from .datetime import to_datetime
 import itertools, warnings, os, ROOT
 
 import numpy as np
@@ -227,9 +228,16 @@ class ucnrun(ucnbase):
         self._cycledict = dict()
 
         # store fetched histogram
-        self._hist = {'detector':None,
-                      'bin_ms': None,
-                      'hist':None}
+        self._hits_hist = {'detector':None,
+                           'bin_ms': None,
+                           'hist':None}
+
+        # histograms with edges set by period and cycle timings
+        self._nhits_period = None
+        self._nhits_cycle = None
+
+        # pointer to self for cycles and periods
+        self._run = self
 
     def __next__(self):
         # permit iteration over object like it was a list
@@ -621,6 +629,57 @@ class ucnrun(ucnbase):
             self._cycledict[cycle] = ucncycle(self, cycle)
             return self._cycledict[cycle]
 
+    def get_nhits(self, detector, cycle=None, period=None):
+        """Get number ucn hits
+
+        Args:
+            detector (str): Li6|He3
+            cycle (int): cycle number, if None compute for whole run
+            period (int): period number, if None compute for whole cycle, if cycle is not also None
+
+        Notes:
+            Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
+            The histogram bin quantities is saved as self._nhits_period or self._nhits_cycle
+            Both ucncycle and ucnperiod classes call this function to get the counts
+        """
+
+        # get hits tree
+        tree = self.tfile[self.DET_NAMES[detector]['hits']]
+
+        # get hits for run
+        if cycle is None and period is None:
+            return tree.size
+
+        # get hits for cycle
+        elif period is None:
+
+            # make cycle hits histogram
+            if self._nhits_cycle is None:
+                edges = self.cycle_param.cycle_times.start.values
+                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
+                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1]) # last bin ignored?
+                self._nhits_cycle = tree.hist1d('tUnixTimePrecise', edges=edges).y[1:]
+
+            # get n hits for that cycle
+            return int(self._nhits_cycle[cycle])
+
+        # get hits for period
+        else:
+
+            # make peroid hits histogram
+            if self._nhits_period is None:
+
+                edges = []
+                for cyclei in range(self.cycle_param.ncycles):
+                    edges.append(self.cycle_param.cycle_times.start[cyclei])
+                    edges.extend(list(self.cycle_param.period_end_times[cyclei]))
+                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
+                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
+                self._nhits_period = tree.hist1d('tUnixTimePrecise', edges=edges).y[1:]
+
+            # get n hits for that cycle
+            return int(self._nhits_period[cycle*(len(self.cycle_param.period_end_times)+1)+period])
+
     def inspect(self, detector='Li6', bin_ms=100, xmode='duration', slow=None):
         """Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -864,6 +923,10 @@ class ucnrun(ucnbase):
         # remove saved cycles to account for updated limits
         if cycle in self._cycledict.keys():
             del self._cycledict[cycle]
+
+        # reset histograms for number of hits
+        self._nhits_period = None
+        self._nhits_cycle = None
 
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating

@@ -5,6 +5,7 @@
 from .exceptions import *
 from .ucnbase import ucnbase
 from .tsubfile import tsubfile
+from .datetime import to_datetime
 
 import numpy as np
 import os
@@ -108,3 +109,12 @@ class ucnperiod(ucnbase):
         piled_up = counts > count_thresh
 
         return any(piled_up)
+
+    def get_nhits(self, detector):
+        """Get number of ucn hits
+
+        Args:
+            detector (str): Li6|He3
+        """
+        return self._run.get_nhits(detector, cycle=self.cycle, period=self.period)
+

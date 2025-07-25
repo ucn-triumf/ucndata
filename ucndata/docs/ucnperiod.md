@@ -6,11 +6,12 @@
 
 - [ucnperiod](#ucnperiod)
   - [ucnperiod](#ucnperiod-1)
+    - [ucnperiod.get_nhits](#ucnperiodget_nhits)
     - [ucnperiod.is_pileup](#ucnperiodis_pileup)
 
 ## ucnperiod
 
-[Show source in ucnperiod.py:12](../../ucnperiod.py#L12)
+[Show source in ucnperiod.py:13](../../ucnperiod.py#L13)
 
 Stores the data from a single UCN period from a single cycle
 
@@ -30,9 +31,25 @@ class ucnperiod(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
+### ucnperiod.get_nhits
+
+[Show source in ucnperiod.py:113](../../ucnperiod.py#L113)
+
+Get number of ucn hits
+
+#### Arguments
+
+- `detector` *str* - Li6|He3
+
+#### Signature
+
+```python
+def get_nhits(self, detector): ...
+```
+
 ### ucnperiod.is_pileup
 
-[Show source in ucnperiod.py:74](../../ucnperiod.py#L74)
+[Show source in ucnperiod.py:75](../../ucnperiod.py#L75)
 
 Check if pileup may be an issue in this period.
 

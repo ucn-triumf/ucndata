@@ -7,11 +7,12 @@
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
     - [ucncycle.check_data](#ucncyclecheck_data)
+    - [ucncycle.get_nhits](#ucncycleget_nhits)
     - [ucncycle.get_period](#ucncycleget_period)
 
 ## ucncycle
 
-[Show source in ucncycle.py:13](../../ucncycle.py#L13)
+[Show source in ucncycle.py:14](../../ucncycle.py#L14)
 
 View for the data from a single UCN cycle
 
@@ -79,9 +80,25 @@ False
 def check_data(self, raise_error=False, quiet=False): ...
 ```
 
-### ucncycle.get_period
+### ucncycle.get_nhits
 
 [Show source in ucncycle.py:200](../../ucncycle.py#L200)
+
+Get number of ucn hits
+
+#### Arguments
+
+- `detector` *str* - Li6|He3
+
+#### Signature
+
+```python
+def get_nhits(self, detector): ...
+```
+
+### ucncycle.get_period
+
+[Show source in ucncycle.py:208](../../ucncycle.py#L208)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
