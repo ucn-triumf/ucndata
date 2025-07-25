@@ -11,7 +11,7 @@
 
 ## ucncycle
 
-[Show source in ucncycle.py:23](../../ucncycle.py#L23)
+[Show source in ucncycle.py:13](../../ucncycle.py#L13)
 
 View for the data from a single UCN cycle
 
@@ -38,7 +38,7 @@ class ucncycle(ucnbase):
 
 ### ucncycle.check_data
 
-[Show source in ucncycle.py:127](../../ucncycle.py#L127)
+[Show source in ucncycle.py:117](../../ucncycle.py#L117)
 
 Run some checks to determine if the data is ok.
 
@@ -97,7 +97,7 @@ def check_data(self, raise_error=False, quiet=False): ...
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:226](../../ucncycle.py#L226)
+[Show source in ucncycle.py:216](../../ucncycle.py#L216)
 
 Return a copy of this object, but trees are trimmed to only one period.
 

@@ -10,7 +10,7 @@
 
 ## ucnperiod
 
-[Show source in ucnperiod.py:21](../../ucnperiod.py#L21)
+[Show source in ucnperiod.py:12](../../ucnperiod.py#L12)
 
 Stores the data from a single UCN period from a single cycle
 
@@ -32,7 +32,7 @@ class ucnperiod(ucnbase):
 
 ### ucnperiod.is_pileup
 
-[Show source in ucnperiod.py:83](../../ucnperiod.py#L83)
+[Show source in ucnperiod.py:74](../../ucnperiod.py#L74)
 
 Check if pileup may be an issue in this period.
 
