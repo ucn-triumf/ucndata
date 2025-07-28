@@ -8,6 +8,7 @@
   - [ucnperiod](#ucnperiod-1)
     - [ucnperiod.get_nhits](#ucnperiodget_nhits)
     - [ucnperiod.is_pileup](#ucnperiodis_pileup)
+    - [ucnperiod.modify_timing](#ucnperiodmodify_timing)
 
 ## ucnperiod
 
@@ -75,4 +76,27 @@ False
 
 ```python
 def is_pileup(self, detector): ...
+```
+
+### ucnperiod.modify_timing
+
+[Show source in ucnperiod.py:121](../../ucnperiod.py#L121)
+
+Change start and end times of period
+
+#### Arguments
+
+- `dt_start_s` *float* - change to the period start time
+- `dt_stop_s` *float* - change to the period stop time
+
+#### Notes
+
+as a result of this, cycles may overlap or have gaps
+periods are forced to not overlap and have no gaps
+cannot change cycle end time, but can change cycle start time
+
+#### Signature
+
+```python
+def modify_timing(self, dt_start_s=0, dt_stop_s=0): ...
 ```

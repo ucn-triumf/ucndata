@@ -118,3 +118,19 @@ class ucnperiod(ucnbase):
         """
         return self._run.get_nhits(detector, cycle=self.cycle, period=self.period)
 
+    def modify_timing(self, dt_start_s=0, dt_stop_s=0):
+        """Change start and end times of period
+
+        Args:
+            dt_start_s (float): change to the period start time
+            dt_stop_s (float): change to the period stop time
+
+        Notes:
+            as a result of this, cycles may overlap or have gaps
+            periods are forced to not overlap and have no gaps
+            cannot change cycle end time, but can change cycle start time
+        """
+        self._run.modify_timing(cycle = self.cycle,
+                                period = self.period,
+                                dt_start_s = dt_start_s,
+                                dt_stop_s = dt_stop_s)
