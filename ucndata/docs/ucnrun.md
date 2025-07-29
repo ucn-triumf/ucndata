@@ -297,7 +297,7 @@ def get_nhits(self, detector, cycle=None, period=None): ...
 
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:675](../../ucnrun.py#L675)
+[Show source in ucnrun.py:691](../../ucnrun.py#L691)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -325,7 +325,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:825](../../ucnrun.py#L825)
+[Show source in ucnrun.py:841](../../ucnrun.py#L841)
 
 Don't load all the data in each file, only that which is needed
 
@@ -337,7 +337,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.modify_timing
 
-[Show source in ucnrun.py:839](../../ucnrun.py#L839)
+[Show source in ucnrun.py:855](../../ucnrun.py#L855)
 
 Change start and end times of periods and cycles
 
@@ -365,7 +365,7 @@ def modify_timing(
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:922](../../ucnrun.py#L922)
+[Show source in ucnrun.py:938](../../ucnrun.py#L938)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -436,7 +436,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:995](../../ucnrun.py#L995)
+[Show source in ucnrun.py:1011](../../ucnrun.py#L1011)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times

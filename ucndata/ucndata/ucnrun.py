@@ -654,10 +654,26 @@ class ucnrun(ucnbase):
             # make hits histogram
             if self._nhits is None:
 
+                # use period and cycle start and end times as bin edges
                 edges = []
                 for cyclei in range(self.cycle_param.ncycles):
-                    edges.append(self.cycle_param.cycle_times.start[cyclei])
-                    edges.extend(list(self.cycle_param.period_end_times[cyclei]))
+
+                    # get cycle start and end
+                    cycle_start = self.cycle_param.cycle_times.start[cyclei]
+                    period_ends = self.cycle_param.period_end_times[cyclei]
+
+                    # shorten periods that extend past the end of the cycle (edge case)
+                    if cyclei < self.cycle_param.ncycles-1:
+                        next_cycle_start = self.cycle_param.cycle_times.start[cyclei+1]
+                    else:
+                        next_cycle_start = self.cycle_param.cycle_times.stop.iloc[-1]
+
+                    period_ends[period_ends > next_cycle_start] = next_cycle_start
+
+                    # save to list
+                    edges.append(cycle_start)
+                    edges.extend(list(period_ends))
+
                 edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
                 edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1]) # need duplicate end bin for some reason
 
