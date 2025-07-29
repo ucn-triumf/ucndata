@@ -466,7 +466,7 @@ class ucnrun(ucnbase):
                 if raise_error:
                     raise MissingDataError(msg)
                 else:
-                    print(msg)
+                    tqdm.write(msg)
                     return False
 
         return True
