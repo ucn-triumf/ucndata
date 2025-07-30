@@ -8,7 +8,6 @@ A full list of `Ucndata` project modules.
 - [Constants](./constants.md#constants)
 - [Datetime](./datetime.md#datetime)
 - [Exceptions](./exceptions.md#exceptions)
-- [Merge](./merge.md#merge)
 - [tsubfile](./tsubfile.md#tsubfile)
 - [ttreeslow](./ttreeslow.md#ttreeslow)
 - [ucnbase](./ucnbase.md#ucnbase)
