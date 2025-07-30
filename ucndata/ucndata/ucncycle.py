@@ -51,6 +51,7 @@ class ucncycle(ucnbase):
         self.supercycle = supercycle
         self.cycle_start = start
         self.cycle_stop = stop
+        self.cycle_dur = stop-start
 
         # store fetched periods
         self._perioddict = dict()
@@ -102,6 +103,9 @@ class ucncycle(ucnbase):
 
         # get a single key
         if isinstance(key, (np.integer, int)):
+            if key < 0:
+                key = self.cycle_param.nperiods + key
+
             if key > self.cycle_param.nperiods:
                 raise IndexError(f'Run {self.run_number}, cycle {self.cycle}: Index larger than number of periods ({self.cycle_param.nperiods})')
 
@@ -243,3 +247,55 @@ class ucncycle(ucnbase):
         else:
             self._perioddict[period] = ucnperiod(self, period)
             return self._perioddict[period]
+
+    def get_time_shift(self, detector, period, rising_edge_thresh, bin_ms=10):
+        """Detect cycle start time based on a rising edge
+        Args:
+            detector (str): Li6|He3
+            period (int): period number to detect rising edge in
+            rising_edge_thresh (float): calculate cycle start time shift based on edge detection above this level
+            bin_ms (int): histogram bin size in milliseconds
+
+        Returns:
+            float: the change in the times in seconds, after applying the const_offset
+
+        Example:
+            ```python
+                dt = [cyc.get_time_shift('Li6', 2, 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+            ```
+        """
+
+        # get histogram
+        hist = self[period].get_hits_histogram(detector, bin_ms=bin_ms)
+        t = hist.x
+        n = hist.y
+
+        # rising edge detection
+        t0 = t[np.min((n > rising_edge_thresh).nonzero())]
+
+        # get shift from period start
+        dt = t0 - self[period].period_start
+
+        return dt
+
+    def shift_timing(self, dt):
+        """Shift all periods by a constant time, maintaining the period durations.
+        This shifts the cycle start time and shortens the cycle, potentially creating gaps between cycles
+
+        Args:
+            dt (float): time in seconds to add to each period start/end time
+
+        Example:
+            ```python
+                # this avoids recomputing the histograms each iteration
+                dt = [cyc.get_time_shift('Li6', 2, 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+                for i, t in enumerate(dt):
+                    run[i].shift_timing(t)
+            ```
+
+        Notes:
+            * This function makes use of `ucnrun.modify_ptiming`, which resets all saved histograms and hits
+        """
+        for period in self:
+            period.modify_timing(dt, 0)
+        self[-1].modify_timing(0, dt)

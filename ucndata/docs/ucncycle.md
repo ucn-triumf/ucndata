@@ -9,6 +9,8 @@
     - [ucncycle.check_data](#ucncyclecheck_data)
     - [ucncycle.get_nhits](#ucncycleget_nhits)
     - [ucncycle.get_period](#ucncycleget_period)
+    - [ucncycle.get_time_shift](#ucncycleget_time_shift)
+    - [ucncycle.shift_timing](#ucncycleshift_timing)
 
 ## ucncycle
 
@@ -39,7 +41,7 @@ class ucncycle(ucnbase):
 
 ### ucncycle.check_data
 
-[Show source in ucncycle.py:117](../../ucncycle.py#L117)
+[Show source in ucncycle.py:121](../../ucncycle.py#L121)
 
 Run some checks to determine if the data is ok.
 
@@ -82,7 +84,7 @@ def check_data(self, raise_error=False, quiet=False): ...
 
 ### ucncycle.get_nhits
 
-[Show source in ucncycle.py:200](../../ucncycle.py#L200)
+[Show source in ucncycle.py:204](../../ucncycle.py#L204)
 
 Get number of ucn hits
 
@@ -98,7 +100,7 @@ def get_nhits(self, detector): ...
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:208](../../ucncycle.py#L208)
+[Show source in ucncycle.py:212](../../ucncycle.py#L212)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -135,4 +137,63 @@ run 1846 (cycle 0, period 0):
 
 ```python
 def get_period(self, period=None): ...
+```
+
+### ucncycle.get_time_shift
+
+[Show source in ucncycle.py:251](../../ucncycle.py#L251)
+
+Detect cycle start time based on a rising edge
+
+#### Arguments
+
+- `detector` *str* - Li6|He3
+- `period` *int* - period number to detect rising edge in
+- `rising_edge_thresh` *float* - calculate cycle start time shift based on edge detection above this level
+- `bin_ms` *int* - histogram bin size in milliseconds
+
+#### Returns
+
+- `float` - the change in the times in seconds, after applying the const_offset
+
+#### Examples
+
+```python
+dt = [cyc.get_time_shift('Li6', 2, 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+```
+
+#### Signature
+
+```python
+def get_time_shift(self, detector, period, rising_edge_thresh, bin_ms=10): ...
+```
+
+### ucncycle.shift_timing
+
+[Show source in ucncycle.py:281](../../ucncycle.py#L281)
+
+Shift all periods by a constant time, maintaining the period durations.
+This shifts the cycle start time and shortens the cycle, potentially creating gaps between cycles
+
+#### Arguments
+
+- `dt` *float* - time in seconds to add to each period start/end time
+
+#### Examples
+
+```python
+# this avoids recomputing the histograms each iteration
+dt = [cyc.get_time_shift('Li6', 2, 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+for i, t in enumerate(dt):
+    run[i].shift_timing(t)
+```
+
+#### Notes
+
+* This function makes use of `ucnrun.modify_ptiming`, which resets all saved histograms and hits
+
+#### Signature
+
+```python
+def shift_timing(self, dt): ...
 ```

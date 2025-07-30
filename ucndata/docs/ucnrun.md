@@ -13,7 +13,7 @@
     - [ucnrun.get_nhits](#ucnrunget_nhits)
     - [ucnrun.inspect](#ucnruninspect)
     - [ucnrun.keyfilter](#ucnrunkeyfilter)
-    - [ucnrun.modify_timing](#ucnrunmodify_timing)
+    - [ucnrun.modify_ptiming](#ucnrunmodify_ptiming)
     - [ucnrun.set_cycle_filter](#ucnrunset_cycle_filter)
     - [ucnrun.set_cycle_times](#ucnrunset_cycle_times)
   - [new_format](#new_format)
@@ -118,7 +118,7 @@ for cycle in run:
     cycle.get_hits_histogram('Li6').plot(label=cycle.cycle)
 
 # adjust the timing of cycles and periods
-run.modify_timing(cycle=0, period=0, dt_start_s=1, dt_start_s=0)
+run.modify_ptiming(cycle=0, period=0, dt_start_s=1, dt_start_s=0)
 
 # inspect the data: draw a figure with hits histogram, beam current, and optional slow control data
 run.inspect('Li6', bin_ms=100, xmode='dur')
@@ -137,7 +137,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:411](../../ucnrun.py#L411)
+[Show source in ucnrun.py:416](../../ucnrun.py#L416)
 
 Run some checks to determine if the data is ok.
 
@@ -169,7 +169,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.draw_cycle_times
 
-[Show source in ucnrun.py:474](../../ucnrun.py#L474)
+[Show source in ucnrun.py:479](../../ucnrun.py#L479)
 
 Draw cycle start times as thick black lines, period end times as dashed lines
 
@@ -193,7 +193,7 @@ def draw_cycle_times(self, ax=None, xmode="datetime", do_legend=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:558](../../ucnrun.py#L558)
+[Show source in ucnrun.py:563](../../ucnrun.py#L563)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -234,7 +234,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:594](../../ucnrun.py#L594)
+[Show source in ucnrun.py:599](../../ucnrun.py#L599)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -273,7 +273,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.get_nhits
 
-[Show source in ucnrun.py:631](../../ucnrun.py#L631)
+[Show source in ucnrun.py:636](../../ucnrun.py#L636)
 
 Get number ucn hits
 
@@ -297,7 +297,7 @@ def get_nhits(self, detector, cycle=None, period=None): ...
 
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:691](../../ucnrun.py#L691)
+[Show source in ucnrun.py:696](../../ucnrun.py#L696)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -325,7 +325,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:841](../../ucnrun.py#L841)
+[Show source in ucnrun.py:846](../../ucnrun.py#L846)
 
 Don't load all the data in each file, only that which is needed
 
@@ -335,11 +335,11 @@ Don't load all the data in each file, only that which is needed
 def keyfilter(self, name): ...
 ```
 
-### ucnrun.modify_timing
+### ucnrun.modify_ptiming
 
-[Show source in ucnrun.py:855](../../ucnrun.py#L855)
+[Show source in ucnrun.py:860](../../ucnrun.py#L860)
 
-Change start and end times of periods and cycles
+Change start and end times of periods
 
 #### Arguments
 
@@ -351,21 +351,22 @@ Change start and end times of periods and cycles
 
 #### Notes
 
-as a result of this, cycles may overlap or have gaps
-periods are forced to not overlap and have no gaps
-cannot change cycle end time, but can change cycle start time
+* as a result of this, cycles may overlap or have gaps
+* periods are forced to not overlap and have no gaps
+* cannot change cycle end time, but can change cycle start time
+* this function resets all saved histgrams and hits
 
 #### Signature
 
 ```python
-def modify_timing(
+def modify_ptiming(
     self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True
 ): ...
 ```
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:938](../../ucnrun.py#L938)
+[Show source in ucnrun.py:948](../../ucnrun.py#L948)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -436,7 +437,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:1011](../../ucnrun.py#L1011)
+[Show source in ucnrun.py:1021](../../ucnrun.py#L1021)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times

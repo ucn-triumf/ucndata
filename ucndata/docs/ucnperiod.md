@@ -34,7 +34,7 @@ class ucnperiod(ucnbase):
 
 ### ucnperiod.get_nhits
 
-[Show source in ucnperiod.py:113](../../ucnperiod.py#L113)
+[Show source in ucnperiod.py:114](../../ucnperiod.py#L114)
 
 Get number of ucn hits
 
@@ -50,7 +50,7 @@ def get_nhits(self, detector): ...
 
 ### ucnperiod.is_pileup
 
-[Show source in ucnperiod.py:75](../../ucnperiod.py#L75)
+[Show source in ucnperiod.py:76](../../ucnperiod.py#L76)
 
 Check if pileup may be an issue in this period.
 
@@ -80,7 +80,7 @@ def is_pileup(self, detector): ...
 
 ### ucnperiod.modify_timing
 
-[Show source in ucnperiod.py:121](../../ucnperiod.py#L121)
+[Show source in ucnperiod.py:122](../../ucnperiod.py#L122)
 
 Change start and end times of period
 

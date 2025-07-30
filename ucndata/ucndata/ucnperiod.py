@@ -42,6 +42,7 @@ class ucnperiod(ucnbase):
         self.period = period
         self.period_start = start
         self.period_stop = stop
+        self.period_dur = stop-start
 
     def __repr__(self):
         klist = [d for d in self.__dict__.keys() if d[0] != '_']
@@ -130,7 +131,7 @@ class ucnperiod(ucnbase):
             periods are forced to not overlap and have no gaps
             cannot change cycle end time, but can change cycle start time
         """
-        self._run.modify_timing(cycle = self.cycle,
-                                period = self.period,
-                                dt_start_s = dt_start_s,
-                                dt_stop_s = dt_stop_s)
+        self._run.modify_ptiming(cycle = self.cycle,
+                                 period = self.period,
+                                 dt_start_s = dt_start_s,
+                                 dt_stop_s = dt_stop_s)

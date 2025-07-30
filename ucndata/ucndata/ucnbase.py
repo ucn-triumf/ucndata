@@ -262,6 +262,7 @@ class ucnbase(object):
             hist.entries = int(hist.sum)
             hist.nbins = len(hist.x)
 
+
         # to datetime
         if as_datetime:
             hist.x = to_datetime(hist.x)

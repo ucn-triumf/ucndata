@@ -117,7 +117,7 @@ class ucnrun(ucnbase):
             cycle.get_hits_histogram('Li6').plot(label=cycle.cycle)
 
         # adjust the timing of cycles and periods
-        run.modify_timing(cycle=0, period=0, dt_start_s=1, dt_start_s=0)
+        run.modify_ptiming(cycle=0, period=0, dt_start_s=1, dt_start_s=0)
 
         # inspect the data: draw a figure with hits histogram, beam current, and optional slow control data
         run.inspect('Li6', bin_ms=100, xmode='dur')
@@ -296,8 +296,13 @@ class ucnrun(ucnbase):
 
         # get a single key
         if isinstance(key, (np.integer, int)):
+
+            if key < 0:
+                key = self.cycle_param.ncycles + key
+
             if key > self.cycle_param.ncycles:
                 raise IndexError(f'Run {self.run_number}: Index larger than number of cycles ({self.cycle_param.ncycles})')
+
             return self.get_cycle(key)
 
         # slice on cycles
@@ -852,8 +857,8 @@ class ucnrun(ucnbase):
 
         return True
 
-    def modify_timing(self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True):
-        """Change start and end times of periods and cycles
+    def modify_ptiming(self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True):
+        """Change start and end times of periods
 
         Args:
             cycle (int): cycle id number
@@ -863,9 +868,10 @@ class ucnrun(ucnbase):
             update_duration (bool): if true, update period durations dataframe
 
         Notes:
-            as a result of this, cycles may overlap or have gaps
-            periods are forced to not overlap and have no gaps
-            cannot change cycle end time, but can change cycle start time
+            * as a result of this, cycles may overlap or have gaps
+            * periods are forced to not overlap and have no gaps
+            * cannot change cycle end time, but can change cycle start time
+            * this function resets all saved histgrams and hits
         """
 
         # get cycle parameters
@@ -884,7 +890,7 @@ class ucnrun(ucnbase):
 
             # recursively adjust adjacent size zero periods
             if period-1 > 0 and cycpar.period_durations_s.loc[period-1, cycle] == 0:
-                self.modify_timing(cycle, period-1,
+                self.modify_ptiming(cycle, period-1,
                                     dt_start_s = dt_start_s,
                                     dt_stop_s  = 0,
                                     update_duration = False)
@@ -903,7 +909,7 @@ class ucnrun(ucnbase):
             # recursively adjust adjacent size zero periods
             try:
                 if cycpar.period_durations_s.loc[period+1, cycle] == 0:
-                    self.modify_timing(cycle, period+1,
+                    self.modify_ptiming(cycle, period+1,
                                         dt_start_s = 0,
                                         dt_stop_s  = dt_stop_s,
                                         update_duration = False)
@@ -934,6 +940,10 @@ class ucnrun(ucnbase):
 
         # reset histogram for number of hits
         self._nhits = None
+
+        # reset all saved histograms
+        for key in self._hits_hist.keys():
+            self._hits_hist[key] = None
 
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating
