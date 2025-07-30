@@ -117,7 +117,42 @@ class ucnperiod(ucnbase):
         Args:
             detector (str): Li6|He3
         """
-        return self._run.get_nhits(detector, cycle=self.cycle, period=self.period)
+        return self._run._get_nhits(detector, cycle=self.cycle, period=self.period)
+
+    def get_start_edge(self, detector, thresh, bin_ms=10, rising=True):
+        """Detect period start time based on a rising or falling edge
+        Args:
+            detector (str): Li6|He3
+            thresh (float): calculate cycle start time shift based on edge detection passing through this level
+            bin_ms (int): histogram bin size in milliseconds
+            rising (bool): if true do rising edge, else do falling edge
+
+        Returns:
+            float: the change in the times in seconds, after applying the const_offset
+
+        Example:
+            ```python
+                dt = [cyc[2].get_start_edge('Li6', 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+            ```
+        """
+
+        searched = 1 if rising else -1
+
+        # get histogram
+        hist = self.get_hits_histogram(detector, bin_ms=bin_ms)
+        t = hist.x
+        n = hist.y
+
+        # edge detection using convolution
+        # https://stackoverflow.com/questions/50365310/python-rising-falling-edge-oscilloscope-like-trigger
+        sign = n >= thresh
+        pos = np.where(np.convolve(sign, [1, -1]) == searched)
+        t0 = t[min(pos)]
+
+        # get shift from period start
+        dt = t0 - self.period_start
+
+        return dt
 
     def modify_timing(self, dt_start_s=0, dt_stop_s=0):
         """Change start and end times of period
@@ -131,7 +166,7 @@ class ucnperiod(ucnbase):
             periods are forced to not overlap and have no gaps
             cannot change cycle end time, but can change cycle start time
         """
-        self._run.modify_ptiming(cycle = self.cycle,
-                                 period = self.period,
-                                 dt_start_s = dt_start_s,
-                                 dt_stop_s = dt_stop_s)
+        self._run._modify_ptiming(cycle = self.cycle,
+                                  period = self.period,
+                                  dt_start_s = dt_start_s,
+                                  dt_stop_s = dt_stop_s)

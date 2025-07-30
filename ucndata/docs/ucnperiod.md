@@ -7,6 +7,7 @@
 - [ucnperiod](#ucnperiod)
   - [ucnperiod](#ucnperiod-1)
     - [ucnperiod.get_nhits](#ucnperiodget_nhits)
+    - [ucnperiod.get_start_edge](#ucnperiodget_start_edge)
     - [ucnperiod.is_pileup](#ucnperiodis_pileup)
     - [ucnperiod.modify_timing](#ucnperiodmodify_timing)
 
@@ -48,6 +49,35 @@ Get number of ucn hits
 def get_nhits(self, detector): ...
 ```
 
+### ucnperiod.get_start_edge
+
+[Show source in ucnperiod.py:122](../../ucnperiod.py#L122)
+
+Detect period start time based on a rising or falling edge
+
+#### Arguments
+
+- `detector` *str* - Li6|He3
+- `thresh` *float* - calculate cycle start time shift based on edge detection passing through this level
+- `bin_ms` *int* - histogram bin size in milliseconds
+- `rising` *bool* - if true do rising edge, else do falling edge
+
+#### Returns
+
+- `float` - the change in the times in seconds, after applying the const_offset
+
+#### Examples
+
+```python
+dt = [cyc[2].get_start_edge('Li6', 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+```
+
+#### Signature
+
+```python
+def get_start_edge(self, detector, thresh, bin_ms=10, rising=True): ...
+```
+
 ### ucnperiod.is_pileup
 
 [Show source in ucnperiod.py:76](../../ucnperiod.py#L76)
@@ -80,7 +110,7 @@ def is_pileup(self, detector): ...
 
 ### ucnperiod.modify_timing
 
-[Show source in ucnperiod.py:122](../../ucnperiod.py#L122)
+[Show source in ucnperiod.py:157](../../ucnperiod.py#L157)
 
 Change start and end times of period
 

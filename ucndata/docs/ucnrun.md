@@ -6,14 +6,14 @@
 
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
+    - [ucnrun._get_nhits](#ucnrun_get_nhits)
+    - [ucnrun._modify_ptiming](#ucnrun_modify_ptiming)
     - [ucnrun.check_data](#ucnruncheck_data)
     - [ucnrun.draw_cycle_times](#ucnrundraw_cycle_times)
     - [ucnrun.gen_cycle_filter](#ucnrungen_cycle_filter)
     - [ucnrun.get_cycle](#ucnrunget_cycle)
-    - [ucnrun.get_nhits](#ucnrunget_nhits)
     - [ucnrun.inspect](#ucnruninspect)
     - [ucnrun.keyfilter](#ucnrunkeyfilter)
-    - [ucnrun.modify_ptiming](#ucnrunmodify_ptiming)
     - [ucnrun.set_cycle_filter](#ucnrunset_cycle_filter)
     - [ucnrun.set_cycle_times](#ucnrunset_cycle_times)
   - [new_format](#new_format)
@@ -118,7 +118,7 @@ for cycle in run:
     cycle.get_hits_histogram('Li6').plot(label=cycle.cycle)
 
 # adjust the timing of cycles and periods
-run.modify_ptiming(cycle=0, period=0, dt_start_s=1, dt_start_s=0)
+run._modify_ptiming(cycle=0, period=0, dt_start_s=1, dt_start_s=0)
 
 # inspect the data: draw a figure with hits histogram, beam current, and optional slow control data
 run.inspect('Li6', bin_ms=100, xmode='dur')
@@ -135,9 +135,62 @@ class ucnrun(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucnrun.check_data
+### ucnrun._get_nhits
 
 [Show source in ucnrun.py:416](../../ucnrun.py#L416)
+
+Get number ucn hits
+
+#### Arguments
+
+- `detector` *str* - Li6|He3
+- `cycle` *int* - cycle number, if None compute for whole run
+- `period` *int* - period number, if None compute for whole cycle, if cycle is not also None
+
+#### Notes
+
+Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
+The histogram bin quantities is saved as self._nhits or self._nhits_cycle
+Both ucncycle and ucnperiod classes call this function to get the counts
+
+#### Signature
+
+```python
+def _get_nhits(self, detector, cycle=None, period=None): ...
+```
+
+### ucnrun._modify_ptiming
+
+[Show source in ucnrun.py:476](../../ucnrun.py#L476)
+
+Change start and end times of periods
+
+#### Arguments
+
+- `cycle` *int* - cycle id number
+- `period` *int* - period id number
+- `dt_start_s` *float* - change to the period start time
+- `dt_stop_s` *float* - change to the period stop time
+- `update_duration` *bool* - if true, update period durations dataframe
+
+#### Notes
+
+* as a result of this, cycles may overlap or have gaps
+* periods are forced to not overlap and have no gaps
+* cannot change cycle end time, but can change cycle start time
+* this function resets all saved histgrams and hits
+
+#### Signature
+
+```python
+def _modify_ptiming(
+    self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True
+): ...
+```
+
+### ucnrun.check_data
+
+[Show source in ucnrun.py:564](../../ucnrun.py#L564)
 
 Run some checks to determine if the data is ok.
 
@@ -169,7 +222,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.draw_cycle_times
 
-[Show source in ucnrun.py:479](../../ucnrun.py#L479)
+[Show source in ucnrun.py:627](../../ucnrun.py#L627)
 
 Draw cycle start times as thick black lines, period end times as dashed lines
 
@@ -193,7 +246,7 @@ def draw_cycle_times(self, ax=None, xmode="datetime", do_legend=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:563](../../ucnrun.py#L563)
+[Show source in ucnrun.py:711](../../ucnrun.py#L711)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -234,7 +287,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:599](../../ucnrun.py#L599)
+[Show source in ucnrun.py:747](../../ucnrun.py#L747)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -271,33 +324,9 @@ run 1846 (cycle 0):
 def get_cycle(self, cycle=None): ...
 ```
 
-### ucnrun.get_nhits
-
-[Show source in ucnrun.py:636](../../ucnrun.py#L636)
-
-Get number ucn hits
-
-#### Arguments
-
-- `detector` *str* - Li6|He3
-- `cycle` *int* - cycle number, if None compute for whole run
-- `period` *int* - period number, if None compute for whole cycle, if cycle is not also None
-
-#### Notes
-
-Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
-The histogram bin quantities is saved as self._nhits or self._nhits_cycle
-Both ucncycle and ucnperiod classes call this function to get the counts
-
-#### Signature
-
-```python
-def get_nhits(self, detector, cycle=None, period=None): ...
-```
-
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:696](../../ucnrun.py#L696)
+[Show source in ucnrun.py:784](../../ucnrun.py#L784)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -325,7 +354,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:846](../../ucnrun.py#L846)
+[Show source in ucnrun.py:934](../../ucnrun.py#L934)
 
 Don't load all the data in each file, only that which is needed
 
@@ -333,35 +362,6 @@ Don't load all the data in each file, only that which is needed
 
 ```python
 def keyfilter(self, name): ...
-```
-
-### ucnrun.modify_ptiming
-
-[Show source in ucnrun.py:860](../../ucnrun.py#L860)
-
-Change start and end times of periods
-
-#### Arguments
-
-- `cycle` *int* - cycle id number
-- `period` *int* - period id number
-- `dt_start_s` *float* - change to the period start time
-- `dt_stop_s` *float* - change to the period stop time
-- `update_duration` *bool* - if true, update period durations dataframe
-
-#### Notes
-
-* as a result of this, cycles may overlap or have gaps
-* periods are forced to not overlap and have no gaps
-* cannot change cycle end time, but can change cycle start time
-* this function resets all saved histgrams and hits
-
-#### Signature
-
-```python
-def modify_ptiming(
-    self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True
-): ...
 ```
 
 ### ucnrun.set_cycle_filter

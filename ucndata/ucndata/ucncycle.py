@@ -207,7 +207,7 @@ class ucncycle(ucnbase):
         Args:
             detector (str): Li6|He3
         """
-        return self._run.get_nhits(detector, cycle=self.cycle)
+        return self._run._get_nhits(detector, cycle=self.cycle)
 
     def get_period(self, period=None):
         """Return a copy of this object, but trees are trimmed to only one period.
@@ -248,36 +248,6 @@ class ucncycle(ucnbase):
             self._perioddict[period] = ucnperiod(self, period)
             return self._perioddict[period]
 
-    def get_shift_timing(self, detector, period, rising_edge_thresh, bin_ms=10):
-        """Detect cycle start time based on a rising edge
-        Args:
-            detector (str): Li6|He3
-            period (int): period number to detect rising edge in
-            rising_edge_thresh (float): calculate cycle start time shift based on edge detection above this level
-            bin_ms (int): histogram bin size in milliseconds
-
-        Returns:
-            float: the change in the times in seconds, after applying the const_offset
-
-        Example:
-            ```python
-                dt = [cyc.get_time_shift('Li6', 2, 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
-            ```
-        """
-
-        # get histogram
-        hist = self[period].get_hits_histogram(detector, bin_ms=bin_ms)
-        t = hist.x
-        n = hist.y
-
-        # rising edge detection
-        t0 = t[np.min((n > rising_edge_thresh).nonzero())]
-
-        # get shift from period start
-        dt = t0 - self[period].period_start
-
-        return dt
-
     def shift_timing(self, dt):
         """Shift all periods by a constant time, maintaining the period durations.
         This shifts the cycle start time and shortens the cycle, potentially creating gaps between cycles
@@ -294,7 +264,7 @@ class ucncycle(ucnbase):
             ```
 
         Notes:
-            * This function makes use of `ucnrun.modify_ptiming`, which resets all saved histograms and hits
+            * This function makes use of `ucnrun._modify_ptiming`, which resets all saved histograms and hits
         """
         for period in self:
             period.modify_timing(dt, 0)

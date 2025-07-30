@@ -117,7 +117,7 @@ class ucnrun(ucnbase):
             cycle.get_hits_histogram('Li6').plot(label=cycle.cycle)
 
         # adjust the timing of cycles and periods
-        run.modify_ptiming(cycle=0, period=0, dt_start_s=1, dt_start_s=0)
+        run._modify_ptiming(cycle=0, period=0, dt_start_s=1, dt_start_s=0)
 
         # inspect the data: draw a figure with hits histogram, beam current, and optional slow control data
         run.inspect('Li6', bin_ms=100, xmode='dur')
@@ -413,6 +413,154 @@ class ucnrun(ucnbase):
         # number of cycles
         self.cycle_param['ncycles'] = len(df.index)
 
+    def _get_nhits(self, detector, cycle=None, period=None):
+        """Get number ucn hits
+
+        Args:
+            detector (str): Li6|He3
+            cycle (int): cycle number, if None compute for whole run
+            period (int): period number, if None compute for whole cycle, if cycle is not also None
+
+        Notes:
+            Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
+            The histogram bin quantities is saved as self._nhits or self._nhits_cycle
+            Both ucncycle and ucnperiod classes call this function to get the counts
+        """
+
+        # get hits tree
+        tree = self.tfile[self.DET_NAMES[detector]['hits']]
+
+        # get hits for run
+        if cycle is None and period is None:
+            return tree.size
+
+        else:
+
+            # make hits histogram
+            if self._nhits is None:
+
+                # use period and cycle start and end times as bin edges
+                edges = []
+                for cyclei in range(self.cycle_param.ncycles):
+
+                    # get cycle start and end
+                    cycle_start = self.cycle_param.cycle_times.start[cyclei]
+                    period_ends = self.cycle_param.period_end_times[cyclei]
+
+                    # shorten periods that extend past the end of the cycle (edge case)
+                    if cyclei < self.cycle_param.ncycles-1:
+                        next_cycle_start = self.cycle_param.cycle_times.start[cyclei+1]
+                    else:
+                        next_cycle_start = self.cycle_param.cycle_times.stop.iloc[-1]
+
+                    period_ends[period_ends > next_cycle_start] = next_cycle_start
+
+                    # save to list
+                    edges.append(cycle_start)
+                    edges.extend(list(period_ends))
+
+                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
+                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1]) # need duplicate end bin for some reason
+
+                self._nhits = tree.hist1d('tUnixTimePrecise', edges=edges).y[1:]
+
+            # get hits for cycle
+            if period is None:
+                nperiodsp1 = len(self.cycle_param.period_end_times)+1
+                return int(self._nhits[cycle*nperiodsp1:(cycle+1)*nperiodsp1].sum())
+
+            # get hits for period
+            else:
+                return int(self._nhits[cycle*(len(self.cycle_param.period_end_times)+1)+period])
+
+    def _modify_ptiming(self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True):
+        """Change start and end times of periods
+
+        Args:
+            cycle (int): cycle id number
+            period (int): period id number
+            dt_start_s (float): change to the period start time
+            dt_stop_s (float): change to the period stop time
+            update_duration (bool): if true, update period durations dataframe
+
+        Notes:
+            * as a result of this, cycles may overlap or have gaps
+            * periods are forced to not overlap and have no gaps
+            * cannot change cycle end time, but can change cycle start time
+            * this function resets all saved histgrams and hits
+        """
+
+        # get cycle parameters
+        cycpar = self.cycle_param
+
+        # start times - prevent unnecessary recursion
+        if dt_start_s != 0:
+
+            # adjust cycle start
+            if period == 0:
+                cycpar.cycle_times.loc[cycle, 'start'] += dt_start_s
+
+            # period start time adjustment
+            else:
+                cycpar.period_end_times.loc[period-1, cycle] += dt_start_s
+
+            # recursively adjust adjacent size zero periods
+            if period-1 > 0 and cycpar.period_durations_s.loc[period-1, cycle] == 0:
+                self._modify_ptiming(cycle, period-1,
+                                    dt_start_s = dt_start_s,
+                                    dt_stop_s  = 0,
+                                    update_duration = False)
+
+        # stop times - prevent unnecessary recursion
+        if dt_stop_s != 0:
+
+            # period end time adjustment
+            cycpar.period_end_times.loc[period, cycle] += dt_stop_s
+
+            # force periods to stay within cycle bounds
+            cycend = cycpar.cycle_times.loc[cycle, 'stop']
+            perend = cycpar.period_end_times.loc[period, cycle]
+            cycpar.period_end_times.loc[period, cycle] = min(perend, cycend)
+
+            # recursively adjust adjacent size zero periods
+            try:
+                if cycpar.period_durations_s.loc[period+1, cycle] == 0:
+                    self._modify_ptiming(cycle, period+1,
+                                        dt_start_s = 0,
+                                        dt_stop_s  = dt_stop_s,
+                                        update_duration = False)
+
+            # period not in durations dataframe
+            except KeyError:
+                pass
+
+        # adjust period and cycle durations
+        if update_duration:
+
+            start = cycpar.cycle_times['start']
+            stop = cycpar.cycle_times['stop']
+
+            df = cycpar.period_end_times
+            df_diff = df.diff()
+            df_diff.loc[0] = df.loc[0] - start
+            cycpar.period_durations_s = df_diff
+
+            cycpar.cycle_times.loc[cycle, 'duration (s)'] = (stop-start).loc[0]
+
+        # set in memory
+        self.cycle_param = cycpar
+
+        # remove saved cycles to account for updated limits
+        if cycle in self._cycledict.keys():
+            del self._cycledict[cycle]
+
+        # reset histogram for number of hits
+        self._nhits = None
+
+        # reset all saved histograms
+        for key in self._hits_hist.keys():
+            self._hits_hist[key] = None
+
     def check_data(self, raise_error=False):
         """Run some checks to determine if the data is ok.
 
@@ -633,66 +781,6 @@ class ucnrun(ucnbase):
             self._cycledict[cycle] = ucncycle(self, cycle)
             return self._cycledict[cycle]
 
-    def get_nhits(self, detector, cycle=None, period=None):
-        """Get number ucn hits
-
-        Args:
-            detector (str): Li6|He3
-            cycle (int): cycle number, if None compute for whole run
-            period (int): period number, if None compute for whole cycle, if cycle is not also None
-
-        Notes:
-            Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
-            The histogram bin quantities is saved as self._nhits or self._nhits_cycle
-            Both ucncycle and ucnperiod classes call this function to get the counts
-        """
-
-        # get hits tree
-        tree = self.tfile[self.DET_NAMES[detector]['hits']]
-
-        # get hits for run
-        if cycle is None and period is None:
-            return tree.size
-
-        else:
-
-            # make hits histogram
-            if self._nhits is None:
-
-                # use period and cycle start and end times as bin edges
-                edges = []
-                for cyclei in range(self.cycle_param.ncycles):
-
-                    # get cycle start and end
-                    cycle_start = self.cycle_param.cycle_times.start[cyclei]
-                    period_ends = self.cycle_param.period_end_times[cyclei]
-
-                    # shorten periods that extend past the end of the cycle (edge case)
-                    if cyclei < self.cycle_param.ncycles-1:
-                        next_cycle_start = self.cycle_param.cycle_times.start[cyclei+1]
-                    else:
-                        next_cycle_start = self.cycle_param.cycle_times.stop.iloc[-1]
-
-                    period_ends[period_ends > next_cycle_start] = next_cycle_start
-
-                    # save to list
-                    edges.append(cycle_start)
-                    edges.extend(list(period_ends))
-
-                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
-                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1]) # need duplicate end bin for some reason
-
-                self._nhits = tree.hist1d('tUnixTimePrecise', edges=edges).y[1:]
-
-            # get hits for cycle
-            if period is None:
-                nperiodsp1 = len(self.cycle_param.period_end_times)+1
-                return int(self._nhits[cycle*nperiodsp1:(cycle+1)*nperiodsp1].sum())
-
-            # get hits for period
-            else:
-                return int(self._nhits[cycle*(len(self.cycle_param.period_end_times)+1)+period])
-
     def inspect(self, detector='Li6', bin_ms=100, xmode='duration', slow=None):
         """Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -856,94 +944,6 @@ class ucnrun(ucnbase):
                 return False
 
         return True
-
-    def modify_ptiming(self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True):
-        """Change start and end times of periods
-
-        Args:
-            cycle (int): cycle id number
-            period (int): period id number
-            dt_start_s (float): change to the period start time
-            dt_stop_s (float): change to the period stop time
-            update_duration (bool): if true, update period durations dataframe
-
-        Notes:
-            * as a result of this, cycles may overlap or have gaps
-            * periods are forced to not overlap and have no gaps
-            * cannot change cycle end time, but can change cycle start time
-            * this function resets all saved histgrams and hits
-        """
-
-        # get cycle parameters
-        cycpar = self.cycle_param
-
-        # start times - prevent unnecessary recursion
-        if dt_start_s != 0:
-
-            # adjust cycle start
-            if period == 0:
-                cycpar.cycle_times.loc[cycle, 'start'] += dt_start_s
-
-            # period start time adjustment
-            else:
-                cycpar.period_end_times.loc[period-1, cycle] += dt_start_s
-
-            # recursively adjust adjacent size zero periods
-            if period-1 > 0 and cycpar.period_durations_s.loc[period-1, cycle] == 0:
-                self.modify_ptiming(cycle, period-1,
-                                    dt_start_s = dt_start_s,
-                                    dt_stop_s  = 0,
-                                    update_duration = False)
-
-        # stop times - prevent unnecessary recursion
-        if dt_stop_s != 0:
-
-            # period end time adjustment
-            cycpar.period_end_times.loc[period, cycle] += dt_stop_s
-
-            # force periods to stay within cycle bounds
-            cycend = cycpar.cycle_times.loc[cycle, 'stop']
-            perend = cycpar.period_end_times.loc[period, cycle]
-            cycpar.period_end_times.loc[period, cycle] = min(perend, cycend)
-
-            # recursively adjust adjacent size zero periods
-            try:
-                if cycpar.period_durations_s.loc[period+1, cycle] == 0:
-                    self.modify_ptiming(cycle, period+1,
-                                        dt_start_s = 0,
-                                        dt_stop_s  = dt_stop_s,
-                                        update_duration = False)
-
-            # period not in durations dataframe
-            except KeyError:
-                pass
-
-        # adjust period and cycle durations
-        if update_duration:
-
-            start = cycpar.cycle_times['start']
-            stop = cycpar.cycle_times['stop']
-
-            df = cycpar.period_end_times
-            df_diff = df.diff()
-            df_diff.loc[0] = df.loc[0] - start
-            cycpar.period_durations_s = df_diff
-
-            cycpar.cycle_times.loc[cycle, 'duration (s)'] = (stop-start).loc[0]
-
-        # set in memory
-        self.cycle_param = cycpar
-
-        # remove saved cycles to account for updated limits
-        if cycle in self._cycledict.keys():
-            del self._cycledict[cycle]
-
-        # reset histogram for number of hits
-        self._nhits = None
-
-        # reset all saved histograms
-        for key in self._hits_hist.keys():
-            self._hits_hist[key] = None
 
     def set_cycle_filter(self, cfilter=None):
         """Set filter for which cycles to fetch when slicing or iterating
