@@ -1,6 +1,6 @@
-# UCNanalysis
+# ucndata
 
-This repository defines the [ucndata] package and a few scripts which utilize this package to analyze data from the 2025 run.
+This repository defines the [ucndata] package and a few scripts which utilize this package to analyze UCN ROOT files.
 
 The `ucndata` package contained within has been installed system-wide on `daq04`. You will therefore be able to import it from any directory.
 
