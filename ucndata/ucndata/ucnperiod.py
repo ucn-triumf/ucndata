@@ -162,9 +162,10 @@ class ucnperiod(ucnbase):
             dt_stop_s (float): change to the period stop time
 
         Notes:
-            as a result of this, cycles may overlap or have gaps
-            periods are forced to not overlap and have no gaps
-            cannot change cycle end time, but can change cycle start time
+            * as a result of this, cycles may overlap or have gaps
+            * periods are forced to not overlap and have no gaps
+            * cannot change cycle end time, but can change cycle start time
+            * this function resets all saved histgrams and hits
         """
         self._run._modify_ptiming(cycle = self.cycle,
                                   period = self.period,

@@ -414,18 +414,17 @@ class ucnrun(ucnbase):
         self.cycle_param['ncycles'] = len(df.index)
 
     def _get_nhits(self, detector, cycle=None, period=None):
-        """Get number ucn hits
+        # Get number ucn hits
 
-        Args:
-            detector (str): Li6|He3
-            cycle (int): cycle number, if None compute for whole run
-            period (int): period number, if None compute for whole cycle, if cycle is not also None
+        # Args:
+        #     detector (str): Li6|He3
+        #     cycle (int): cycle number, if None compute for whole run
+        #     period (int): period number, if None compute for whole cycle, if cycle is not also None
 
-        Notes:
-            Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
-            The histogram bin quantities is saved as self._nhits or self._nhits_cycle
-            Both ucncycle and ucnperiod classes call this function to get the counts
-        """
+        # Notes:
+        #     Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
+        #     The histogram bin quantities is saved as self._nhits or self._nhits_cycle
+        #     Both ucncycle and ucnperiod classes call this function to get the counts
 
         # get hits tree
         tree = self.tfile[self.DET_NAMES[detector]['hits']]
@@ -474,21 +473,20 @@ class ucnrun(ucnbase):
                 return int(self._nhits[cycle*(len(self.cycle_param.period_end_times)+1)+period])
 
     def _modify_ptiming(self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True):
-        """Change start and end times of periods
+        # Change start and end times of periods
 
-        Args:
-            cycle (int): cycle id number
-            period (int): period id number
-            dt_start_s (float): change to the period start time
-            dt_stop_s (float): change to the period stop time
-            update_duration (bool): if true, update period durations dataframe
+        # Args:
+        #     cycle (int): cycle id number
+        #     period (int): period id number
+        #     dt_start_s (float): change to the period start time
+        #     dt_stop_s (float): change to the period stop time
+        #     update_duration (bool): if true, update period durations dataframe
 
-        Notes:
-            * as a result of this, cycles may overlap or have gaps
-            * periods are forced to not overlap and have no gaps
-            * cannot change cycle end time, but can change cycle start time
-            * this function resets all saved histgrams and hits
-        """
+        # Notes:
+        #     * as a result of this, cycles may overlap or have gaps
+        #     * periods are forced to not overlap and have no gaps
+        #     * cannot change cycle end time, but can change cycle start time
+        #     * this function resets all saved histgrams and hits
 
         # get cycle parameters
         cycpar = self.cycle_param

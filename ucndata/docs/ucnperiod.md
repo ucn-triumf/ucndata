@@ -121,9 +121,10 @@ Change start and end times of period
 
 #### Notes
 
-as a result of this, cycles may overlap or have gaps
-periods are forced to not overlap and have no gaps
-cannot change cycle end time, but can change cycle start time
+* as a result of this, cycles may overlap or have gaps
+* periods are forced to not overlap and have no gaps
+* cannot change cycle end time, but can change cycle start time
+* this function resets all saved histgrams and hits
 
 #### Signature
 

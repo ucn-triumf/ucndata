@@ -6,8 +6,6 @@
 
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
-    - [ucnrun._get_nhits](#ucnrun_get_nhits)
-    - [ucnrun._modify_ptiming](#ucnrun_modify_ptiming)
     - [ucnrun.check_data](#ucnruncheck_data)
     - [ucnrun.draw_cycle_times](#ucnrundraw_cycle_times)
     - [ucnrun.gen_cycle_filter](#ucnrungen_cycle_filter)
@@ -135,62 +133,9 @@ class ucnrun(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucnrun._get_nhits
-
-[Show source in ucnrun.py:416](../../ucnrun.py#L416)
-
-Get number ucn hits
-
-#### Arguments
-
-- `detector` *str* - Li6|He3
-- `cycle` *int* - cycle number, if None compute for whole run
-- `period` *int* - period number, if None compute for whole cycle, if cycle is not also None
-
-#### Notes
-
-Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
-The histogram bin quantities is saved as self._nhits or self._nhits_cycle
-Both ucncycle and ucnperiod classes call this function to get the counts
-
-#### Signature
-
-```python
-def _get_nhits(self, detector, cycle=None, period=None): ...
-```
-
-### ucnrun._modify_ptiming
-
-[Show source in ucnrun.py:476](../../ucnrun.py#L476)
-
-Change start and end times of periods
-
-#### Arguments
-
-- `cycle` *int* - cycle id number
-- `period` *int* - period id number
-- `dt_start_s` *float* - change to the period start time
-- `dt_stop_s` *float* - change to the period stop time
-- `update_duration` *bool* - if true, update period durations dataframe
-
-#### Notes
-
-* as a result of this, cycles may overlap or have gaps
-* periods are forced to not overlap and have no gaps
-* cannot change cycle end time, but can change cycle start time
-* this function resets all saved histgrams and hits
-
-#### Signature
-
-```python
-def _modify_ptiming(
-    self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True
-): ...
-```
-
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:564](../../ucnrun.py#L564)
+[Show source in ucnrun.py:562](../../ucnrun.py#L562)
 
 Run some checks to determine if the data is ok.
 
@@ -222,7 +167,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.draw_cycle_times
 
-[Show source in ucnrun.py:627](../../ucnrun.py#L627)
+[Show source in ucnrun.py:625](../../ucnrun.py#L625)
 
 Draw cycle start times as thick black lines, period end times as dashed lines
 
@@ -246,7 +191,7 @@ def draw_cycle_times(self, ax=None, xmode="datetime", do_legend=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:711](../../ucnrun.py#L711)
+[Show source in ucnrun.py:709](../../ucnrun.py#L709)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -287,7 +232,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:747](../../ucnrun.py#L747)
+[Show source in ucnrun.py:745](../../ucnrun.py#L745)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -326,7 +271,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:784](../../ucnrun.py#L784)
+[Show source in ucnrun.py:782](../../ucnrun.py#L782)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -354,7 +299,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:934](../../ucnrun.py#L934)
+[Show source in ucnrun.py:932](../../ucnrun.py#L932)
 
 Don't load all the data in each file, only that which is needed
 
@@ -366,7 +311,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:948](../../ucnrun.py#L948)
+[Show source in ucnrun.py:946](../../ucnrun.py#L946)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -437,7 +382,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:1021](../../ucnrun.py#L1021)
+[Show source in ucnrun.py:1019](../../ucnrun.py#L1019)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
