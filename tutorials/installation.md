@@ -12,22 +12,16 @@ You should install ucndata on your python path. Here is the full installation st
 1. Clone this repository
 
 ```bash
-git clone https://github.com/ucn-triumf/UCNanalysis.git
+git clone https://github.com/ucn-triumf/ucndata.git
 ```
 
-2. Switch to the correct branch
+2. Go to the `ucndata` directory
 
 ```bash
-git checkout 2025
+cd ucndata
 ```
 
-3. Go to the `ucndata` directory
-
-```bash
-cd UCNanalysis/ucndata
-```
-
-4. Install ucndata system-wide
+3. Install ucndata system-wide
 
 ```bash
 pip install -e .
