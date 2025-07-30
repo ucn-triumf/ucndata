@@ -9,7 +9,7 @@
     - [ucncycle.check_data](#ucncyclecheck_data)
     - [ucncycle.get_nhits](#ucncycleget_nhits)
     - [ucncycle.get_period](#ucncycleget_period)
-    - [ucncycle.get_time_shift](#ucncycleget_time_shift)
+    - [ucncycle.get_shift_timing](#ucncycleget_shift_timing)
     - [ucncycle.shift_timing](#ucncycleshift_timing)
 
 ## ucncycle
@@ -139,7 +139,7 @@ run 1846 (cycle 0, period 0):
 def get_period(self, period=None): ...
 ```
 
-### ucncycle.get_time_shift
+### ucncycle.get_shift_timing
 
 [Show source in ucncycle.py:251](../../ucncycle.py#L251)
 
@@ -165,7 +165,7 @@ dt = [cyc.get_time_shift('Li6', 2, 50) if cyc[2].period_dur > 0 else 0 for cyc i
 #### Signature
 
 ```python
-def get_time_shift(self, detector, period, rising_edge_thresh, bin_ms=10): ...
+def get_shift_timing(self, detector, period, rising_edge_thresh, bin_ms=10): ...
 ```
 
 ### ucncycle.shift_timing

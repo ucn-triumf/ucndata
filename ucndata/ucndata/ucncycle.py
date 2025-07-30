@@ -248,7 +248,7 @@ class ucncycle(ucnbase):
             self._perioddict[period] = ucnperiod(self, period)
             return self._perioddict[period]
 
-    def get_time_shift(self, detector, period, rising_edge_thresh, bin_ms=10):
+    def get_shift_timing(self, detector, period, rising_edge_thresh, bin_ms=10):
         """Detect cycle start time based on a rising edge
         Args:
             detector (str): Li6|He3
