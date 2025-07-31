@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / ttreeslow
 
-> Auto-generated documentation for [ttreeslow](../../ttreeslow.py) module.
+> Auto-generated documentation for [ttreeslow](../ucndata/ttreeslow.py) module.
 
 - [ttreeslow](#ttreeslow)
   - [ttreeslow](#ttreeslow-1)
@@ -22,7 +22,7 @@
 
 ## ttreeslow
 
-[Show source in ttreeslow.py:7](../../ttreeslow.py#L7)
+[Show source in ttreeslow.py:7](../ucndata/ttreeslow.py#L7)
 
 #### Signature
 
@@ -33,7 +33,7 @@ class ttreeslow(ttree):
 
 ### ttreeslow.__getitem__
 
-[Show source in ttreeslow.py:27](../../ttreeslow.py#L27)
+[Show source in ttreeslow.py:27](../ucndata/ttreeslow.py#L27)
 
 Fetch a new dataframe with fewer 'columns', as a memory view
 
@@ -45,7 +45,7 @@ def __getitem__(self, key): ...
 
 ### ttreeslow.columns
 
-[Show source in ttreeslow.py:100](../../ttreeslow.py#L100)
+[Show source in ttreeslow.py:100](../ucndata/ttreeslow.py#L100)
 
 #### Signature
 
@@ -56,7 +56,7 @@ def columns(self): ...
 
 ### ttreeslow.filters
 
-[Show source in ttreeslow.py:103](../../ttreeslow.py#L103)
+[Show source in ttreeslow.py:103](../ucndata/ttreeslow.py#L103)
 
 #### Signature
 
@@ -67,7 +67,7 @@ def filters(self): ...
 
 ### ttreeslow.hist1d
 
-[Show source in ttreeslow.py:31](../../ttreeslow.py#L31)
+[Show source in ttreeslow.py:31](../ucndata/ttreeslow.py#L31)
 
 Return histogram of column
 
@@ -91,7 +91,7 @@ def hist1d(self, column=None, nbins=None, step=None): ...
 
 ### ttreeslow.index
 
-[Show source in ttreeslow.py:106](../../ttreeslow.py#L106)
+[Show source in ttreeslow.py:106](../ucndata/ttreeslow.py#L106)
 
 #### Signature
 
@@ -102,7 +102,7 @@ def index(self): ...
 
 ### ttreeslow.index_name
 
-[Show source in ttreeslow.py:109](../../ttreeslow.py#L109)
+[Show source in ttreeslow.py:109](../ucndata/ttreeslow.py#L109)
 
 #### Signature
 
@@ -113,7 +113,7 @@ def index_name(self): ...
 
 ### ttreeslow.reset
 
-[Show source in ttreeslow.py:57](../../ttreeslow.py#L57)
+[Show source in ttreeslow.py:57](../ucndata/ttreeslow.py#L57)
 
 Make a new set of trees
 
@@ -125,7 +125,7 @@ def reset(self): ...
 
 ### ttreeslow.reset_columns
 
-[Show source in ttreeslow.py:62](../../ttreeslow.py#L62)
+[Show source in ttreeslow.py:62](../ucndata/ttreeslow.py#L62)
 
 Include all columns again
 
@@ -137,7 +137,7 @@ def reset_columns(self): ...
 
 ### ttreeslow.set_filter
 
-[Show source in ttreeslow.py:78](../../ttreeslow.py#L78)
+[Show source in ttreeslow.py:78](../ucndata/ttreeslow.py#L78)
 
 Set a filter on the dataframe to select a subset of the data
 
@@ -149,7 +149,7 @@ def set_filter(self, expression, inplace=False): ...
 
 ### ttreeslow.set_index
 
-[Show source in ttreeslow.py:70](../../ttreeslow.py#L70)
+[Show source in ttreeslow.py:70](../ucndata/ttreeslow.py#L70)
 
 Set the index column name
 
@@ -161,7 +161,7 @@ def set_index(self, column): ...
 
 ### ttreeslow.size
 
-[Show source in ttreeslow.py:112](../../ttreeslow.py#L112)
+[Show source in ttreeslow.py:112](../ucndata/ttreeslow.py#L112)
 
 #### Signature
 
@@ -172,7 +172,7 @@ def size(self): ...
 
 ### ttreeslow.to_dataframe
 
-[Show source in ttreeslow.py:88](../../ttreeslow.py#L88)
+[Show source in ttreeslow.py:88](../ucndata/ttreeslow.py#L88)
 
 #### Signature
 
@@ -182,7 +182,7 @@ def to_dataframe(self): ...
 
 ### ttreeslow.to_dict
 
-[Show source in ttreeslow.py:91](../../ttreeslow.py#L91)
+[Show source in ttreeslow.py:91](../ucndata/ttreeslow.py#L91)
 
 #### Signature
 

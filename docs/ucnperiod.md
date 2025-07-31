@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / ucnperiod
 
-> Auto-generated documentation for [ucnperiod](../../ucnperiod.py) module.
+> Auto-generated documentation for [ucnperiod](../ucndata/ucnperiod.py) module.
 
 - [ucnperiod](#ucnperiod)
   - [ucnperiod](#ucnperiod-1)
@@ -13,7 +13,7 @@
 
 ## ucnperiod
 
-[Show source in ucnperiod.py:13](../../ucnperiod.py#L13)
+[Show source in ucnperiod.py:13](../ucndata/ucnperiod.py#L13)
 
 Stores the data from a single UCN period from a single cycle
 
@@ -35,7 +35,7 @@ class ucnperiod(ucnbase):
 
 ### ucnperiod.get_nhits
 
-[Show source in ucnperiod.py:114](../../ucnperiod.py#L114)
+[Show source in ucnperiod.py:114](../ucndata/ucnperiod.py#L114)
 
 Get number of ucn hits
 
@@ -51,7 +51,7 @@ def get_nhits(self, detector): ...
 
 ### ucnperiod.get_start_edge
 
-[Show source in ucnperiod.py:122](../../ucnperiod.py#L122)
+[Show source in ucnperiod.py:122](../ucndata/ucnperiod.py#L122)
 
 Detect period start time based on a rising or falling edge
 
@@ -80,7 +80,7 @@ def get_start_edge(self, detector, thresh, bin_ms=10, rising=True): ...
 
 ### ucnperiod.is_pileup
 
-[Show source in ucnperiod.py:76](../../ucnperiod.py#L76)
+[Show source in ucnperiod.py:76](../ucndata/ucnperiod.py#L76)
 
 Check if pileup may be an issue in this period.
 
@@ -110,7 +110,7 @@ def is_pileup(self, detector): ...
 
 ### ucnperiod.modify_timing
 
-[Show source in ucnperiod.py:157](../../ucnperiod.py#L157)
+[Show source in ucnperiod.py:157](../ucndata/ucnperiod.py#L157)
 
 Change start and end times of period
 

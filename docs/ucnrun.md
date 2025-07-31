@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / ucnrun
 
-> Auto-generated documentation for [ucnrun](../../ucnrun.py) module.
+> Auto-generated documentation for [ucnrun](../ucndata/ucnrun.py) module.
 
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
@@ -18,7 +18,7 @@
 
 ## ucnrun
 
-[Show source in ucnrun.py:30](../../ucnrun.py#L30)
+[Show source in ucnrun.py:30](../ucndata/ucnrun.py#L30)
 
 UCN run data. Cleans data and performs analysis
 
@@ -73,9 +73,9 @@ Loading runs
 ```python
 from ucndata import ucnrun, settings
 # load from filename
-ucnrun('/path/to/file/ucn_run_00002684.root')
+ucnrun('/pa../ucndata/file/ucn_run_00002684.root')
 # load from run number
-ucnrun.datadir = '/path/to/file/'
+ucnrun.datadir = '/pa../ucndata/file/'
 ucnrun(2684)
 ```
 
@@ -135,7 +135,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:562](../../ucnrun.py#L562)
+[Show source in ucnrun.py:562](../ucndata/ucnrun.py#L562)
 
 Run some checks to determine if the data is ok.
 
@@ -167,7 +167,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.draw_cycle_times
 
-[Show source in ucnrun.py:625](../../ucnrun.py#L625)
+[Show source in ucnrun.py:625](../ucndata/ucnrun.py#L625)
 
 Draw cycle start times as thick black lines, period end times as dashed lines
 
@@ -191,7 +191,7 @@ def draw_cycle_times(self, ax=None, xmode="datetime", do_legend=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:709](../../ucnrun.py#L709)
+[Show source in ucnrun.py:709](../ucndata/ucnrun.py#L709)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -232,7 +232,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:745](../../ucnrun.py#L745)
+[Show source in ucnrun.py:745](../ucndata/ucnrun.py#L745)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -271,7 +271,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:782](../../ucnrun.py#L782)
+[Show source in ucnrun.py:782](../ucndata/ucnrun.py#L782)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -299,7 +299,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:932](../../ucnrun.py#L932)
+[Show source in ucnrun.py:932](../ucndata/ucnrun.py#L932)
 
 Don't load all the data in each file, only that which is needed
 
@@ -311,7 +311,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:946](../../ucnrun.py#L946)
+[Show source in ucnrun.py:946](../ucndata/ucnrun.py#L946)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -382,7 +382,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:1019](../../ucnrun.py#L1019)
+[Show source in ucnrun.py:1019](../ucndata/ucnrun.py#L1019)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
@@ -430,7 +430,7 @@ def set_cycle_times(self, mode): ...
 
 ## new_format
 
-[Show source in ucnrun.py:24](../../ucnrun.py#L24)
+[Show source in ucnrun.py:24](../ucndata/ucnrun.py#L24)
 
 #### Signature
 

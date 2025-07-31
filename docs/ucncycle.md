@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / ucncycle
 
-> Auto-generated documentation for [ucncycle](../../ucncycle.py) module.
+> Auto-generated documentation for [ucncycle](../ucndata/ucncycle.py) module.
 
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
@@ -13,7 +13,7 @@
 
 ## ucncycle
 
-[Show source in ucncycle.py:14](../../ucncycle.py#L14)
+[Show source in ucncycle.py:14](../ucndata/ucncycle.py#L14)
 
 View for the data from a single UCN cycle
 
@@ -40,7 +40,7 @@ class ucncycle(ucnbase):
 
 ### ucncycle.check_data
 
-[Show source in ucncycle.py:121](../../ucncycle.py#L121)
+[Show source in ucncycle.py:121](../ucndata/ucncycle.py#L121)
 
 Run some checks to determine if the data is ok.
 
@@ -83,7 +83,7 @@ def check_data(self, raise_error=False, quiet=False): ...
 
 ### ucncycle.get_nhits
 
-[Show source in ucncycle.py:204](../../ucncycle.py#L204)
+[Show source in ucncycle.py:204](../ucndata/ucncycle.py#L204)
 
 Get number of ucn hits
 
@@ -99,7 +99,7 @@ def get_nhits(self, detector): ...
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:212](../../ucncycle.py#L212)
+[Show source in ucncycle.py:212](../ucndata/ucncycle.py#L212)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -140,7 +140,7 @@ def get_period(self, period=None): ...
 
 ### ucncycle.shift_timing
 
-[Show source in ucncycle.py:251](../../ucncycle.py#L251)
+[Show source in ucncycle.py:251](../ucndata/ucncycle.py#L251)
 
 Shift all periods by a constant time, maintaining the period durations.
 This shifts the cycle start time and shortens the cycle, potentially creating gaps between cycles

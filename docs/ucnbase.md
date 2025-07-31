@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / ucnbase
 
-> Auto-generated documentation for [ucnbase](../../ucnbase.py) module.
+> Auto-generated documentation for [ucnbase](../ucndata/ucnbase.py) module.
 
 - [ucnbase](#ucnbase)
   - [ucnbase](#ucnbase-1)
@@ -17,7 +17,7 @@
 
 ## ucnbase
 
-[Show source in ucnbase.py:16](../../ucnbase.py#L16)
+[Show source in ucnbase.py:16](../ucndata/ucnbase.py#L16)
 
 #### Attributes
 
@@ -80,7 +80,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:141](../../ucnbase.py#L141)
+[Show source in ucnbase.py:141](../ucndata/ucnbase.py#L141)
 
 Apply function to each cycle
 
@@ -107,7 +107,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:344](../../ucnbase.py#L344)
+[Show source in ucnbase.py:344](../ucndata/ucnbase.py#L344)
 
 Get beamline 1A current in uA (micro amps)
 
@@ -124,7 +124,7 @@ def beam1a_current_uA(self): ...
 
 ### ucnbase.beam1u_current_uA
 
-[Show source in ucnbase.py:358](../../ucnbase.py#L358)
+[Show source in ucnbase.py:358](../ucndata/ucnbase.py#L358)
 
 Get beam current in uA (micro amps)
 
@@ -164,7 +164,7 @@ def beam1u_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:437](../../ucnbase.py#L437)
+[Show source in ucnbase.py:437](../ucndata/ucnbase.py#L437)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -206,7 +206,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:402](../../ucnbase.py#L402)
+[Show source in ucnbase.py:402](../ucndata/ucnbase.py#L402)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -248,7 +248,7 @@ def beam_on_s(self): ...
 
 ### ucnbase.get_hits_array
 
-[Show source in ucnbase.py:158](../../ucnbase.py#L158)
+[Show source in ucnbase.py:158](../ucndata/ucnbase.py#L158)
 
 Get times of ucn hits as a numpy array
 
@@ -276,7 +276,7 @@ def get_hits_array(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:184](../../ucnbase.py#L184)
+[Show source in ucnbase.py:184](../ucndata/ucnbase.py#L184)
 
 Get histogram of UCNHits ttree times
 
@@ -325,7 +325,7 @@ def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 
 ### ucnbase.plot_psd
 
-[Show source in ucnbase.py:272](../../ucnbase.py#L272)
+[Show source in ucnbase.py:272](../ucndata/ucnbase.py#L272)
 
 Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 

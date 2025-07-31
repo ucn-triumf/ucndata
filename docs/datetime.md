@@ -2,7 +2,7 @@
 
 [Ucndata Index](./README.md#ucndata-index) / Datetime
 
-> Auto-generated documentation for [datetime](../../datetime.py) module.
+> Auto-generated documentation for [datetime](../ucndata/datetime.py) module.
 
 - [Datetime](#datetime)
   - [from_datetime](#from_datetime)
@@ -10,7 +10,7 @@
 
 ## from_datetime
 
-[Show source in datetime.py:9](../../datetime.py#L9)
+[Show source in datetime.py:9](../ucndata/datetime.py#L9)
 
 Convert to epoch time
 
@@ -60,7 +60,7 @@ def from_datetime(item): ...
 
 ## to_datetime
 
-[Show source in datetime.py:74](../../datetime.py#L74)
+[Show source in datetime.py:74](../ucndata/datetime.py#L74)
 
 Convert to datetime objects
 
