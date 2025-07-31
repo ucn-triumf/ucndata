@@ -24,13 +24,13 @@ run = ucnrun('/data3/ucn/root_files/ucn_run_00002050.root')
 run = ucnrun(2050)
 ```
 
-The way to do this is to set the default path in the [`ucnrun.settings`](../settings.py) file:
+The way to do this is to set the default path:
 
 ```python
-from ucndata import ucnrun, settings
+from ucndata import ucnrun
 
-# redefine settings.datadir
-settings.datadir = '/data3/ucn/root_files'
+# redefine class variable
+ucnrun.datadir = '/data3/ucn/root_files'
 
 # now this works
 run = ucnrun(2050)
