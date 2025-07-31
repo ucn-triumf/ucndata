@@ -36,6 +36,7 @@ print(run[:].cycle)
 
 # don't allow cycle 1 to be fetched
 run.cycle_param.filter[1] = False
+run.set_cycle_filter(run.cycle_param.filter) # ensure already-fetched ucncycles are updated
 
 # print the cycle numbers fetched
 print(run[:].cycle)
@@ -54,8 +55,10 @@ Here's a full example of how the default filter would work:
 from ucndata import ucnrun
 
 run = ucnrun(1846)
-run.set_cycle_filter(run.gen_cycle_filter(period_beam=0)) # beam is on in period 0
+run.set_cycle_filter(run.gen_cycle_filter())
 ```
+
+The `gen_cycle_filter` function produces a [default filter which checks some basic items](../docs/ucnrun.md#ucnrungen_cycle_filter).
 
 ## Why??
 

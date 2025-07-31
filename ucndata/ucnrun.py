@@ -710,9 +710,6 @@ class ucnrun(ucnbase):
         """Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
         Args:
-            period_production (int): index of period where the beam should be stable. Enables checks of beam stability
-            period_count (int): index of period where we count ucn. Enables checks of data quantity
-            period_background (int): index of period where we do not count ucn. Enables checks of background
             quiet (bool): if true don't print or raise exception
 
         Returns:
@@ -723,15 +720,13 @@ class ucnrun(ucnbase):
 
         Example:
             ```python
-            >>> run.cycle_param.ncycles
-            17
-            >>> x = run.gen_cycle_filter(period_production=0, period_count=2)
-            Run 1846, cycle 0: Beam current dropped to 0.0 uA
-            Run 1846, cycle 11: Beam current dropped to 0.0 uA
-            Run 1846, cycle 16: Detected pileup in period 2 of detector Li6
-            >>> x
-            array([False,  True,  True,  True,  True,  True,  True,  True,  True,
-                    True,  True, False,  True,  True,  True,  True, False])
+            >>> run = ucnrun(2575)
+            >>> run.gen_cycle_filter()
+            Run 2575, cycle 0: 1A current dropped below 0.1 uA
+            Run 2575, cycle 1: 1A current dropped below 0.1 uA
+
+            array([False, False,  True,  True,  True,  True,  True,  True,  True,
+                    True,  True,  True])
             ```
         """
 
@@ -787,14 +782,6 @@ class ucnrun(ucnbase):
             bin_ms (int): histogram bin size in ms
             xmode (str): datetime|duration|epoch
             slow (list|str): name of slow control tree to add in a separate axis, can be a list of names
-
-        Notes:
-            line colors:
-                solid black: cycle start
-                solid red: run end
-                dashed red: first period end
-                dashed green: second period end
-                dashed blue: third period end
         """
 
         # check input

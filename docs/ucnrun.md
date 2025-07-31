@@ -197,9 +197,6 @@ Generate filter array for cycles. Use with self.set_cycle_filter to filter cycle
 
 #### Arguments
 
-- `period_production` *int* - index of period where the beam should be stable. Enables checks of beam stability
-- `period_count` *int* - index of period where we count ucn. Enables checks of data quantity
-- `period_background` *int* - index of period where we do not count ucn. Enables checks of background
 - `quiet` *bool* - if true don't print or raise exception
 
 #### Returns
@@ -213,15 +210,13 @@ calls `ucncycle.check_data` on each cycle
 #### Examples
 
 ```python
->>> run.cycle_param.ncycles
-17
->>> x = run.gen_cycle_filter(period_production=0, period_count=2)
-Run 1846, cycle 0: Beam current dropped to 0.0 uA
-Run 1846, cycle 11: Beam current dropped to 0.0 uA
-Run 1846, cycle 16: Detected pileup in period 2 of detector Li6
->>> x
-array([False,  True,  True,  True,  True,  True,  True,  True,  True,
-        True,  True, False,  True,  True,  True,  True, False])
+>>> run = ucnrun(2575)
+>>> run.gen_cycle_filter()
+Run 2575, cycle 0: 1A current dropped below 0.1 uA
+Run 2575, cycle 1: 1A current dropped below 0.1 uA
+
+array([False, False,  True,  True,  True,  True,  True,  True,  True,
+        True,  True,  True])
 ```
 
 #### Signature
@@ -232,7 +227,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:745](../ucndata/ucnrun.py#L745)
+[Show source in ucnrun.py:740](../ucndata/ucnrun.py#L740)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -271,7 +266,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:782](../ucndata/ucnrun.py#L782)
+[Show source in ucnrun.py:777](../ucndata/ucnrun.py#L777)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -282,15 +277,6 @@ Draw counts and BL1A current with indicated periods to determine data quality
 - `xmode` *str* - datetime|duration|epoch
 - `slow` *list|str* - name of slow control tree to add in a separate axis, can be a list of names
 
-#### Notes
-
-line colors:
-    - `solid` *black* - cycle start
-    - `solid` *red* - run end
-    - `dashed` *red* - first period end
-    - `dashed` *green* - second period end
-    - `dashed` *blue* - third period end
-
 #### Signature
 
 ```python
@@ -299,7 +285,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:932](../ucndata/ucnrun.py#L932)
+[Show source in ucnrun.py:919](../ucndata/ucnrun.py#L919)
 
 Don't load all the data in each file, only that which is needed
 
@@ -311,7 +297,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:946](../ucndata/ucnrun.py#L946)
+[Show source in ucnrun.py:933](../ucndata/ucnrun.py#L933)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -382,7 +368,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:1019](../ucndata/ucnrun.py#L1019)
+[Show source in ucnrun.py:1006](../ucndata/ucnrun.py#L1006)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
