@@ -190,22 +190,23 @@ class ucnrun(ucnbase):
         self._get_cycle_param()
 
         # get cycle times
-        cycle_failed = False
-        for mode in self.cycle_times_mode:
-            try:
-                self.set_cycle_times(mode=mode)
-            except (AttributeError, IndexError):
-                warnings.warn(f'Run {self.run_number}: Unable to set cycle times. SequencerTree must exist and have entries.',
-                            MissingDataWarning)
-                break
-            except (KeyError, CycleError):
-                print(f'Run {self.run_number}: Cycle time detection mode {mode} failed')
-                cycle_failed = True
-            else:
-                break
+        if hasattr(self, 'cycle_param'):
+            cycle_failed = False
+            for mode in self.cycle_times_mode:
+                try:
+                    self.set_cycle_times(mode=mode)
+                except (AttributeError, IndexError):
+                    warnings.warn(f'Run {self.run_number}: Unable to set cycle times. SequencerTree must exist and have entries.',
+                                MissingDataWarning)
+                    break
+                except (KeyError, CycleError):
+                    print(f'Run {self.run_number}: Cycle time detection mode {mode} failed')
+                    cycle_failed = True
+                else:
+                    break
 
-        if cycle_failed:
-            print(f'Run {self.run_number}: Set cycle times based on {mode} detection mode')
+            if cycle_failed:
+                print(f'Run {self.run_number}: Set cycle times based on {mode} detection mode')
 
         # setup tree filters
         for detector in self.DET_NAMES.keys():
@@ -360,6 +361,18 @@ class ucnrun(ucnbase):
         # check if trees exist
         if not treelist:
             warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot fully set up cycle_param', MissingDataWarning)
+
+            # number of cycles, periods
+            self.cycle_param['ncycles'] = 1
+            self.cycle_param['nperiods'] = 1
+
+            # cycle and supercycle indices
+            self.cycle_param['cycle'] = pd.Series([0], index=[0])
+            self.cycle_param['supercycle'] = pd.Series([0], index=[0])
+
+            self.cycle_param['cycle'].name = 'cycleIndex'
+            self.cycle_param['supercycle'].name = 'superCycleIndex'
+
             return
 
         # get longest
@@ -1010,12 +1023,11 @@ class ucnrun(ucnbase):
         Run this if you want to change how cycle start times are calculated
 
         Args:
-            mode (str): default|matched|sequencer|he3|li6|beamon
+            mode (str): default|matched|sequencer|he3|li6
                 if matched: look for identical timestamps in RunTransitions from detectors
                 if sequencer: look for inCycle timestamps in SequencerTree
                 if he3: use He3 detector cycle start times
                 if li6: use Li6 detector cycle start times
-                if beamon: use rise of beam current to determine start time
 
         Returns:
             pd.DataFrame: with columns "start", "stop", "offset" and "duration (s)". Values are in epoch time. Indexed by cycle id. Offset is the difference in detector start times: he3_start-li6_start
@@ -1078,8 +1090,8 @@ class ucnrun(ucnbase):
         ## if no sequencer, make the whole run a single cycle
         if df is None or not any(df.sequencerEnabled):
 
-            times = {'start': [np.inf],
-                     'stop': [-np.inf],
+            times = {'start': np.inf,
+                     'stop':  -np.inf,
                      'supercycle': [0]}
 
             # use timestamps from slow control trees to determine timestamps
@@ -1098,6 +1110,7 @@ class ucnrun(ucnbase):
                 # find min and max
                 times['start'] = [min((idx.min(), times['start']))]
                 times['stop']  = [max((idx.max(), times['stop']))]
+                break
 
         ## get matched timesteps from He3 and Li6 RunTransitions
         elif mode in 'matched':
@@ -1195,19 +1208,6 @@ class ucnrun(ucnbase):
             times['stop'] = times['start'] + times['duration (s)']
             times['supercycle'] = 0
 
-        ## beam on
-        elif mode in 'beamon':
-            current = self.beam_current_uA
-            start = current.loc[current.diff() > self.DATA_CHECK_THRESH['beam_min_current']/2]
-            start = start.index.values
-
-            # setup output
-            times = {'start': start,
-                     'duration (s)': np.diff(np.concatenate((start, [run_stop]))),
-                    }
-            times['stop'] = times['start'] + times['duration (s)']
-            times['supercycle'] = 0
-
         ## bad mode
         else:
             raise RuntimeError(f"Bad mode input {mode}")
@@ -1220,4 +1220,16 @@ class ucnrun(ucnbase):
         # save
         self.cycle_param['cycle_times'] = times
         self.cycle_param['ncycles'] = len(times.index)
+
+        # finish setting up cycle_param
+        if 'period_end_times' not in self.cycle_param.keys():
+            self.cycle_param['period_end_times'] = pd.DataFrame({0:times.loc[0, 'stop']}, index=[0])
+            self.cycle_param['period_end_times'].index.name = 'period'
+            self.cycle_param['period_end_times'].columns.name = 'cycle'
+
+        if 'period_durations_s' not in self.cycle_param.keys():
+            self.cycle_param['period_durations_s'] = pd.DataFrame({0:times.loc[0, 'duration (s)']}, index=[0])
+            self.cycle_param['period_durations_s'].index.name = 'period'
+            self.cycle_param['period_durations_s'].columns.name = 'cycle'
+
         return times
