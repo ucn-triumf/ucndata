@@ -340,6 +340,39 @@ class ucnbase(object):
         fig.supxlabel(r'$Q_{\mathrm{Long}}$')
         fig.supylabel(r'$(Q_{\mathrm{Long}}-Q_{\mathrm{Short}})/Q_{\mathrm{Long}}$')
 
+    def trigger_edge(self, detector, thresh, bin_ms=10, rising=True):
+        """Detect period start time based on a rising or falling edge
+        Args:
+            detector (str): Li6|He3
+            thresh (float): calculate cycle start time shift based on edge detection passing through this level
+            bin_ms (int): histogram bin size in milliseconds
+            rising (bool): if true do rising edge, else do falling edge
+
+        Returns:
+            np.array: the times at which the rising or falling edge passes through the threshold
+
+        Example:
+            ```python
+                dt = [cyc[2].get_start_edge('Li6', 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+            ```
+        """
+        searched = 1 if rising else -1
+
+        # get histogram
+        hist = self.get_hits_histogram(detector, bin_ms=bin_ms)
+        t = hist.x
+        n = hist.y
+
+        # edge detection using convolution
+        # https://stackoverflow.com/questions/50365310/python-rising-falling-edge-oscilloscope-like-trigger
+        sign = n >= thresh
+        pos = np.where(np.convolve(sign, [1, -1]) == searched)[0]
+
+        # trim positions which are too long
+        pos[pos == len(sign)] -= 1
+
+        return t[pos]
+
     # quick access properties
     @property
     def beam1a_current_uA(self):
