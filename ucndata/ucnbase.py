@@ -363,10 +363,18 @@ class ucnbase(object):
         t = hist.x
         n = hist.y
 
+        # check that the histo has data
+        if len(t) == 0:
+            raise RuntimeError('Histogram has no data')
+
         # edge detection using convolution
         # https://stackoverflow.com/questions/50365310/python-rising-falling-edge-oscilloscope-like-trigger
         sign = n >= thresh
         pos = np.where(np.convolve(sign, [1, -1]) == searched)[0]
+
+        # check that positions are found
+        if len(pos) == 0:
+            return None
 
         # trim positions which are too long
         pos[pos == len(sign)] -= 1
