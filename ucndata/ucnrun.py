@@ -33,7 +33,6 @@ class ucnrun(ucnbase):
     Args:
         run (int|str): if int, generate filename with self.datadir
             elif str then run is the path to the file
-        header_only (bool): if true, read only the header
         ucn_only (bool): if true set filter tIsUCN==1 on all hit trees
 
     Attributes:
@@ -124,14 +123,14 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, header_only=False, ucn_only=True):
+    def __init__(self, run, ucn_only=True):
 
         # check if copying
         if run is None:
             return
 
         # make filename from defaults
-        elif isinstance(run, (int, float)):
+        elif isinstance(run, (int, float, np.float64, np.int64)):
             filename = os.path.join(self.datadir, f'ucn_run_{int(run):0>8d}.root')
 
         # fetch from specified path
@@ -144,21 +143,13 @@ class ucnrun(ucnbase):
         self.path = os.path.abspath(filename)
 
         # read
-        if header_only:
-            fid = ROOT.TFile(filename, 'READ')
-            head = ttree(fid.Get('header'))
-            fid.Close()
-            head = {k:str(val[0]) for k, val in head.items()}
-            self._head = head # needed to keep value in memory
-
-        else:
-            self.tfile = tfile(filename, empty_ok=False, quiet=True,
-                               key_filter=self.keyfilter)
-            head = self.tfile['header'].to_dataframe()
+        self.tfile = tfile(filename, empty_ok=False, quiet=True,
+                            key_filter=self.keyfilter)
+        head = self.tfile['header'].to_dataframe()
 
         # reformat header and move to top level
         for k, val in head.items():
-            setattr(self, k.replace(' ', '_').lower(), val)
+            setattr(self, k.replace(' ', '_').lower(), val.loc[0])
 
         if type(self.run_number) is pd.Series:
             self.run_number = int(float(self.run_number[0]))
@@ -166,13 +157,9 @@ class ucnrun(ucnbase):
             self.run_number = int(float(self.run_number))
 
         # set other header items
-        date = pd.to_datetime(self.start_time).loc[0]
+        date = pd.to_datetime(self.start_time)
         self.year = date.year
         self.month = date.month
-
-        # stop
-        if header_only:
-            return
 
         # reformat tfile branch names to remove spaces
         for key in tuple(self.tfile.keys()):
@@ -192,6 +179,9 @@ class ucnrun(ucnbase):
         # get cycle times
         if hasattr(self, 'cycle_param'):
             cycle_failed = False
+            if isinstance(self.cycle_times_mode, str):
+                self.cycle_times_mode = [self.cycle_times_mode]
+
             for mode in self.cycle_times_mode:
                 try:
                     self.set_cycle_times(mode=mode)
