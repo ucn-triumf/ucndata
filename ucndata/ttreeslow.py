@@ -3,6 +3,7 @@
 # June 2025
 
 from rootloader import ttree
+import pandas as pd
 
 class ttreeslow(ttree):
 
@@ -91,7 +92,9 @@ class ttreeslow(ttree):
             return ttreeslow(treelist)
 
     def to_dataframe(self):
-        return pd.concat((tr.to_dataframe() for tr in self._ttrees.values()), axis='columns')
+        df_list= (tr.to_dataframe() for tr in self._ttrees.values())
+        df_list2 = (d.loc[~d.index.duplicated(keep='first')] for d in df_list)
+        return pd.concat(df_list2, axis='columns')
 
     def to_dict(self):
         d = {}
