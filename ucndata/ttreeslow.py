@@ -8,8 +8,13 @@ class ttreeslow(ttree):
 
     def __init__(self, ttree_list):
 
-        # save list of ttrees
-        self._ttrees = {t.name: t for t in ttree_list}
+        # copy
+        if isinstance(ttree_list, ttreeslow):
+            self._ttrees = {key: ttree(t) for key, t in ttree_list._ttrees.items()}
+
+        else:
+            # save list of ttrees
+            self._ttrees = {t.name: t for t in ttree_list}
 
         # make dict of which tree to get for which column
         self._columns = {}
@@ -97,6 +102,7 @@ class ttreeslow(ttree):
         return d
 
      # PROPERTIES ===========================
+
     @property
     def columns(self):
         return list(self._columns.keys())
@@ -109,6 +115,28 @@ class ttreeslow(ttree):
     @property
     def index_name(self):
         return {name: tr._index for name, tr in self._ttrees.items()}
+
+    @property
+    def loc(self):
+        return _ttreeslow_indexed(self)
+
     @property
     def size(self):
         return {name: tr.size for name, tr in self._ttrees.items()}
+
+# ttree but slice on time
+class _ttreeslow_indexed(object):
+
+    def __init__(self, tree):
+        self._treeslow = ttreeslow(tree)
+
+    def __getitem__(self, key):
+
+        # get tree
+        tree = self._treeslow
+
+        # slicing or indexing
+        for name, tr in tree._ttrees.items():
+            tree._ttrees[name] = tr.loc[key]
+
+        return tree
