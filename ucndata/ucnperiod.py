@@ -30,6 +30,8 @@ class ucnperiod(ucnbase):
         for key, value in ucycle.__dict__.items():
             if key == 'tfile':
                 setattr(self, key, tsubfile(value, start, stop))
+            elif key == 'epics':
+                setattr(self, key, value.loc[start:stop])
             elif hasattr(value, 'copy'):
                 setattr(self, key, value.copy())
             else:
