@@ -34,7 +34,7 @@ class ttreeslow(ttree):
         """Fetch a new dataframe with fewer 'columns', as a memory view"""
         return self._ttrees[self._columns[key]][key]
 
-    def hist1d(self, column=None, nbins=None, step=None):
+    def hist1d(self, column=None, nbins=None, step=None, edges=None):
         """Return histogram of column
 
         Args:
@@ -58,7 +58,7 @@ class ttreeslow(ttree):
 
         # get tree
         tree = self._ttree[self._columns[column]]
-        return tree.hist1d(self, column=None, nbins=None, step=None)
+        return tree.hist1d(self, column=column, nbins=nbins, step=step, edges=edges)
 
     def reset(self):
         """Make a new set of trees"""
@@ -118,14 +118,27 @@ class ttreeslow(ttree):
     @property
     def index_name(self):
         return {name: tr._index for name, tr in self._ttrees.items()}
-
     @property
     def loc(self):
         return _ttreeslow_indexed(self)
-
     @property
     def size(self):
         return {name: tr.size for name, tr in self._ttrees.items()}
+
+    def mean(self):
+        return pd.concat((tr.mean() for tr in self._ttrees.values()))
+
+    def min(self):
+        return pd.concat((tr.min() for tr in self._ttrees.values()))
+
+    def max(self):
+        return pd.concat((tr.max() for tr in self._ttrees.values()))
+
+    def rms(self):
+        return pd.concat((tr.rms() for tr in self._ttrees.values()))
+
+    def std(self):
+        return pd.concat((tr.std() for tr in self._ttrees.values()))
 
 # ttree but slice on time
 class _ttreeslow_indexed(object):
