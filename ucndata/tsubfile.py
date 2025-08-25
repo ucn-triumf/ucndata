@@ -21,8 +21,6 @@ class tsubfile(tfile):
         for key, value in tfileobj.items():
             self[key] = value
 
-        # self._start = start
-        # self._stop = stop
         items = {'_start':start, '_stop':stop}
         object.__setattr__(self, '_items', items)
 

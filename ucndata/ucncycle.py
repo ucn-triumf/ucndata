@@ -6,7 +6,9 @@ from .applylist import applylist
 from .ucnbase import ucnbase
 from .ucnperiod import ucnperiod
 from .tsubfile import tsubfile
+from .ttreeslow import ttreeslow
 from tqdm import tqdm
+
 
 import numpy as np
 import os
@@ -36,7 +38,7 @@ class ucncycle(ucnbase):
             if key == 'tfile':
                 setattr(self, key, tsubfile(value, start, stop))
             elif key == 'epics':
-                setattr(self, key, value.loc[start:stop])
+                setattr(self, key, ttreeslow(value, self))
             elif hasattr(value, 'copy'):
                 setattr(self, key, value.copy())
             else:

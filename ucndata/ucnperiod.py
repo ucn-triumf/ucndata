@@ -5,7 +5,7 @@
 from .exceptions import *
 from .ucnbase import ucnbase
 from .tsubfile import tsubfile
-from .datetime import to_datetime
+from .ttreeslow import ttreeslow
 
 import numpy as np
 import os
@@ -31,7 +31,7 @@ class ucnperiod(ucnbase):
             if key == 'tfile':
                 setattr(self, key, tsubfile(value, start, stop))
             elif key == 'epics':
-                setattr(self, key, value.loc[start:stop])
+                setattr(self, key, ttreeslow(value, self))
             elif hasattr(value, 'copy'):
                 setattr(self, key, value.copy())
             else:

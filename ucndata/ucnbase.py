@@ -390,11 +390,9 @@ class ucnbase(object):
             pd.Series: indexed by timestamps, current in uA
         """
         if type(self.tfile.BeamlineEpics) is pd.DataFrame:
-            df = self.tfile.BeamlineEpics
+            return self.tfile.BeamlineEpics.B1_FOIL_ADJCUR
         else:
-            df = self.tfile.BeamlineEpics.to_dataframe()
-
-        return df.B1_FOIL_ADJCUR
+            return self.tfile.BeamlineEpics.B1_FOIL_ADJCUR.to_dataframe()
 
     @property
     def beam1u_current_uA(self):

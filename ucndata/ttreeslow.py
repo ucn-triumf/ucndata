@@ -4,35 +4,47 @@
 
 from rootloader import ttree
 import pandas as pd
+import numpy as np
 
 class ttreeslow(ttree):
 
-    def __init__(self, ttree_list):
-
-        # copy
-        if isinstance(ttree_list, ttreeslow):
-            self._ttrees = {key: ttree(t) for key, t in ttree_list._ttrees.items()}
-
-        else:
-            # save list of ttrees
-            self._ttrees = {t.name: t for t in ttree_list}
+    def __init__(self, ttree_list, parent=None):
 
         # make dict of which tree to get for which column
-        self._columns = {}
-        for name, tr in self._ttrees.items():
-            for col in tr.columns:
-                self._columns[col] = name
+        if isinstance(ttree_list, ttreeslow):
+            self._columns = ttree_list._columns.copy()
+            self._treenames = ttree_list._treenames.copy()
+
+            # save parent object
+            if parent is None:
+                self._parent = ttree_list._parent
+            else:
+                self._parent = parent
+
+        else:
+            self._columns = {}
+            self._treenames = []
+            for tr in ttree_list:
+                self._treenames.append(tr.name)
+                for col in tr.columns:
+                    self._columns[col] = tr.name
+
+            # save parent object
+            if parent is None:
+                raise RuntimeError('Must specify parent object (ucnrun, ucncycle, or ucnperiod)')
+            else:
+                self._parent = parent
 
     def __getattr__(self, name):
         if name in self._columns:
             treename = self._columns[name]
-            return self._ttrees[treename][name]
+            return self._parent.tfile[treename][name]
         else:
             return getattr(object, name)
 
     def __getitem__(self, key):
         """Fetch a new dataframe with fewer 'columns', as a memory view"""
-        return self._ttrees[self._columns[key]][key]
+        return self._parent.tfile[self._columns[key]][key]
 
     def hist1d(self, column=None, nbins=None, step=None, edges=None):
         """Return histogram of column
@@ -51,58 +63,33 @@ class ttreeslow(ttree):
         if column is None:
             if len(self._columns) > 1:
                 raise KeyError('tree has more than one column, please specify')
-            column = self._columns[0]
+            tree = self[column]
         else:
             if column not in self._columns.keys():
                 raise KeyError(f'Column "{column}" must be one of {tuple(self._columns.keys())}')
 
         # get tree
-        tree = self._ttree[self._columns[column]]
         return tree.hist1d(self, column=column, nbins=nbins, step=step, edges=edges)
 
     def reset(self):
         """Make a new set of trees"""
-        treelist = (tr.reset() for tr in self._ttrees.values())
-        return ttreeslow(treelist)
-
-    def reset_columns(self):
-        """Include all columns again"""
-        self._columns = {}
-        for name, tr in self._ttrees.items():
-            tr.reset_columns()
-            for col in tr.columns:
-                self._columns[col] = name
+        for name in self._treenames:
+            self._parent.tfile[name].reset()
+        return ttreeslow(self)
 
     def set_index(self, column):
         """Set the index column name"""
-        if column not in self._columns:
-            raise KeyError(f'{column} not found in branch names list: {self._columns}')
+        for name in self._treenames:
+            self._parent.tfile[name].set_index(column)
 
-        for tr in self._ttrees.values():
-            tr.set_index(column)
-
-    def set_filter(self, expression, inplace=False):
+    def set_filter(self, expression, inplace=True):
         """Set a filter on the dataframe to select a subset of the data"""
 
-        if inplace:
-            for tr in self._ttrees.values():
-                tr.set_filter(expression, inplace=True)
-        else:
-            treelist = (tr.set_filter(expression, inplace=False) for tr in self._ttrees.values())
-            return ttreeslow(treelist)
+        if not inplace:
+            raise RuntimeError('Cannot set filters on parent trees which are not in-place')
 
-    def to_dataframe(self):
-        df_list= (tr.to_dataframe() for tr in self._ttrees.values())
-        df_list2 = (d.loc[~d.index.duplicated(keep='first')] for d in df_list)
-        return pd.concat(df_list2, axis='columns')
-
-    def to_dict(self):
-        d = {}
-        for tr in self._ttrees.values():
-            d2 = tr.to_dict()
-            for key, val in d2.items():
-                d[key] = val
-        return d
+        for name in self._treenames:
+            self._parent.tfile[name].set_filter(expression, inplace=inplace)
 
      # PROPERTIES ===========================
 
@@ -110,49 +97,29 @@ class ttreeslow(ttree):
     def columns(self):
         return list(self._columns.keys())
     @property
+    def treenames(self):
+        return np.unique(self._columns.values())
+    @property
     def filters(self):
-        return {name: tr.filters for name, tr in self._ttrees.items()}
+        return {name: self._parent.tfile[name].filters for name in self._treenames}
     @property
     def index(self):
-        return {name: tr.index for name, tr in self._ttrees.items()}
+        return {name: self._parent.tfile[name].index for name in self._treenames}
     @property
     def index_name(self):
-        return {name: tr._index for name, tr in self._ttrees.items()}
-    @property
-    def loc(self):
-        return _ttreeslow_indexed(self)
-    @property
-    def size(self):
-        return {name: tr.size for name, tr in self._ttrees.items()}
+        return {name: self._parent.tfile[name]._index for name in self._treenames}
 
     def mean(self):
-        return pd.concat((tr.mean() for tr in self._ttrees.values()))
+        return pd.concat((self._parent.tfile[name].mean() for name in self._treenames))
 
     def min(self):
-        return pd.concat((tr.min() for tr in self._ttrees.values()))
+        return pd.concat((self._parent.tfile[name].min() for name in self._treenames))
 
     def max(self):
-        return pd.concat((tr.max() for tr in self._ttrees.values()))
+        return pd.concat((self._parent.tfile[name].max() for name in self._treenames))
 
     def rms(self):
-        return pd.concat((tr.rms() for tr in self._ttrees.values()))
+        return pd.concat((self._parent.tfile[name].rms() for name in self._treenames))
 
     def std(self):
-        return pd.concat((tr.std() for tr in self._ttrees.values()))
-
-# ttree but slice on time
-class _ttreeslow_indexed(object):
-
-    def __init__(self, tree):
-        self._treeslow = ttreeslow(tree)
-
-    def __getitem__(self, key):
-
-        # get tree
-        tree = self._treeslow
-
-        # slicing or indexing
-        for name, tr in tree._ttrees.items():
-            tree._ttrees[name] = tr.loc[key]
-
-        return tree
+        return pd.concat((self._parent.tfile[name].std() for name in self._treenames))

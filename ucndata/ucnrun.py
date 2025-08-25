@@ -213,7 +213,8 @@ class ucnrun(ucnbase):
                 tree.set_filter('tIsUCN>0', inplace=True)
 
         # make slow control tree
-        self.epics = ttreeslow(self.tfile[name] for name in self.EPICS_TREES)
+        self.epics = ttreeslow((self.tfile[name] for name in self.EPICS_TREES),
+                               parent=self)
 
         # store fetched cycles
         self._cycledict = dict()
