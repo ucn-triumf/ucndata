@@ -212,6 +212,7 @@ class ucnrun(ucnbase):
             if ucn_only:
                 tree.set_filter('tIsUCN>0', inplace=True)
 
+
         # make slow control tree
         self.epics = ttreeslow((self.tfile[name] for name in self.EPICS_TREES),
                                parent=self)
@@ -326,6 +327,9 @@ class ucnrun(ucnbase):
                 return cycles[key[1]]
 
         raise IndexError(f'Run {self.run_number} given an unknown index type ({type(key)})')
+
+    def __len__(self):
+        return self.cycle_param.ncycles
 
     def _get_cycle_param(self):
         # set self.cycle_param dict

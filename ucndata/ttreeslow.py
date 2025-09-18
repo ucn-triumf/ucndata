@@ -98,7 +98,7 @@ class ttreeslow(ttree):
         return list(self._columns.keys())
     @property
     def treenames(self):
-        return np.unique(self._columns.values())
+        return np.unique(tuple(self._columns.values()))
     @property
     def filters(self):
         return {name: self._parent.tfile[name].filters for name in self._treenames}

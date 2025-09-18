@@ -60,6 +60,9 @@ class ucncycle(ucnbase):
         # store fetched periods
         self._perioddict = dict()
 
+    def __len__(self):
+        return self.cycle_param.nperiods
+
     def __next__(self):
         # permit iteration over object like it was a list
 
