@@ -86,6 +86,7 @@ class ucnbase(object):
                     'UCN2EpPha5Oth',        'UCN2EpicsPhase3',  'UCN2EpPha5Pre',
                     'UCN2EpicsPressures',   'UCN2EpPha5Tmp',    'UCN2EpicsTemperature',
                     'UCN2Epics',            'UCN2Pur',          'UCN2EpicsOthers',
+                    'UCN2EpLD2'
                   ]
 
     # data thresholds for checking data
