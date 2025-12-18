@@ -214,7 +214,7 @@ class ucnrun(ucnbase):
 
 
         # make slow control tree
-        self.epics = ttreeslow((self.tfile[name] for name in self.EPICS_TREES),
+        self.epics = ttreeslow((self.tfile[name] for name in self.EPICS_TREES if name in self.tfile.keys()),
                                parent=self)
 
         # store fetched cycles
