@@ -14,6 +14,7 @@
     - [ucnbase.get_hits_array](#ucnbaseget_hits_array)
     - [ucnbase.get_hits_histogram](#ucnbaseget_hits_histogram)
     - [ucnbase.plot_psd](#ucnbaseplot_psd)
+    - [ucnbase.trigger_edge](#ucnbasetrigger_edge)
 
 ## ucnbase
 
@@ -36,7 +37,7 @@
 
 - `SLOW_TREES` - needed slow control trees: for checking data quality: ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
 
-- `EPICS_TREES` - EPICS trees to group into a single slow control tree: ['BeamlineEpics', 'UCN2EpPha5Last', 'UCN2EpicsPhase2B', 'UCN2EpPha5Oth', 'UCN2EpicsPhase3', 'UCN2EpPha5Pre', 'UCN2EpicsPressures', 'UCN2EpPha5Tmp', 'UCN2EpicsTemperature', 'UCN2Epics', 'UCN2Pur', 'UCN2EpicsOthers']
+- `EPICS_TREES` - EPICS trees to group into a single slow control tree: ['BeamlineEpics', 'UCN2EpPha5Last', 'UCN2EpicsPhase2B', 'UCN2EpPha5Oth', 'UCN2EpicsPhase3', 'UCN2EpPha5Pre', 'UCN2EpicsPressures', 'UCN2EpPha5Tmp', 'UCN2EpicsTemperature', 'UCN2Epics', 'UCN2Pur', 'UCN2EpicsOthers', 'UCN2EpLD2']
 
 - `DATA_CHECK_THRESH` - data thresholds for checking data: {'beam_min_current': 0.1, 'pileup_cnt_per_ms': 10, 'pileup_within_first_s': 1}
 
@@ -80,7 +81,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:141](../ucndata/ucnbase.py#L141)
+[Show source in ucnbase.py:142](../ucndata/ucnbase.py#L142)
 
 Apply function to each cycle
 
@@ -107,7 +108,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:344](../ucndata/ucnbase.py#L344)
+[Show source in ucnbase.py:386](../ucndata/ucnbase.py#L386)
 
 Get beamline 1A current in uA (micro amps)
 
@@ -124,7 +125,7 @@ def beam1a_current_uA(self): ...
 
 ### ucnbase.beam1u_current_uA
 
-[Show source in ucnbase.py:358](../ucndata/ucnbase.py#L358)
+[Show source in ucnbase.py:398](../ucndata/ucnbase.py#L398)
 
 Get beam current in uA (micro amps)
 
@@ -164,7 +165,7 @@ def beam1u_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:437](../ucndata/ucnbase.py#L437)
+[Show source in ucnbase.py:477](../ucndata/ucnbase.py#L477)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -206,7 +207,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:402](../ucndata/ucnbase.py#L402)
+[Show source in ucnbase.py:442](../ucndata/ucnbase.py#L442)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -248,7 +249,7 @@ def beam_on_s(self): ...
 
 ### ucnbase.get_hits_array
 
-[Show source in ucnbase.py:158](../ucndata/ucnbase.py#L158)
+[Show source in ucnbase.py:159](../ucndata/ucnbase.py#L159)
 
 Get times of ucn hits as a numpy array
 
@@ -276,7 +277,7 @@ def get_hits_array(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:184](../ucndata/ucnbase.py#L184)
+[Show source in ucnbase.py:185](../ucndata/ucnbase.py#L185)
 
 Get histogram of UCNHits ttree times
 
@@ -325,7 +326,7 @@ def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 
 ### ucnbase.plot_psd
 
-[Show source in ucnbase.py:272](../ucndata/ucnbase.py#L272)
+[Show source in ucnbase.py:273](../ucndata/ucnbase.py#L273)
 
 Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 
@@ -339,4 +340,33 @@ Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 
 ```python
 def plot_psd(self, detector="Li6", cut=None, cmap="RdBu"): ...
+```
+
+### ucnbase.trigger_edge
+
+[Show source in ucnbase.py:344](../ucndata/ucnbase.py#L344)
+
+Detect period start time based on a rising or falling edge
+
+#### Arguments
+
+- `detector` *str* - Li6|He3
+- `thresh` *float* - calculate cycle start time shift based on edge detection passing through this level
+- `bin_ms` *int* - histogram bin size in milliseconds
+- `rising` *bool* - if true do rising edge, else do falling edge
+
+#### Returns
+
+- `np.array` - the times at which the rising or falling edge passes through the threshold
+
+#### Examples
+
+```python
+dt = [cyc[2].get_start_edge('Li6', 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+```
+
+#### Signature
+
+```python
+def trigger_edge(self, detector, thresh, bin_ms=10, rising=True): ...
 ```

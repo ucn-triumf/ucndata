@@ -26,7 +26,6 @@ UCN run data. Cleans data and performs analysis
 
 - `run` *int|str* - if int, generate filename with self.datadir
     elif str then run is the path to the file
-- `header_only` *bool* - if true, read only the header
 - `ucn_only` *bool* - if true set filter tIsUCN==1 on all hit trees
 
 #### Attributes
@@ -126,7 +125,7 @@ run.inspect('Li6', bin_ms=100, xmode='dur')
 
 ```python
 class ucnrun(ucnbase):
-    def __init__(self, run, header_only=False, ucn_only=True): ...
+    def __init__(self, run, ucn_only=True): ...
 ```
 
 #### See also
@@ -135,7 +134,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:562](../ucndata/ucnrun.py#L562)
+[Show source in ucnrun.py:570](../ucndata/ucnrun.py#L570)
 
 Run some checks to determine if the data is ok.
 
@@ -167,7 +166,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.draw_cycle_times
 
-[Show source in ucnrun.py:625](../ucndata/ucnrun.py#L625)
+[Show source in ucnrun.py:633](../ucndata/ucnrun.py#L633)
 
 Draw cycle start times as thick black lines, period end times as dashed lines
 
@@ -191,7 +190,7 @@ def draw_cycle_times(self, ax=None, xmode="datetime", do_legend=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:709](../ucndata/ucnrun.py#L709)
+[Show source in ucnrun.py:717](../ucndata/ucnrun.py#L717)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -227,7 +226,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:740](../ucndata/ucnrun.py#L740)
+[Show source in ucnrun.py:748](../ucndata/ucnrun.py#L748)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -266,7 +265,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:777](../ucndata/ucnrun.py#L777)
+[Show source in ucnrun.py:785](../ucndata/ucnrun.py#L785)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -285,7 +284,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:919](../ucndata/ucnrun.py#L919)
+[Show source in ucnrun.py:927](../ucndata/ucnrun.py#L927)
 
 Don't load all the data in each file, only that which is needed
 
@@ -297,7 +296,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:933](../ucndata/ucnrun.py#L933)
+[Show source in ucnrun.py:941](../ucndata/ucnrun.py#L941)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -368,7 +367,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:1006](../ucndata/ucnrun.py#L1006)
+[Show source in ucnrun.py:1014](../ucndata/ucnrun.py#L1014)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
@@ -377,12 +376,11 @@ Run this if you want to change how cycle start times are calculated
 
 #### Arguments
 
-- `mode` *str* - default|matched|sequencer|he3|li6|beamon
+- `mode` *str* - default|matched|sequencer|he3|li6
     - `if` *matched* - look for identical timestamps in RunTransitions from detectors
     - `if` *sequencer* - look for inCycle timestamps in SequencerTree
     - `if` *he3* - use He3 detector cycle start times
     - `if` *li6* - use Li6 detector cycle start times
-    - `if` *beamon* - use rise of beam current to determine start time
 
 #### Returns
 
