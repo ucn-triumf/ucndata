@@ -244,7 +244,10 @@ class ucnbase(object):
         hist = hist.copy()
 
         # trim axes
-        if hasattr(self, 'period_start'):
+        if hasattr(self, 'frame_start'):
+            start = self.frame_start
+            stop = self.frame_stop
+        elif hasattr(self, 'period_start'):
             start = self.period_start
             stop = self.period_stop
         elif hasattr(self, 'cycle_start'):
