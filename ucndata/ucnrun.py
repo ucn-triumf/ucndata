@@ -2,6 +2,8 @@
 # Derek Fujimoto
 # June 2024
 
+import ROOT
+ROOT.gROOT.SetBatch(1)
 from rootloader import tfile, ttree, attrdict
 from .exceptions import *
 from .applylist import applylist
@@ -9,7 +11,7 @@ from .ucnbase import ucnbase
 from .ttreeslow import ttreeslow
 from .ucncycle import ucncycle
 from .datetime import to_datetime
-import itertools, warnings, os, ROOT
+import itertools, warnings, os
 
 import numpy as np
 import pandas as pd
@@ -17,8 +19,6 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as mpatches
 from collections.abc import Iterable
 from tqdm import tqdm
-
-ROOT.gROOT.SetBatch(1)
 
 # patch warnings
 def new_format(message, category, filename, lineno, line):
