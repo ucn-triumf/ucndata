@@ -108,7 +108,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:386](../ucndata/ucnbase.py#L386)
+[Show source in ucnbase.py:389](../ucndata/ucnbase.py#L389)
 
 Get beamline 1A current in uA (micro amps)
 
@@ -125,7 +125,7 @@ def beam1a_current_uA(self): ...
 
 ### ucnbase.beam1u_current_uA
 
-[Show source in ucnbase.py:398](../ucndata/ucnbase.py#L398)
+[Show source in ucnbase.py:401](../ucndata/ucnbase.py#L401)
 
 Get beam current in uA (micro amps)
 
@@ -165,7 +165,7 @@ def beam1u_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:477](../ucndata/ucnbase.py#L477)
+[Show source in ucnbase.py:480](../ucndata/ucnbase.py#L480)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -207,7 +207,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:442](../ucndata/ucnbase.py#L442)
+[Show source in ucnbase.py:445](../ucndata/ucnbase.py#L445)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -326,7 +326,7 @@ def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 
 ### ucnbase.plot_psd
 
-[Show source in ucnbase.py:273](../ucndata/ucnbase.py#L273)
+[Show source in ucnbase.py:276](../ucndata/ucnbase.py#L276)
 
 Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 
@@ -344,7 +344,7 @@ def plot_psd(self, detector="Li6", cut=None, cmap="RdBu"): ...
 
 ### ucnbase.trigger_edge
 
-[Show source in ucnbase.py:344](../ucndata/ucnbase.py#L344)
+[Show source in ucnbase.py:347](../ucndata/ucnbase.py#L347)
 
 Detect period start time based on a rising or falling edge
 

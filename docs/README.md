@@ -5,6 +5,7 @@
 A full list of `Ucndata` project modules.
 
 - [applylist](./applylist.md#applylist)
+- [Chopper](./chopper.md#chopper)
 - [Constants](./constants.md#constants)
 - [Datetime](./datetime.md#datetime)
 - [Exceptions](./exceptions.md#exceptions)

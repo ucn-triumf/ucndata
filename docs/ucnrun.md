@@ -284,7 +284,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:927](../ucndata/ucnrun.py#L927)
+[Show source in ucnrun.py:929](../ucndata/ucnrun.py#L929)
 
 Don't load all the data in each file, only that which is needed
 
@@ -296,7 +296,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:941](../ucndata/ucnrun.py#L941)
+[Show source in ucnrun.py:943](../ucndata/ucnrun.py#L943)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -367,7 +367,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:1014](../ucndata/ucnrun.py#L1014)
+[Show source in ucnrun.py:1016](../ucndata/ucnrun.py#L1016)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
