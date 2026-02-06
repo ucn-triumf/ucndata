@@ -1,5 +1,12 @@
 # ucndata
 
+
+<a href="https://pypi.org/project/ucndata/" alt="PyPI Version"><img src="https://img.shields.io/pypi/v/ucndata?label=PyPI%20Version"/></a>
+![GitHub commits since latest release](https://img.shields.io/github/commits-since/ucn-triumf/ucndata/latest)
+<a href="https://github.com/ucn-triumf/ucndata/commits/master" alt="Commits"><img src="https://img.shields.io/github/last-commit/ucn-triumf/ucndata"/></a>
+
+<img src="https://img.shields.io/pypi/format/ucndata?label=PyPI%20Format"/> <img src="https://img.shields.io/github/languages/code-size/ucn-triumf/ucndata"/> <img src="https://img.shields.io/pypi/l/ucndata"/>
+
 This repository defines the `ucndata` package and a few scripts which utilize this package to analyze UCN ROOT files.
 
 The `ucndata` package contained within has been installed system-wide on `daq04`. You will therefore be able to import it from any directory.
