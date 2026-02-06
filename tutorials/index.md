@@ -8,4 +8,5 @@
 * [Filtering Cycles](filter.md)
 * [Using ApplyLists](applylist.md)
 * [Examples](examples.md)
+* [Chopper module](chopper.md)
 * [Tips and FAQ](tips.md)

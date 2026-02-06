@@ -1,7 +1,7 @@
 # Examples
 
 [**Back to Index**](index.md)\
-[**Next page: Tips and FAQ**](tips.md)
+[**Next page: Chopper Module**](chopper.md)
 
 Here we present some examples of simple usage, mostly focusing on things not already covered in the rest of the tutorial.
 
@@ -112,4 +112,4 @@ array([1.75016417e+09, 1.75016417e+09, 1.75016417e+09, ...,
 ```
 
 [**Back to Index**](index.md)\
-[**Next page: Tips and FAQ**](tips.md)
+[**Next page: Chopper Module**](chopper.md)

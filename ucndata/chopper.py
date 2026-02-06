@@ -198,15 +198,11 @@ class crun(ucndata.ucnrun):
             ax.set_ylim(*ylim)
 
     def offset_frames(self, dt):
-        # Add an offset to the start times of all frames
-        #     dt_start_s (float): change to the period start time
-        #     dt_stop_s (float): change to the period stop time
-        #     update_duration (bool): if true, update period durations dataframe
-
-        # Notes:
-        #     * as a result of this, cycles may overlap or have gaps
-        #     * frames are forced to not overlap and have no gaps
-        #     * this function resets all saved histgrams and hits
+        """Add an offset to the start times of all frames
+            
+        Args:
+            dt (float): time shift, should not push frames outside the limits of the run    
+        """
 
         # offset
         times = self.cycle_param.frame_start_times + dt
