@@ -924,6 +924,8 @@ class ucnrun(ucnbase):
             axes[-1].set_xlabel('Epoch Time')
         axes[1].set_yscale('log')
 
+        return axes
+
     def keyfilter(self, name):
         """Don't load all the data in each file, only that which is needed"""
 

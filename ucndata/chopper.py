@@ -8,6 +8,8 @@
 import ucndata
 import os
 import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
 
 class crun(ucndata.ucnrun):
     def __init__(self, run, ucn_only=True, chop_time_ch=15):
@@ -154,6 +156,86 @@ class crun(ucndata.ucnrun):
             self._cycledict[cycle] = ccycle(self, cycle)
             return self._cycledict[cycle]
 
+    def inspect(self, detector='Li6', bin_ms=100, xmode='duration', slow=None):
+        """Draw counts and BL1A current with indicated periods to determine data quality
+
+        Args:
+            detector (str): detector from which to get the counts from. Li6|He3
+            bin_ms (int): histogram bin size in ms
+            xmode (str): datetime|duration|epoch
+            slow (list|str): name of slow control tree to add in a separate axis, can be a list of names
+        """
+        
+        # run parent inspect
+        axes = super().inspect(detector=detector, 
+                               bin_ms=bin_ms, 
+                               xmode=xmode, 
+                               slow=slow)
+        
+        # adjust frame units 
+        times = self.cycle_param.frame_start_times.copy()
+        if xmode in 'datetime':
+            times = pd.to_datetime(times, unit='s')
+        elif xmode in 'duration':
+            times -= self.cycle_param.cycle_times.loc[0, 'start']
+
+        # draw
+        alpha_list = [0.25, 0.05]
+        for ax in axes:
+
+            ylim = ax.get_ylim()
+
+            # fill alternating colours
+            for i in range(len(times)-1):
+                start = times[i]
+                stop = times[i+1]
+                alpha = alpha_list[i%2]
+
+                ax.fill_between((start, stop), *ylim, color='grey', 
+                                alpha=alpha, zorder=0)
+            
+            # reset y limits
+            ax.set_ylim(*ylim)
+
+    def offset_frames(self, dt):
+        # Add an offset to the start times of all frames
+        #     dt_start_s (float): change to the period start time
+        #     dt_stop_s (float): change to the period stop time
+        #     update_duration (bool): if true, update period durations dataframe
+
+        # Notes:
+        #     * as a result of this, cycles may overlap or have gaps
+        #     * frames are forced to not overlap and have no gaps
+        #     * this function resets all saved histgrams and hits
+
+        # offset
+        times = self.cycle_param.frame_start_times + dt
+
+        # limits checking
+        if any(times < 0):
+            raise ValueError('This operation would create frames with negative start times')
+        if any(self.cycle_param.cycle_times.stop.max() - times < 0):
+            raise ValueError('This operation would create frames starting after the end of the run')
+
+        # set at run level
+        self.cycle_param.frame_start_times = times
+
+        # update saved cycles
+        for cycle in self._cycledict.values():
+            idx = (times >= cycle.cycle_start) & (times < cycle.cycle_stop)
+            cycle.cycle_param.frame_start_times = times[idx]
+            cycle.cycle_param.nframes = len(cycle.cycle_param.frame_start_times)
+
+            # update saved periods
+            for period in cycle._perioddict.values():
+                idx = (times >= period.period_start) & (times < period.period_stop)
+                period.cycle_param.frame_start_times = times[idx]
+                period.cycle_param.nframes = len(period.cycle_param.frame_start_times)
+                period._framedict = {}
+
+        # reset histogram for number of hits
+        self._nhits_frame = None
+
 class ccycle(ucndata.ucncycle):
     def __init__(self, urun, cycle):
         super().__init__(urun, cycle)
@@ -186,7 +268,6 @@ class ccycle(ucndata.ucncycle):
             else:
                 return periods[key[1]]
 
-
         # slice on periods
         elif isinstance(key, slice):
             periods = self.get_period()[:self.cycle_param.nperiods]
@@ -207,7 +288,6 @@ class ccycle(ucndata.ucncycle):
 
             return ucndata.applylist(cyc)
 
-        
         raise IndexError(f'Run {self.run_number} given an unknown index type ({type(key)})')
 
     def get_period(self, period=None):
