@@ -22,6 +22,7 @@ These are the main workhorses of the ucndata project:
 
 But these can also be useful:
 
+* [the chopper module](docs/chopper.md) - redefinition for working with chopper data
 * [applylist](docs/applylist.md) - for working with sets of runs or cycles or periods. Does element-wise attribute access and operators
 * [datetime](docs/datetime.md) - convert timestamps to datetime objects and back
 
