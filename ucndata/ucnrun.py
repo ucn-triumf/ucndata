@@ -226,7 +226,7 @@ class ucnrun(ucnbase):
                            'hist':None}
 
         # histograms with edges set by period and cycle timings
-        self._nhits = None
+        self._nhits = {}
 
         # pointer to self for cycles and periods
         self._run = self
@@ -444,15 +444,15 @@ class ucnrun(ucnbase):
         else:
 
             # make hits histogram
-            if self._nhits is None:
-
+            if detector not in self._nhits.keys():
+                
                 # use period and cycle start and end times as bin edges
                 edges = []
                 for cyclei in range(self.cycle_param.ncycles):
 
                     # get cycle start and end
-                    cycle_start = self.cycle_param.cycle_times.start[cyclei]
-                    period_ends = self.cycle_param.period_end_times[cyclei]
+                    cycle_start = self.cycle_param.cycle_times.start[cyclei].copy()
+                    period_ends = self.cycle_param.period_end_times[cyclei].copy()
 
                     # shorten periods that extend past the end of the cycle (edge case)
                     if cyclei < self.cycle_param.ncycles-1:
@@ -467,42 +467,44 @@ class ucnrun(ucnbase):
                     edges.extend(list(period_ends))
 
                 edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
-                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1]+1) # unsure why this last edge is needed
 
                 # discard duplicate edges - this drop counts for zero length periods, we re-insert these after
+                # first bin is hits before first edge - ie before cycle start
                 hits = tree.hist1d('tUnixTimePrecise', edges=np.unique(edges)).y[1:]
 
                 # rebuild hits array with zero counts for zero length periods
                 dur = self.cycle_param.period_durations_s.values.transpose() # durations[cycle,period]
                 idx = 0 # index in the hits array to copy for non-zero durations
-                self._nhits = []
+                self._nhits[detector] = []
                 for cyci in range(dur.shape[0]):
                     for peri in range(dur.shape[1]):
 
                         # non-zero duration, add hits from historgram
-                        if dur[cyci,peri] > 0:
-                            self._nhits.append(hits[idx])
+                        # index exceeds hits len if run ended before last cycle finished
+                        if dur[cyci,peri] > 0 and idx < len(hits):
+                            self._nhits[detector].append(hits[idx])
                             idx += 1
                         
                         # zero duration add zero counts
                         else:
-                            self._nhits.append(0)
-                    
+                            self._nhits[detector].append(0)
+                        
                     # end of cycle hits after last period
-                    self._nhits.append(hits[idx])
-                    idx += 1
+                    if idx < len(hits):
+                        self._nhits[detector].append(hits[idx])
+                        idx += 1
 
                 # convert to np array
-                self._nhits = np.array(self._nhits)
+                self._nhits[detector] = np.array(self._nhits[detector])
 
             # get hits for cycle
             if period is None:
                 nperiodsp1 = len(self.cycle_param.period_end_times)+1
-                return int(self._nhits[cycle*nperiodsp1:(cycle+1)*nperiodsp1].sum())
+                return int(self._nhits[detector][cycle*nperiodsp1:(cycle+1)*nperiodsp1].sum())
 
             # get hits for period
             else:
-                return int(self._nhits[cycle*(len(self.cycle_param.period_end_times)+1)+period])
+                return int(self._nhits[detector][cycle*(len(self.cycle_param.period_end_times)+1)+period])
 
     def _modify_ptiming(self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True):
         # Change start and end times of periods
@@ -585,7 +587,7 @@ class ucnrun(ucnbase):
             del self._cycledict[cycle]
 
         # reset histogram for number of hits
-        self._nhits = None
+        self._nhits = {}
 
         # reset all saved histograms
         for key in self._hits_hist.keys():
@@ -1179,7 +1181,7 @@ class ucnrun(ucnbase):
 
             # setup output
             times = {'start': matchedhe3,
-                     'duration (s)': np.concatenate((np.diff(matchedhe3), [run_stop])),
+                     'duration (s)': np.diff(np.concatenate((matchedhe3, [run_stop]))),
                      'offset (s)': matchedhe3-matchedli6}
             times['stop'] = times['start'] + times['duration (s)']
             times['supercycle'] = scycle

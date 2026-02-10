@@ -394,7 +394,7 @@ class ucnbase(object):
             pd.Series: indexed by timestamps, current in uA
         """
         if type(self.tfile.BeamlineEpics) is pd.DataFrame:
-            return self.tfile.BeamlineEpics.B1_FOIL_ADJCUR
+            return self.tfile.BeamlineEpics.B1_FOIL_ADJCUR.copy()
         else:
             return self.tfile.BeamlineEpics.B1_FOIL_ADJCUR.to_dataframe()
 
