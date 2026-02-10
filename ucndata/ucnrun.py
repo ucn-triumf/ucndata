@@ -467,9 +467,33 @@ class ucnrun(ucnbase):
                     edges.extend(list(period_ends))
 
                 edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
-                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1]) # need duplicate end bin for some reason
+                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1]+1) # unsure why this last edge is needed
 
-                self._nhits = tree.hist1d('tUnixTimePrecise', edges=edges).y[1:]
+                # discard duplicate edges - this drop counts for zero length periods, we re-insert these after
+                hits = tree.hist1d('tUnixTimePrecise', edges=np.unique(edges)).y[1:]
+
+                # rebuild hits array with zero counts for zero length periods
+                dur = self.cycle_param.period_durations_s.values.transpose() # durations[cycle,period]
+                idx = 0 # index in the hits array to copy for non-zero durations
+                self._nhits = []
+                for cyci in range(dur.shape[0]):
+                    for peri in range(dur.shape[1]):
+
+                        # non-zero duration, add hits from historgram
+                        if dur[cyci,peri] > 0:
+                            self._nhits.append(hits[idx])
+                            idx += 1
+                        
+                        # zero duration add zero counts
+                        else:
+                            self._nhits.append(0)
+                    
+                    # end of cycle hits after last period
+                    self._nhits.append(hits[idx])
+                    idx += 1
+
+                # convert to np array
+                self._nhits = np.array(self._nhits)
 
             # get hits for cycle
             if period is None:
