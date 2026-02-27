@@ -1,7 +1,7 @@
 # The Chopper Module
 
 [**Back to Index**](index.md)\
-[**Next page: Tips and FAQ**](tips.md)
+[**Next page: Filter Data Events**](filterdata.md)
 
 For chopper experiments, we expect that a timing signal is sent to the same digitizer receiving the signal from the detectors. In Jan 2026 this signal was sent into channel 15. This signal determines the start time of a frame: a short window, typically on the order of 1 s, within a period related to a chopper blocking the UCN guide or not. 
 
@@ -45,4 +45,4 @@ run[:,0,10:50]
 ```
 
 [**Back to Index**](index.md)\
-[**Next page: Tips and FAQ**](tips.md)
+[**Next page: Filter Data Events**](filterdata.md)

@@ -9,4 +9,5 @@
 * [Using ApplyLists](applylist.md)
 * [Examples](examples.md)
 * [Chopper module](chopper.md)
+* [Filtering data events](filterdata.md)
 * [Tips and FAQ](tips.md)
