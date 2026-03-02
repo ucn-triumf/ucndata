@@ -10,9 +10,14 @@ import os
 import numpy as np
 import pandas as pd
 import matplotlib.pyplot as plt
+import time
 
 class crun(ucndata.ucnrun):
     def __init__(self, run, ucn_only=True, chop_time_ch=15):
+        """
+        Args:
+            chop_time_ch (int): channel of the Li6 detector indicating the chopper opening time
+        """
         super().__init__(run, ucn_only)
 
         tree = self.tfile['UCNHits_Li6'].reset()
@@ -21,6 +26,8 @@ class crun(ucndata.ucnrun):
 
         self.cycle_param['nframes'] = len(times)
         self.cycle_param['frame_start_times'] = times
+        self.chop_time_ch = chop_time_ch
+        self._ucn_only = ucn_only
 
         self._nhits_frame = None
 
@@ -155,6 +162,61 @@ class crun(ucndata.ucnrun):
         else:
             self._cycledict[cycle] = ccycle(self, cycle)
             return self._cycledict[cycle]
+
+    def get_tof(self, bin_ms=1):
+        """Time time of flight histogram. Ignores bad cycles set in crun.cycle_param.filters
+        
+        Args: 
+            bin_ms (int): size of histogram bin in ms
+
+        Returns:
+            tuple(np.ndarray, np.ndarray): tuple of (bins edges, histogram) 
+        """
+
+        # get only Li6 detector timing entries
+        tree = self.tfile.UCNHits_Li6.reset()
+
+        # get hits
+        times, chans, isUCN = tree[['tUnixTimePrecise','tChannel', 'tIsUCN']].values
+        tof = times.copy()
+
+        # get chopper rate
+        idx = np.where(chans==15)[0]
+        chop_rate = np.mean(np.diff(times[idx]))
+
+        # get tof
+        for i0, i1 in zip(idx[:-1], idx[1:]):
+            tof[i0:i1] -= tof[i0]
+
+        # get only ucn hits
+        if self._ucn_only:
+            tof = tof[isUCN.astype(bool)]
+            times = times[isUCN.astype(bool)]
+
+        # get only Li6 detector hits
+        else:
+            times = times[chans < 10]
+            tof = tof[chans < 10]
+
+        # remove bad cycles
+        if self.cycle_param.filter is not None:
+            idx_keep = np.full(len(tof), False)
+            for cycle in self:
+                if cycle.cycle_param.filter:
+                    idx_keep += (times >= cycle.cycle_start) & (times < cycle.cycle_stop) 
+            tof = tof[idx_keep]
+            times = times[idx_keep]
+
+        # make histogram edges
+        bin_s = bin_ms/1000
+        edges = np.arange(0, (chop_rate//bin_s + 1) *  bin_s, bin_s)
+
+        # get histogram
+        hist, bins = np.histogram(tof[(tof > 0) & (tof < chop_rate)], bins=edges)
+
+        return (bins, hist)
+
+
 
     def inspect(self, detector='Li6', bin_ms=100, xmode='duration', slow=None):
         """Draw counts and BL1A current with indicated periods to determine data quality
