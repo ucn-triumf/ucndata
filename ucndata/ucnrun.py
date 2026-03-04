@@ -67,7 +67,7 @@ class ucnrun(ucnbase):
         `period_end_times`: End time of each period in each cycle in epoch time
         `period_durations_s`: Duration in sections of each period in each cycle
         `ncycles`: Number of total cycles contained in the run
-        `filter`: A list indicating how we should filter cycles. More on that in [filters](filters.md)
+        `filter`: A list of booleans indicating how we should filter cycles. More on that in [the tutorial](filter.md)
         `cycle_time`: The start and end times of each cycle
 
     Examples:
