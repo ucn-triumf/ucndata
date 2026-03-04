@@ -6,19 +6,20 @@
 
 - [Chopper](#chopper)
   - [ccycle](#ccycle)
-    - [ccycle.get_period](#ccycle.get_period)
+    - [ccycle.get_period](#ccycle()get_period)
   - [cframe](#cframe)
-    - [cframe.get_nhits](#cframe.get_nhits)
+    - [cframe.get_nhits](#cframe()get_nhits)
   - [cperiod](#cperiod)
-    - [cperiod.get_frame](#cperiod.get_frame)
+    - [cperiod.get_frame](#cperiod()get_frame)
   - [crun](#crun)
-    - [crun.get_cycle](#crun.get_cycle)
-    - [crun.inspect](#crun.inspect)
-    - [crun.offset_frames](#crun.offset_frames)
+    - [crun.get_cycle](#crun()get_cycle)
+    - [crun.get_tof](#crun()get_tof)
+    - [crun.inspect](#crun()inspect)
+    - [crun.offset_frames](#crun()offset_frames)
 
 ## ccycle
 
-[Show source in chopper.py:235](../ucndata/chopper.py#L235)
+[Show source in chopper.py:297](../ucndata/chopper.py#L297)
 
 #### Signature
 
@@ -29,7 +30,7 @@ class ccycle(ucndata.ucncycle):
 
 ### ccycle.get_period
 
-[Show source in chopper.py:289](../ucndata/chopper.py#L289)
+[Show source in chopper.py:351](../ucndata/chopper.py#L351)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -72,7 +73,7 @@ def get_period(self, period=None): ...
 
 ## cframe
 
-[Show source in chopper.py:392](../ucndata/chopper.py#L392)
+[Show source in chopper.py:454](../ucndata/chopper.py#L454)
 
 #### Signature
 
@@ -83,7 +84,7 @@ class cframe(ucndata.ucnbase):
 
 ### cframe.get_nhits
 
-[Show source in chopper.py:427](../ucndata/chopper.py#L427)
+[Show source in chopper.py:489](../ucndata/chopper.py#L489)
 
 Get number of ucn hits
 
@@ -101,7 +102,7 @@ def get_nhits(self, detector): ...
 
 ## cperiod
 
-[Show source in chopper.py:331](../ucndata/chopper.py#L331)
+[Show source in chopper.py:393](../ucndata/chopper.py#L393)
 
 #### Signature
 
@@ -112,7 +113,7 @@ class cperiod(ucndata.ucnperiod):
 
 ### cperiod.get_frame
 
-[Show source in chopper.py:380](../ucndata/chopper.py#L380)
+[Show source in chopper.py:442](../ucndata/chopper.py#L442)
 
 #### Signature
 
@@ -124,7 +125,7 @@ def get_frame(self, frame=None): ...
 
 ## crun
 
-[Show source in chopper.py:14](../ucndata/chopper.py#L14)
+[Show source in chopper.py:15](../ucndata/chopper.py#L15)
 
 #### Signature
 
@@ -135,7 +136,7 @@ class crun(ucndata.ucnrun):
 
 ### crun.get_cycle
 
-[Show source in chopper.py:122](../ucndata/chopper.py#L122)
+[Show source in chopper.py:129](../ucndata/chopper.py#L129)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -172,9 +173,29 @@ run 1846 (cycle 0):
 def get_cycle(self, cycle=None): ...
 ```
 
+### crun.get_tof
+
+[Show source in chopper.py:166](../ucndata/chopper.py#L166)
+
+Time time of flight histogram. Ignores bad cycles set in crun.cycle_param.filters
+
+#### Arguments
+
+- `bin_ms` *int* - size of histogram bin in ms
+
+#### Returns
+
+- `tuple(np.ndarray,` *np.ndarray)* - tuple of (bins edges, histogram)
+
+#### Signature
+
+```python
+def get_tof(self, bin_ms=1): ...
+```
+
 ### crun.inspect
 
-[Show source in chopper.py:159](../ucndata/chopper.py#L159)
+[Show source in chopper.py:221](../ucndata/chopper.py#L221)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -193,7 +214,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### crun.offset_frames
 
-[Show source in chopper.py:200](../ucndata/chopper.py#L200)
+[Show source in chopper.py:262](../ucndata/chopper.py#L262)
 
 Add an offset to the start times of all frames
 

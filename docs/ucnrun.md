@@ -134,7 +134,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:570](../ucndata/ucnrun.py#L570)
+[Show source in ucnrun.py:596](../ucndata/ucnrun.py#L596)
 
 Run some checks to determine if the data is ok.
 
@@ -166,7 +166,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.draw_cycle_times
 
-[Show source in ucnrun.py:633](../ucndata/ucnrun.py#L633)
+[Show source in ucnrun.py:659](../ucndata/ucnrun.py#L659)
 
 Draw cycle start times as thick black lines, period end times as dashed lines
 
@@ -190,7 +190,7 @@ def draw_cycle_times(self, ax=None, xmode="datetime", do_legend=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:717](../ucndata/ucnrun.py#L717)
+[Show source in ucnrun.py:743](../ucndata/ucnrun.py#L743)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -226,7 +226,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:748](../ucndata/ucnrun.py#L748)
+[Show source in ucnrun.py:774](../ucndata/ucnrun.py#L774)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -265,7 +265,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.inspect
 
-[Show source in ucnrun.py:785](../ucndata/ucnrun.py#L785)
+[Show source in ucnrun.py:811](../ucndata/ucnrun.py#L811)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -284,7 +284,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:929](../ucndata/ucnrun.py#L929)
+[Show source in ucnrun.py:955](../ucndata/ucnrun.py#L955)
 
 Don't load all the data in each file, only that which is needed
 
@@ -296,7 +296,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:943](../ucndata/ucnrun.py#L943)
+[Show source in ucnrun.py:969](../ucndata/ucnrun.py#L969)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -367,7 +367,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:1016](../ucndata/ucnrun.py#L1016)
+[Show source in ucnrun.py:1042](../ucndata/ucnrun.py#L1042)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times

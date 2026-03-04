@@ -91,6 +91,36 @@ Get number of ucn hits
 
 - `detector` *str* - Li6|He3
 
+#### Returns
+
+- `int` - number of events
+
+#### Notes
+
+Getting the hits requires that you parse the entire tree, so to
+speed this up, a histogram is created where the bin edges are
+set to the period and cycle start/end times. This histogram is
+cached as `self._nhits` so future requests of the number of hits is
+fast. However, if you modify the start/end times of the periods,
+this histogram is no longer accurate and so must be recomputed.
+This happens automatically, but rebuilding the histogram adds to
+your runtime. Thus the following works, but is slow:
+
+```python
+hits = []
+for cycle in run:
+    cycle[1].modify_timing(1)
+    hits.append(cycle[1].get_nhits('Li6')) // hits histogram recomputed every loop
+```
+
+Whereas the following is much faster but does the same thing:
+
+```python
+for cycle in run:
+    cycle[1].modify_timing(1)
+hits = run[:, 1].get_nhits('Li6') // hits histogram recomputed only once
+```
+
 #### Signature
 
 ```python
@@ -99,7 +129,7 @@ def get_nhits(self, detector): ...
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:219](../ucndata/ucncycle.py#L219)
+[Show source in ucncycle.py:247](../ucndata/ucncycle.py#L247)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -140,7 +170,7 @@ def get_period(self, period=None): ...
 
 ### ucncycle.shift_timing
 
-[Show source in ucncycle.py:258](../ucndata/ucncycle.py#L258)
+[Show source in ucncycle.py:286](../ucndata/ucncycle.py#L286)
 
 Shift all periods by a constant time, maintaining the period durations.
 This shifts the cycle start time and shortens the cycle, potentially creating gaps between cycles
