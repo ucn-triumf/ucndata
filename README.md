@@ -32,3 +32,13 @@ But these can also be useful:
 * [applylist](docs/applylist.md) - for working with sets of runs or cycles or periods. Does element-wise attribute access and operators
 * [datetime](docs/datetime.md) - convert timestamps to datetime objects and back
 
+## rootloader API
+
+[rootloader] is a custom package which facilitates the reading of ROOT files in a more pythonic way than is provided by generic PyROOT. In general it attempts to make the various ROOT objects (histograms, trees) look like pandas dataframes. When you are looking at the contents of `ucnrun.tfile` you are looking at the [`rootloader.tfile`](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/tfile.md#tfile) object. Here are the reference for some of the more commonly found [rootloader] objects: 
+
+* [`ttree`](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree)
+* [`th1`](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/th1.md#th1)
+* [`tfile`](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/tfile.md#tfile)
+* [`tdirectory`](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/tdirectory.md#tdirectory)
+
+[rootloader]:https://github.com/ucn-triumf/rootloader
