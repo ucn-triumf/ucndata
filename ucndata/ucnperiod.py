@@ -136,7 +136,7 @@ class ucnperiod(ucnbase):
                 hits = []
                 for cycle in run: 
                     cycle[1].modify_timing(1)
-                    hits.append(cycle[1].get_nhits('Li6')) // hits histogram recomputed every loop
+                    hits.append(cycle[1].get_nhits('Li6')) # hits histogram recomputed every loop
             ```
 
             Whereas the following is much faster but does the same thing:
@@ -144,7 +144,7 @@ class ucnperiod(ucnbase):
             ```python
                 for cycle in run: 
                     cycle[1].modify_timing(1)
-                hits = run[:, 1].get_nhits('Li6') // hits histogram recomputed only once
+                hits = run[:, 1].get_nhits('Li6') # hits histogram recomputed only once
             ```
         """
         return self._run._get_nhits(detector, cycle=self.cycle, period=self.period)
