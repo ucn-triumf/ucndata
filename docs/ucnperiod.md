@@ -61,7 +61,7 @@ your runtime. Thus the following works, but is slow:
 hits = []
 for cycle in run:
     cycle[1].modify_timing(1)
-    hits.append(cycle[1].get_nhits('Li6')) // hits histogram recomputed every loop
+    hits.append(cycle[1].get_nhits('Li6')) # hits histogram recomputed every loop
 ```
 
 Whereas the following is much faster but does the same thing:
@@ -69,7 +69,7 @@ Whereas the following is much faster but does the same thing:
 ```python
 for cycle in run:
     cycle[1].modify_timing(1)
-hits = run[:, 1].get_nhits('Li6') // hits histogram recomputed only once
+hits = run[:, 1].get_nhits('Li6') # hits histogram recomputed only once
 ```
 
 #### Signature
