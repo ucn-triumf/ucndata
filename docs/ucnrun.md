@@ -62,7 +62,7 @@ Cycle param contents
 - ``period_end_times`` - End time of each period in each cycle in epoch time
 - ``period_durations_s`` - Duration in sections of each period in each cycle
 - ``ncycles`` - Number of total cycles contained in the run
-- ``filter`` - A list of booleans indicating how we should filter cycles. More on that in [the tutorial](filter.md)
+- ``filter`` - A list of booleans indicating how we should filter cycles. More on that in [the tutorial](https://github.com/ucn-triumf/ucndata/blob/main/tutorials/filter.md)
 - ``cycle_time`` - The start and end times of each cycle
 
 #### Examples
