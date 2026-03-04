@@ -213,6 +213,34 @@ class ucncycle(ucnbase):
 
         Args:
             detector (str): Li6|He3
+        
+        Returns: 
+            int: number of events
+
+        Notes: 
+            Getting the hits requires that you parse the entire tree, so to 
+            speed this up, a histogram is created where the bin edges are 
+            set to the period and cycle start/end times. This histogram is 
+            cached as `self._nhits` so future requests of the number of hits is 
+            fast. However, if you modify the start/end times of the periods, 
+            this histogram is no longer accurate and so must be recomputed. 
+            This happens automatically, but rebuilding the histogram adds to 
+            your runtime. Thus the following works, but is slow: 
+            
+            ```python
+                hits = []
+                for cycle in run: 
+                    cycle[1].modify_timing(1)
+                    hits.append(cycle[1].get_nhits('Li6')) // hits histogram recomputed every loop
+            ```
+
+            Whereas the following is much faster but does the same thing:
+            
+            ```python
+                for cycle in run: 
+                    cycle[1].modify_timing(1)
+                hits = run[:, 1].get_nhits('Li6') // hits histogram recomputed only once
+            ```
         """
         return self._run._get_nhits(detector, cycle=self.cycle)
 

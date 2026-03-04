@@ -431,7 +431,7 @@ class ucnrun(ucnbase):
 
         # Notes:
         #     Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
-        #     The histogram bin quantities is saved as self._nhits or self._nhits_cycle
+        #     The histogram bin quantities is saved as self._nhits
         #     Both ucncycle and ucnperiod classes call this function to get the counts
 
         # get hits tree
