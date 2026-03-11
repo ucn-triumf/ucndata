@@ -8,6 +8,8 @@ from .ucnperiod import ucnperiod
 from .tsubfile import tsubfile
 from .ttreeslow import ttreeslow
 from tqdm import tqdm
+import pandas as pd
+import matplotlib.pyplot as plt
 
 
 import numpy as np
@@ -125,6 +127,76 @@ class ucncycle(ucnbase):
 
         raise IndexError('Cycles indexable only as a 1-dimensional object')
 
+    def _inspect_draw(self, current, hist, run_start, axes, xmode='duration', slow=None):
+        # drawing portion of the inspect function
+        for i, per in enumerate(self):
+
+            # draw current
+            cur = current.loc[per.period_start:per.period_stop]
+
+            if len(cur) > 0:
+                if xmode in 'datetime':
+                    cur.index = pd.to_datetime(cur.index, unit='s')
+                elif xmode in 'duration':
+                    cur.index -= run_start
+
+                cur.plot(ax=axes[0], color=f'C{i}')
+
+            # draw histogram
+            hi = hist.loc[per.period_start:per.period_stop]
+
+            if len(hi) > 0:
+                if xmode in 'datetime':
+                    hi.index = pd.to_datetime(hi.index, unit='s')
+                elif xmode in 'duration':
+                    hi.index -= run_start
+
+                hi.plot(ax=axes[1], color=f'C{i}')
+
+            # draw slow control
+            if slow is not None:
+                for j, (key, val) in enumerate(slow.items()):
+                    v = val.loc[per.period_start:per.period_stop]
+                    if len(v) > 0:
+                        if xmode in 'datetime':
+                            v.index = pd.to_datetime(v.index, unit='s')
+                        elif xmode in 'duration':
+                            v.index -= run_start
+                    v.plot(ax=axes[j+2], color=f'C{i}')
+
+        # draw the rest of the run - current
+        cur = current.loc[per.period_stop:self.cycle_stop]
+
+        if len(cur) > 0:
+            if xmode in 'datetime':
+                cur.index = pd.to_datetime(cur.index, unit='s')
+            elif xmode in 'duration':
+                cur.index -= run_start
+
+            cur.plot(ax=axes[0], color=f'k')
+
+        # draw the rest of the run - histogram
+        hi = hist.loc[per.period_stop:self.cycle_stop]
+
+        if len(hi) > 0:
+            if xmode in 'datetime':
+                hi.index = pd.to_datetime(hi.index, unit='s')
+            elif xmode in 'duration':
+                hi.index -= run_start
+
+            hi.plot(ax=axes[1], color=f'k')
+
+        # draw slow control
+        if slow is not None:
+            for i, (key, val) in enumerate(slow.items()):
+                v = val.loc[per.period_stop:self.cycle_stop]
+                if len(v) > 0:
+                    if xmode in 'datetime':
+                        v.index = pd.to_datetime(v.index, unit='s')
+                    elif xmode in 'duration':
+                        v.index -= run_start
+                v.plot(ax=axes[i+2], color=f'k')
+
     def check_data(self, raise_error=False, quiet=False):
         """Run some checks to determine if the data is ok.
 
@@ -207,6 +279,87 @@ class ucncycle(ucnbase):
                 return warn(BeamError, f'{msg} 1A current dropped below {self.DATA_CHECK_THRESH["beam_min_current"]} uA within 20 seconds of the cycle starting')
 
         return True
+
+    def draw_cycle_times(self, ax=None, xmode='datetime'):
+        """Draw cycle start times as thick black lines, period end times as dashed lines
+
+        Args:
+            ax (plt.Axes): axis to draw in, if None, draw in current axes
+            xmode (str): datetime|duration|duration_run|duration_cycle|epoch
+
+        Notes:
+            Assumed periods:    0 - irradiation
+                                1 - storage
+                                2 - count
+        """
+
+        # check input
+        if all((xmode not in i for i in ('datetime', 'duration', 'duration_run', 'duration_cycle', 'epoch'))):
+            raise RuntimeError('xmode must be one of datetime|duration_run|duration_cycle|epoch')
+
+        # get axis to draw in
+        if ax is None:
+            ax = plt.gca()
+
+        # run start time
+        if xmode in 'duration_run':
+            run_start = self._run.cycle_param.cycle_times.loc[0, 'start']
+        elif xmode in 'duration_cycle':
+            run_start = self.cycle_start
+        else:
+            run_start = 0
+
+        # draw lines
+        non_zero_periods = []
+
+        # get x value
+        if xmode in 'datetime':
+            start = pd.to_datetime(self.cycle_start, unit='s')
+        else:
+            start = self.cycle_start - run_start
+
+        # draw
+        ax.axvline(start, color='k', ls='-', lw=2)
+
+        for i, per in enumerate(self):
+
+            # skip zero length periods
+            if per.period_start == per.period_stop:
+                continue
+
+            # get x value
+            if xmode in 'datetime':
+                x = pd.to_datetime(per.period_stop, unit='s')
+            else:
+                x = per.period_stop - run_start
+
+            # draw
+            ax.axvline(x, color=f'C{i}', ls=':', lw=1)
+            non_zero_periods.append(i)
+
+        # get cycle text - strikeout if not good
+        text = f'Cycle {self.cycle}'
+
+        # check if filtered
+        if self.cycle_param.filter is None or self.cycle_param.filter:
+            color = 'k'
+        else:
+            text = '\u0336'.join(text) + '\u0336'
+            color = 'r'
+
+        text += ' $\\downarrow$'
+
+        ypos = ax.get_ylim()[1]
+        ax.text(start, ypos, text,
+                va='top',
+                ha='left',
+                fontsize='xx-small',
+                color=color,
+                rotation='vertical',
+                clip_on=True,)
+
+        # add periods to legend
+        return np.unique(non_zero_periods)
 
     def get_nhits(self, detector):
         """Get number of ucn hits

@@ -12,6 +12,8 @@ import pandas as pd
 import matplotlib.pyplot as plt
 from matplotlib.patches import Rectangle
 from tqdm import tqdm
+from collections.abc import Iterable
+import matplotlib.patches as mpatches
 
 class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
@@ -272,6 +274,118 @@ class ucnbase(object):
             hist.x = to_datetime(hist.x)
 
         return hist
+
+    def inspect(self, detector='Li6', bin_ms=100, xmode='duration', slow=None):
+        """Draw counts and BL1A current with indicated periods to determine data quality
+
+        Args:
+            detector (str): detector from which to get the counts from. Li6|He3
+            bin_ms (int): histogram bin size in ms
+            xmode (str): datetime|duration|epoch
+            slow (list|str): name of slow control tree to add in a separate axis, can be a list of names
+        """
+
+        # check input
+        if all((xmode not in i for i in ('datetime', 'duration', 'epoch'))):
+            raise RuntimeError('xmode must be one of datetime|duration|epoch')
+
+        # number of rows in figure
+        nrows = 2
+
+        # check input
+        if slow is not None:
+            if isinstance(slow, str):
+                if slow not in self.epics.columns:
+                    raise KeyError(f'Input slow ("{slow}") not found in tree "epics"')
+                slow = [slow]
+            elif isinstance(slow, Iterable):
+                for s in slow:
+                    if s not in self.epics.columns:
+                        raise KeyError(f'Input slow ("{slow}") not found in tree "epics"')
+            else:
+                raise RuntimeError('Input "slow" must be a string or iterable')
+
+            # extra row for slow control
+            nrows += len(slow)
+
+        # make figure
+        _, axes = plt.subplots(nrows=nrows, ncols=1, sharex=True,
+                        layout='constrained', figsize=(8,10))
+
+        # get current and histogram
+        current = self.beam1a_current_uA
+        current.sort_index(inplace=True)
+        hist = self.get_hits_histogram(detector, bin_ms=bin_ms).to_dataframe()
+        hist.set_index('tUnixTimePrecise', inplace=True)
+        hist = hist['Count']
+
+        # get slow control
+        if slow is not None:
+            slow = {s:self.epics[s].to_dataframe() for s in slow}
+
+        # period
+        if hasattr(self, 'period'):
+            type = 'Period'
+            run_start = self.period_start
+            raise NotImplementedError('Inspect for periods not yet implemented')
+        
+        # cycle
+        elif hasattr(self, 'cycle'):
+            type = 'Cycle'
+            run_start = self.cycle_start
+            self._inspect_draw(current, hist, run_start, axes, xmode, slow)
+            
+            # draw vertical markers
+            if xmode in 'duration':
+                xmode = 'duration_cycle'
+            for i, ax in enumerate(axes):
+                non_zero_periods = self.draw_cycle_times(ax=ax, xmode=xmode)
+
+            # title is run, cycle number
+            axes[0].set_title(f'run {self.run_number}, cycle {self.cycle}',
+                              fontsize='x-small')
+
+        # full run
+        else:
+            type = 'Run'
+            run_start = self.cycle_param.cycle_times.loc[0, 'start']
+
+            # draw each cycle
+            for cyc in self.get_cycle():
+                cyc._inspect_draw(current, hist, run_start, axes, xmode, slow)
+
+            # draw vertical markers
+            for i, ax in enumerate(axes):
+                non_zero_periods = self[:].draw_cycle_times(ax=ax, xmode=xmode)
+            non_zero_periods = np.concat(non_zero_periods)
+
+            # title is run number
+            axes[0].set_title(f'run {self.run_number}',
+                              fontsize='x-small')
+
+        # plot elements
+        axes[0].set_ylabel('BL1A Current (uA)')
+        axes[1].set_ylabel(f'UCN Counts/{bin_ms/1000:g}s')
+
+        if slow is not None:
+            slow_keys = tuple(slow.keys())
+            for i, ax in enumerate(axes[2:]):
+                ax.set_ylabel(slow_keys[i].split('_')[-2])
+
+        if xmode in 'datetime':
+            axes[-1].set_xlabel('')
+        elif xmode in 'duration' or xmode in 'duration_cycle' or xmode in 'duration_run':
+            axes[-1].set_xlabel(f'Time Since {type} Start (s)')
+        else:
+            axes[-1].set_xlabel('Epoch Time')
+        axes[1].set_yscale('log')
+
+        # legend
+        handles = [mpatches.Patch(color=f'C{period}', label=f'Period {period}') \
+                   for period in sorted(np.unique(non_zero_periods))]
+        axes[0].legend(handles=handles, loc='upper right') 
+
+        return axes
 
     def plot_psd(self, detector='Li6', cut=None, cmap='RdBu'):
         """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
