@@ -7,13 +7,14 @@
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
     - [ucncycle.check_data](#ucncyclecheck_data)
+    - [ucncycle.draw_cycle_times](#ucncycledraw_cycle_times)
     - [ucncycle.get_nhits](#ucncycleget_nhits)
     - [ucncycle.get_period](#ucncycleget_period)
     - [ucncycle.shift_timing](#ucncycleshift_timing)
 
 ## ucncycle
 
-[Show source in ucncycle.py:16](../ucndata/ucncycle.py#L16)
+[Show source in ucncycle.py:18](../ucndata/ucncycle.py#L18)
 
 View for the data from a single UCN cycle
 
@@ -40,7 +41,7 @@ class ucncycle(ucnbase):
 
 ### ucncycle.check_data
 
-[Show source in ucncycle.py:128](../ucndata/ucncycle.py#L128)
+[Show source in ucncycle.py:200](../ucndata/ucncycle.py#L200)
 
 Run some checks to determine if the data is ok.
 
@@ -81,9 +82,32 @@ False
 def check_data(self, raise_error=False, quiet=False): ...
 ```
 
+### ucncycle.draw_cycle_times
+
+[Show source in ucncycle.py:283](../ucndata/ucncycle.py#L283)
+
+Draw cycle start times as thick black lines, period end times as dashed lines
+
+#### Arguments
+
+- `ax` *plt.Axes* - axis to draw in, if None, draw in current axes
+- `xmode` *str* - datetime|duration|duration_run|duration_cycle|epoch
+
+#### Notes
+
+- `Assumed` *periods* - 0 - irradiation
+                    1 - storage
+                    2 - count
+
+#### Signature
+
+```python
+def draw_cycle_times(self, ax=None, xmode="datetime"): ...
+```
+
 ### ucncycle.get_nhits
 
-[Show source in ucncycle.py:211](../ucndata/ucncycle.py#L211)
+[Show source in ucncycle.py:364](../ucndata/ucncycle.py#L364)
 
 Get number of ucn hits
 
@@ -129,7 +153,7 @@ def get_nhits(self, detector): ...
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:247](../ucndata/ucncycle.py#L247)
+[Show source in ucncycle.py:400](../ucndata/ucncycle.py#L400)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -170,7 +194,7 @@ def get_period(self, period=None): ...
 
 ### ucncycle.shift_timing
 
-[Show source in ucncycle.py:286](../ucndata/ucncycle.py#L286)
+[Show source in ucncycle.py:439](../ucndata/ucncycle.py#L439)
 
 Shift all periods by a constant time, maintaining the period durations.
 This shifts the cycle start time and shortens the cycle, potentially creating gaps between cycles

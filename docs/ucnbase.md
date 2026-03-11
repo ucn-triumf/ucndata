@@ -13,12 +13,13 @@
     - [ucnbase.beam_on_s](#ucnbasebeam_on_s)
     - [ucnbase.get_hits_array](#ucnbaseget_hits_array)
     - [ucnbase.get_hits_histogram](#ucnbaseget_hits_histogram)
+    - [ucnbase.inspect](#ucnbaseinspect)
     - [ucnbase.plot_psd](#ucnbaseplot_psd)
     - [ucnbase.trigger_edge](#ucnbasetrigger_edge)
 
 ## ucnbase
 
-[Show source in ucnbase.py:16](../ucndata/ucnbase.py#L16)
+[Show source in ucnbase.py:18](../ucndata/ucnbase.py#L18)
 
 #### Attributes
 
@@ -81,7 +82,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:142](../ucndata/ucnbase.py#L142)
+[Show source in ucnbase.py:144](../ucndata/ucnbase.py#L144)
 
 Apply function to each cycle
 
@@ -108,7 +109,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:389](../ucndata/ucnbase.py#L389)
+[Show source in ucnbase.py:503](../ucndata/ucnbase.py#L503)
 
 Get beamline 1A current in uA (micro amps)
 
@@ -125,7 +126,7 @@ def beam1a_current_uA(self): ...
 
 ### ucnbase.beam1u_current_uA
 
-[Show source in ucnbase.py:401](../ucndata/ucnbase.py#L401)
+[Show source in ucnbase.py:515](../ucndata/ucnbase.py#L515)
 
 Get beam current in uA (micro amps)
 
@@ -165,7 +166,7 @@ def beam1u_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:480](../ucndata/ucnbase.py#L480)
+[Show source in ucnbase.py:594](../ucndata/ucnbase.py#L594)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -207,7 +208,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:445](../ucndata/ucnbase.py#L445)
+[Show source in ucnbase.py:559](../ucndata/ucnbase.py#L559)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -249,7 +250,7 @@ def beam_on_s(self): ...
 
 ### ucnbase.get_hits_array
 
-[Show source in ucnbase.py:159](../ucndata/ucnbase.py#L159)
+[Show source in ucnbase.py:161](../ucndata/ucnbase.py#L161)
 
 Get times of ucn hits as a numpy array
 
@@ -277,7 +278,7 @@ def get_hits_array(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:185](../ucndata/ucnbase.py#L185)
+[Show source in ucnbase.py:187](../ucndata/ucnbase.py#L187)
 
 Get histogram of UCNHits ttree times
 
@@ -324,9 +325,28 @@ TH1D: "HisttUnixTimePrecise", 557053 entries, sum = 557053.0
 def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
 ```
 
+### ucnbase.inspect
+
+[Show source in ucnbase.py:278](../ucndata/ucnbase.py#L278)
+
+Draw counts and BL1A current with indicated periods to determine data quality
+
+#### Arguments
+
+- `detector` *str* - detector from which to get the counts from. Li6|He3
+- `bin_ms` *int* - histogram bin size in ms
+- `xmode` *str* - datetime|duration|epoch
+- `slow` *list|str* - name of slow control tree to add in a separate axis, can be a list of names
+
+#### Signature
+
+```python
+def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
+```
+
 ### ucnbase.plot_psd
 
-[Show source in ucnbase.py:276](../ucndata/ucnbase.py#L276)
+[Show source in ucnbase.py:390](../ucndata/ucnbase.py#L390)
 
 Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 
@@ -344,7 +364,7 @@ def plot_psd(self, detector="Li6", cut=None, cmap="RdBu"): ...
 
 ### ucnbase.trigger_edge
 
-[Show source in ucnbase.py:347](../ucndata/ucnbase.py#L347)
+[Show source in ucnbase.py:461](../ucndata/ucnbase.py#L461)
 
 Detect period start time based on a rising or falling edge
 
