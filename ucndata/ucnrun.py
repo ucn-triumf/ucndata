@@ -216,12 +216,12 @@ class ucnrun(ucnbase):
         # store fetched cycles
         self._cycledict = dict()
 
-        # store fetched histogram
-        self._hits_hist = {'detector':None,
-                           'bin_ms': None,
-                           'hist':None}
+        # store fetched histogram for binned data
+        # detector: (resolution_ms, hits rootloader.hist1d)
+        self._hits_hist = {}
 
         # histograms with edges set by period and cycle timings
+        # detector: (bin_ms, hits np.ndarray)
         self._nhits = {}
 
         # pointer to self for cycles and periods
@@ -417,13 +417,14 @@ class ucnrun(ucnbase):
         # number of cycles
         self.cycle_param['ncycles'] = len(df.index)
 
-    def _get_nhits(self, detector, cycle=None, period=None):
+    def _get_nhits(self, detector, cycle=None, period=None, bin_ms=0):
         # Get number ucn hits
 
         # Args:
         #     detector (str): Li6|He3
         #     cycle (int): cycle number, if None compute for whole run
         #     period (int): period number, if None compute for whole cycle, if cycle is not also None
+        #     bin_ms (int): hit timing resolution in milliseconds. If 0, use hit tree timings
 
         # Notes:
         #     Because of how RDataFrame works it is better to compute a histogram whose bins correspond to the period or cycle start/end times than to set a filter and get the resulting tree size.
@@ -437,70 +438,103 @@ class ucnrun(ucnbase):
         if cycle is None and period is None:
             return tree.size
 
-        else:
+        # check _nhits bin_ms to see if we need to regenerate the histogram
+        if detector in self._nhits.keys() and self._nhits[detector][0] != bin_ms:
+            del self._nhits[detector]
+            self._get_nhits(detector, 
+                            cycle=cycle, 
+                            period=period, 
+                            bin_ms=bin_ms)
 
-            # make hits histogram
-            if detector not in self._nhits.keys():
+        # make hits histogram for periods and cycles
+        elif detector not in self._nhits.keys():
+
+            # use period and cycle start and end times as bin edges for _nhits
+            edges = []
+            for cyclei in range(self.cycle_param.ncycles):
+
+                cycle_start = self.cycle_param.cycle_times.start[cyclei].copy()
+                period_ends = self.cycle_param.period_end_times[cyclei].copy()
+
+                # shorten periods that extend past the end of the cycle (edge case)
+                if cyclei < self.cycle_param.ncycles-1:
+                    next_cycle_start = self.cycle_param.cycle_times.start[cyclei+1]
+                else:
+                    next_cycle_start = self.cycle_param.cycle_times.stop.iloc[-1]
+
+                period_ends[period_ends > next_cycle_start] = next_cycle_start
+
+                # save to list
+                edges.append(cycle_start)
+                edges.extend(list(period_ends))
+
+            edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
+
+            # discard duplicate edges - this drop counts for zero length periods, 
+            # we re-insert these after
+            edges = np.unique(edges)
+
+            # use resolution tree to generate the hits histogram
+            if bin_ms > 0:
+
+                # check if hits histogram exists and has the correct information
+                if detector in self._hits_hist.keys() and \
+                    self._hits_hist[detector][0] == bin_ms:
+                    hist = self._hits_hist[detector][1]
+
+                # generate the hits histogram from binned data
+                else:
+                    tree = self.tfile[self.DET_NAMES[detector]['hits']]
+                    hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
+                    self._hits_hist[detector] = (bin_ms, hist)
+
+                # make _nhits histogram based on _hits_hist histogram
+                times = hist.x
+                counts = hist.y
                 
-                # use period and cycle start and end times as bin edges
-                edges = []
-                for cyclei in range(self.cycle_param.ncycles):
-
-                    # get cycle start and end
-                    cycle_start = self.cycle_param.cycle_times.start[cyclei].copy()
-                    period_ends = self.cycle_param.period_end_times[cyclei].copy()
-
-                    # shorten periods that extend past the end of the cycle (edge case)
-                    if cyclei < self.cycle_param.ncycles-1:
-                        next_cycle_start = self.cycle_param.cycle_times.start[cyclei+1]
-                    else:
-                        next_cycle_start = self.cycle_param.cycle_times.stop.iloc[-1]
-
-                    period_ends[period_ends > next_cycle_start] = next_cycle_start
-
-                    # save to list
-                    edges.append(cycle_start)
-                    edges.extend(list(period_ends))
-
-                edges = np.append(edges, self.cycle_param.cycle_times.stop.iloc[-1])
-
-                # discard duplicate edges - this drop counts for zero length periods, we re-insert these after
-                # first bin is hits before first edge - ie before cycle start
-                hits = tree.hist1d('tUnixTimePrecise', edges=np.unique(edges)).y[1:]
-
-                # rebuild hits array with zero counts for zero length periods
-                dur = self.cycle_param.period_durations_s.values.transpose() # durations[cycle,period]
-                idx = 0 # index in the hits array to copy for non-zero durations
-                self._nhits[detector] = []
-                for cyci in range(dur.shape[0]):
-                    for peri in range(dur.shape[1]):
-
-                        # non-zero duration, add hits from historgram
-                        # index exceeds hits len if run ended before last cycle finished
-                        if dur[cyci,peri] > 0 and idx < len(hits):
-                            self._nhits[detector].append(hits[idx])
-                            idx += 1
-                        
-                        # zero duration add zero counts
-                        else:
-                            self._nhits[detector].append(0)
-                        
-                    # end of cycle hits after last period
-                    if idx < len(hits):
-                        self._nhits[detector].append(hits[idx])
-                        idx += 1
-
-                # convert to np array
-                self._nhits[detector] = np.array(self._nhits[detector])
-
-            # get hits for cycle
-            if period is None:
-                nperiodsp1 = len(self.cycle_param.period_end_times)+1
-                return int(self._nhits[detector][cycle*nperiodsp1:(cycle+1)*nperiodsp1].sum())
-
-            # get hits for period
+                # get the array of hits, histogrammed for each period
+                hits, _ = np.histogram(times, bins=edges, weights=counts)
+                
+            # hits from raw events
             else:
-                return int(self._nhits[detector][cycle*(len(self.cycle_param.period_end_times)+1)+period])
+                # first bin is hits before first edge - ie before cycle start
+                hits = tree.hist1d('tUnixTimePrecise', edges=edges).y[1:]
+
+            # rebuild hits array with zero counts for zero length periods
+            dur = self.cycle_param.period_durations_s.values.transpose() # durations[cycle,period]
+            idx = 0 # index in the hits array to copy for non-zero durations
+
+            # build list of number of hits for each period
+            nhits = []
+            for cyci in range(dur.shape[0]):
+                for peri in range(dur.shape[1]):
+
+                    # non-zero duration, add hits from historgram
+                    # index exceeds hits len if run ended before last cycle finished
+                    if dur[cyci,peri] > 0 and idx < len(hits):
+                        nhits.append(hits[idx])
+                        idx += 1
+                    
+                    # zero duration add zero counts
+                    else:
+                        nhits.append(0)
+                    
+                # end of cycle hits after last period
+                if idx < len(hits):
+                    nhits.append(hits[idx])
+                    idx += 1
+
+            # convert to np array and save as tuple
+            self._nhits[detector] = (bin_ms, np.array(nhits))
+
+        # get hits for cycle
+        if period is None:
+            nperiodsp1 = len(self.cycle_param.period_end_times)+1
+            return int(self._nhits[detector][1][cycle*nperiodsp1:(cycle+1)*nperiodsp1].sum())
+
+        # get hits for period
+        else:
+            return int(self._nhits[detector][1][cycle*(len(self.cycle_param.period_end_times)+1)+period])
 
     def _modify_ptiming(self, cycle, period, dt_start_s=0, dt_stop_s=0, update_duration=True):
         # Change start and end times of periods
@@ -584,10 +618,6 @@ class ucnrun(ucnbase):
 
         # reset histogram for number of hits
         self._nhits = {}
-
-        # reset all saved histograms
-        for key in self._hits_hist.keys():
-            self._hits_hist[key] = None
 
     def check_data(self, raise_error=False):
         """Run some checks to determine if the data is ok.

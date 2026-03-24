@@ -184,7 +184,7 @@ class ucnbase(object):
 
         return tree.tUnixTimePrecise.to_dataframe().index.values
 
-    def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False):
+    def get_hits_histogram(self, detector, bin_ms=10, as_datetime=False):
         """Get histogram of UCNHits ttree times
 
         Args:
@@ -226,21 +226,11 @@ class ucnbase(object):
         if detector not in self.DET_NAMES.keys():
             raise KeyError(f'Detector input "{detector}" not one of {tuple(self.DET_NAMES.keys())}')
 
-        # check precomputed data
-        if self._run._hits_hist['detector'] == detector and \
-           self._run._hits_hist['bin_ms'] == bin_ms:
+        # get data
+        tree = self._run.tfile[self.DET_NAMES[detector]['hits']]
 
-            hist = self._run._hits_hist['hist']
-
-        else:
-            # get data
-            tree = self._run.tfile[self.DET_NAMES[detector]['hits']]
-
-            # histogram
-            hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
-            self._run._hits_hist['detector'] = detector
-            self._run._hits_hist['bin_ms'] = bin_ms
-            self._run._hits_hist['hist'] = hist
+        # histogram
+        hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
 
         # make a copy
         hist = hist.copy()
