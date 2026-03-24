@@ -114,6 +114,10 @@ Get number of ucn hits
 #### Arguments
 
 - `detector` *str* - Li6|He3
+- `bin_ms` *int* - UCN hit event resolution in milliseconds.
+    If 0, use raw hits for max precision. Else construct histogram
+    with bins of size resolution_ms, and compute per-period/cycle hits
+    from that.
 
 #### Returns
 
@@ -121,14 +125,15 @@ Get number of ucn hits
 
 #### Notes
 
-Getting the hits requires that you parse the entire tree, so to
-speed this up, a histogram is created where the bin edges are
-set to the period and cycle start/end times. This histogram is
-cached as `self._nhits` so future requests of the number of hits is
-fast. However, if you modify the start/end times of the periods,
-this histogram is no longer accurate and so must be recomputed.
-This happens automatically, but rebuilding the histogram adds to
-your runtime. Thus the following works, but is slow:
+Getting the hits with resolution_ms=0 requires that you parse the
+entire tree, so to speed this up, a histogram is created where the
+bin edges are set to the period and cycle start/end times. This
+histogram is cached as `self._nhits` so future requests of the
+number of hits is fast. However, if you modify the start/end times
+of the periods, this histogram is no longer accurate and so must
+be recomputed. This happens automatically, but rebuilding the
+histogram adds to your runtime. Thus the following works, but is
+slow:
 
 ```python
 hits = []
@@ -145,15 +150,23 @@ for cycle in run:
 hits = run[:, 1].get_nhits('Li6') # hits histogram recomputed only once
 ```
 
+In contrast, when bin_ms > 0, a histogram with bins of size bins_ms
+is created. This histogram is independent of the period timings and
+is only recreated when get_nhits is called with a new value of
+bin_ms is changed. While the above rules still apply, recreating
+the periods hits histogram from the bin_ms histogram is much faster,
+allowing for speedups of analyses where modifying the period timings
+frequently is important.
+
 #### Signature
 
 ```python
-def get_nhits(self, detector): ...
+def get_nhits(self, detector, bin_ms=0): ...
 ```
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:400](../ucndata/ucncycle.py#L400)
+[Show source in ucncycle.py:415](../ucndata/ucncycle.py#L415)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -194,7 +207,7 @@ def get_period(self, period=None): ...
 
 ### ucncycle.shift_timing
 
-[Show source in ucncycle.py:439](../ucndata/ucncycle.py#L439)
+[Show source in ucncycle.py:454](../ucndata/ucncycle.py#L454)
 
 Shift all periods by a constant time, maintaining the period durations.
 This shifts the cycle start time and shortens the cycle, potentially creating gaps between cycles

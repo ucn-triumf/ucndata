@@ -109,7 +109,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:503](../ucndata/ucnbase.py#L503)
+[Show source in ucnbase.py:493](../ucndata/ucnbase.py#L493)
 
 Get beamline 1A current in uA (micro amps)
 
@@ -126,7 +126,7 @@ def beam1a_current_uA(self): ...
 
 ### ucnbase.beam1u_current_uA
 
-[Show source in ucnbase.py:515](../ucndata/ucnbase.py#L515)
+[Show source in ucnbase.py:505](../ucndata/ucnbase.py#L505)
 
 Get beam current in uA (micro amps)
 
@@ -166,7 +166,7 @@ def beam1u_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:594](../ucndata/ucnbase.py#L594)
+[Show source in ucnbase.py:584](../ucndata/ucnbase.py#L584)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -208,7 +208,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:559](../ucndata/ucnbase.py#L559)
+[Show source in ucnbase.py:549](../ucndata/ucnbase.py#L549)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -322,12 +322,12 @@ TH1D: "HisttUnixTimePrecise", 557053 entries, sum = 557053.0
 #### Signature
 
 ```python
-def get_hits_histogram(self, detector, bin_ms=100, as_datetime=False): ...
+def get_hits_histogram(self, detector, bin_ms=10, as_datetime=False): ...
 ```
 
 ### ucnbase.inspect
 
-[Show source in ucnbase.py:278](../ucndata/ucnbase.py#L278)
+[Show source in ucnbase.py:268](../ucndata/ucnbase.py#L268)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -346,7 +346,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnbase.plot_psd
 
-[Show source in ucnbase.py:390](../ucndata/ucnbase.py#L390)
+[Show source in ucnbase.py:380](../ucndata/ucnbase.py#L380)
 
 Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 
@@ -364,7 +364,7 @@ def plot_psd(self, detector="Li6", cut=None, cmap="RdBu"): ...
 
 ### ucnbase.trigger_edge
 
-[Show source in ucnbase.py:461](../ucndata/ucnbase.py#L461)
+[Show source in ucnbase.py:451](../ucndata/ucnbase.py#L451)
 
 Detect period start time based on a rising or falling edge
 

@@ -132,7 +132,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:592](../ucndata/ucnrun.py#L592)
+[Show source in ucnrun.py:622](../ucndata/ucnrun.py#L622)
 
 Run some checks to determine if the data is ok.
 
@@ -164,7 +164,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:655](../ucndata/ucnrun.py#L655)
+[Show source in ucnrun.py:685](../ucndata/ucnrun.py#L685)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -200,7 +200,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:686](../ucndata/ucnrun.py#L686)
+[Show source in ucnrun.py:716](../ucndata/ucnrun.py#L716)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -239,7 +239,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:723](../ucndata/ucnrun.py#L723)
+[Show source in ucnrun.py:753](../ucndata/ucnrun.py#L753)
 
 Don't load all the data in each file, only that which is needed
 
@@ -251,7 +251,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:737](../ucndata/ucnrun.py#L737)
+[Show source in ucnrun.py:767](../ucndata/ucnrun.py#L767)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -322,7 +322,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times
 
-[Show source in ucnrun.py:810](../ucndata/ucnrun.py#L810)
+[Show source in ucnrun.py:840](../ucndata/ucnrun.py#L840)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
