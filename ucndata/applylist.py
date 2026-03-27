@@ -90,12 +90,24 @@ class applylist(list):
     def __getitem__(self, key):
 
         # numpy-like slicing
-        if isinstance(key, (np.ndarray, tuple, list)):
-            return applylist(np.array(self)[key])
+        if isinstance(key, (np.ndarray, tuple, list, applylist)):
+            key = np.asarray(key)
+
+            print(key.dtype, key.dtype==int)
+            # boolean array
+            if key.dtype == bool:
+                return applylist([i for i, k in zip(self, key) if k])
+            
+            # index array
+            elif key.dtype == int:
+                return applylist([self[k] for k in key])
 
         # default behaviour
         else:
-            return super().__getitem__(key)
+            x = super().__getitem__(key)
+            if isinstance(x, list):
+                return applylist(x)
+            return x 
 
     def astype(self, typecast):
         """Convert datatypes in self to typecast

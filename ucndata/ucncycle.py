@@ -321,7 +321,7 @@ class ucncycle(ucnbase):
         # draw
         ax.axvline(start, color='k', ls='-', lw=2)
 
-        for i, per in enumerate(self):
+        for i, per in enumerate(self.get_period()):
 
             # skip zero length periods
             if per.period_start == per.period_stop:

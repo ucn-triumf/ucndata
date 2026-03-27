@@ -346,7 +346,7 @@ class ucnbase(object):
 
             # draw vertical markers
             for i, ax in enumerate(axes):
-                non_zero_periods = self[:].draw_cycle_times(ax=ax, xmode=xmode)
+                non_zero_periods = self.get_cycle().draw_cycle_times(ax=ax, xmode=xmode)
             non_zero_periods = np.concat(non_zero_periods)
 
             # title is run number

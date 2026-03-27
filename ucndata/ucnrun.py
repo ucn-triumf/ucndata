@@ -294,8 +294,16 @@ class ucnrun(ucnbase):
 
             return self.get_cycle(key)
 
+        # slice on periods
+        if isinstance(key, tuple) and len(key) == 2 and isinstance(key[0], slice) and isinstance(key[1], slice):
+            cycles = self[key[0]]
+            if isinstance(cycles, (np.ndarray, applylist, list)):
+                return applylist([c[key[1]] for c in cycles])
+            else:
+                return cycles[key[1]]
+        
         # slice on cycles
-        if isinstance(key, slice):
+        if isinstance(key, (slice, np.ndarray, list, tuple, applylist)):
             cycles = self.get_cycle()[:self.cycle_param.ncycles]
 
             # no filter
@@ -309,18 +317,10 @@ class ucnrun(ucnbase):
                 cfilter = self.cycle_param.filter[key]
 
                 # fetch cycles and slice, then apply filter
-                cyc = np.array(cycles[key])
+                cyc = cycles[key]
                 cyc = cyc[cfilter]
 
             return applylist(cyc)
-
-        # slice on periods
-        if isinstance(key, tuple):
-            cycles = self[key[0]]
-            if isinstance(cycles, (np.ndarray, applylist, list)):
-                return applylist([c[key[1]] for c in cycles])
-            else:
-                return cycles[key[1]]
 
         raise IndexError(f'Run {self.run_number} given an unknown index type ({type(key)})')
 
