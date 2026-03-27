@@ -482,7 +482,7 @@ class ucnbase(object):
 
         # check that positions are found
         if len(pos) == 0:
-            return None
+            raise RuntimeError(f'No position from trigger edge found (thresh = {thresh}, hits min = {np.min(n)}, hits max = {np.max(n)}, bin_ms = {bin_ms})')
 
         # trim positions which are too long
         pos[pos == len(sign)] -= 1
