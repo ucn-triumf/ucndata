@@ -93,7 +93,6 @@ class applylist(list):
         if isinstance(key, (np.ndarray, tuple, list, applylist)):
             key = np.asarray(key)
 
-            print(key.dtype, key.dtype==int)
             # boolean array
             if key.dtype == bool:
                 return applylist([i for i, k in zip(self, key) if k])

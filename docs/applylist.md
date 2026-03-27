@@ -56,7 +56,7 @@ class applylist(list): ...
 
 ### applylist.apply
 
-[Show source in applylist.py:121](../ucndata/applylist.py#L121)
+[Show source in applylist.py:132](../ucndata/applylist.py#L132)
 
 Apply function to each element contained, similar to pandas functionality
 
@@ -97,7 +97,7 @@ def apply(self, fn, inplace=False): ...
 
 ### applylist.astype
 
-[Show source in applylist.py:100](../ucndata/applylist.py#L100)
+[Show source in applylist.py:111](../ucndata/applylist.py#L111)
 
 Convert datatypes in self to typecast
 
@@ -128,7 +128,7 @@ def astype(self, typecast): ...
 
 ### applylist.transpose
 
-[Show source in applylist.py:162](../ucndata/applylist.py#L162)
+[Show source in applylist.py:173](../ucndata/applylist.py#L173)
 
 Transpose by conversion to np.array and back
 
