@@ -295,7 +295,7 @@ class ucnrun(ucnbase):
             return self.get_cycle(key)
 
         # slice on periods
-        if isinstance(key, tuple) and len(key) == 2 and isinstance(key[0], slice) and isinstance(key[1], slice):
+        elif isinstance(key, tuple) and len(key) == 2:
             cycles = self[key[0]]
             if isinstance(cycles, (np.ndarray, applylist, list)):
                 return applylist([c[key[1]] for c in cycles])
@@ -303,7 +303,7 @@ class ucnrun(ucnbase):
                 return cycles[key[1]]
         
         # slice on cycles
-        if isinstance(key, (slice, np.ndarray, list, tuple, applylist)):
+        elif isinstance(key, (slice, np.ndarray, list, tuple, applylist)):
             cycles = self.get_cycle()[:self.cycle_param.ncycles]
 
             # no filter

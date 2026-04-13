@@ -461,7 +461,7 @@ class ucnbase(object):
 
         Example:
             ```python
-                dt = [cyc[2].get_start_edge('Li6', 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+                dt = [cyc[2].trigger_edge('Li6', 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
             ```
         """
         searched = 1 if rising else -1
