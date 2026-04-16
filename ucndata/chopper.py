@@ -9,14 +9,15 @@ import ucndata
 import os
 import numpy as np
 import pandas as pd
-import matplotlib.pyplot as plt
-import time
 
 class crun(ucndata.ucnrun):
     def __init__(self, run, ucn_only=True, chop_time_ch=15):
         """
         Args:
             chop_time_ch (int): channel of the Li6 detector indicating the chopper opening time
+
+        Notes: 
+            * `self.cycle_param.frame_start_times` are trimmed to be less than the maximum cycle stop time found by `self.cycle_param.cycle_times.stop.max()`
         """
         super().__init__(run, ucn_only)
 
@@ -24,6 +25,11 @@ class crun(ucndata.ucnrun):
         tree.set_filter(f'tChannel == {chop_time_ch}', inplace=True)
         times = tree.tUnixTimePrecise.to_dataframe().index.values
 
+        # ensure frames are within the bounds of the run
+        stop_time = self.cycle_param.cycle_times.stop.max()
+        times = times[times < stop_time]
+
+        # save values
         self.cycle_param['nframes'] = len(times)
         self.cycle_param['frame_start_times'] = times
         self.chop_time_ch = chop_time_ch
@@ -215,8 +221,6 @@ class crun(ucndata.ucnrun):
         hist, bins = np.histogram(tof[(tof > 0) & (tof < chop_rate)], bins=edges)
 
         return (bins, hist)
-
-
 
     def inspect(self, detector='Li6', bin_ms=100, xmode='duration', slow=None):
         """Draw counts and BL1A current with indicated periods to determine data quality
