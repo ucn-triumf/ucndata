@@ -514,7 +514,7 @@ class ucnbase(object):
 
         Example:
             ```python
-            >>> run.beam_current_uA
+            >>> run.beam1u_current_uA
             timestamp
             1572460997    0.0
             1572461002    0.0

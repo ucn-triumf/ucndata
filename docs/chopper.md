@@ -19,7 +19,7 @@
 
 ## ccycle
 
-[Show source in chopper.py:297](../ucndata/chopper.py#L297)
+[Show source in chopper.py:301](../ucndata/chopper.py#L301)
 
 #### Signature
 
@@ -30,7 +30,7 @@ class ccycle(ucndata.ucncycle):
 
 ### ccycle.get_period
 
-[Show source in chopper.py:351](../ucndata/chopper.py#L351)
+[Show source in chopper.py:355](../ucndata/chopper.py#L355)
 
 Return a copy of this object, but trees are trimmed to only one period.
 
@@ -73,7 +73,7 @@ def get_period(self, period=None): ...
 
 ## cframe
 
-[Show source in chopper.py:454](../ucndata/chopper.py#L454)
+[Show source in chopper.py:458](../ucndata/chopper.py#L458)
 
 #### Signature
 
@@ -84,7 +84,7 @@ class cframe(ucndata.ucnbase):
 
 ### cframe.get_nhits
 
-[Show source in chopper.py:489](../ucndata/chopper.py#L489)
+[Show source in chopper.py:493](../ucndata/chopper.py#L493)
 
 Get number of ucn hits
 
@@ -102,7 +102,7 @@ def get_nhits(self, detector): ...
 
 ## cperiod
 
-[Show source in chopper.py:393](../ucndata/chopper.py#L393)
+[Show source in chopper.py:397](../ucndata/chopper.py#L397)
 
 #### Signature
 
@@ -113,7 +113,7 @@ class cperiod(ucndata.ucnperiod):
 
 ### cperiod.get_frame
 
-[Show source in chopper.py:442](../ucndata/chopper.py#L442)
+[Show source in chopper.py:446](../ucndata/chopper.py#L446)
 
 #### Signature
 
@@ -125,7 +125,7 @@ def get_frame(self, frame=None): ...
 
 ## crun
 
-[Show source in chopper.py:15](../ucndata/chopper.py#L15)
+[Show source in chopper.py:13](../ucndata/chopper.py#L13)
 
 #### Signature
 
@@ -136,7 +136,7 @@ class crun(ucndata.ucnrun):
 
 ### crun.get_cycle
 
-[Show source in chopper.py:129](../ucndata/chopper.py#L129)
+[Show source in chopper.py:135](../ucndata/chopper.py#L135)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -175,7 +175,7 @@ def get_cycle(self, cycle=None): ...
 
 ### crun.get_tof
 
-[Show source in chopper.py:166](../ucndata/chopper.py#L166)
+[Show source in chopper.py:172](../ucndata/chopper.py#L172)
 
 Time time of flight histogram. Ignores bad cycles set in crun.cycle_param.filters
 
@@ -195,7 +195,7 @@ def get_tof(self, bin_ms=1): ...
 
 ### crun.inspect
 
-[Show source in chopper.py:221](../ucndata/chopper.py#L221)
+[Show source in chopper.py:225](../ucndata/chopper.py#L225)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -214,7 +214,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### crun.offset_frames
 
-[Show source in chopper.py:262](../ucndata/chopper.py#L262)
+[Show source in chopper.py:266](../ucndata/chopper.py#L266)
 
 Add an offset to the start times of all frames
 

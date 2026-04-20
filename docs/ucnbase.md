@@ -141,7 +141,7 @@ Beam current defined as `B1V_KSM_PREDCUR` * `B1V_KSM_BONPRD`
 #### Examples
 
 ```python
->>> run.beam_current_uA
+>>> run.beam1u_current_uA
 timestamp
 1572460997    0.0
 1572461002    0.0
