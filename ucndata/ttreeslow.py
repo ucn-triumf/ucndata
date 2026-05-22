@@ -63,13 +63,14 @@ class ttreeslow(ttree):
         if column is None:
             if len(self._columns) > 1:
                 raise KeyError('tree has more than one column, please specify')
-            tree = self[column]
+            column = self.columns[0]
         else:
             if column not in self._columns.keys():
                 raise KeyError(f'Column "{column}" must be one of {tuple(self._columns.keys())}')
 
-        # get tree
-        return tree.hist1d(self, column=column, nbins=nbins, step=step, edges=edges)
+        # get tree and return histogram
+        tree = self[column]
+        return tree.hist1d(column=column, nbins=nbins, step=step, edges=edges)
 
     def reset(self):
         """Make a new set of trees"""

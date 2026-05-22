@@ -670,7 +670,7 @@ class ucnrun(ucnbase):
             elif any(self.tfile.SequencerTree.sequencerEnabled):
 
                 if len(self.tfile[det['transitions']]) == 0:
-                    msg = 'No cycles found in run {self.run_number}, although sequencer was active'
+                    msg = f'No cycles found in run {self.run_number}, although sequencer was active'
 
             # raise error or return
             if msg is not None:

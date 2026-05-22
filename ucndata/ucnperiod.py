@@ -94,8 +94,8 @@ class ucnperiod(ucnbase):
             ```
         """
 
-        # get the tree
-        hit_tree = super().get_hits(detector)
+        # get hit timestamps as array
+        t = self.get_hits_array(detector)
 
         ## filter pileup for period data
 
@@ -104,7 +104,6 @@ class ucnperiod(ucnbase):
         count_thresh = self.DATA_CHECK_THRESH['pileup_cnt_per_ms']
 
         # make histogram
-        t = hit_tree.index.values
         counts, _ = np.histogram(t, bins=int(1/0.001*dt),
                                         range=(min(t), min(t)+dt))
 
