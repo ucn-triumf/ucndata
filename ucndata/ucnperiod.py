@@ -181,3 +181,18 @@ class ucnperiod(ucnbase):
                                   period = self.period,
                                   dt_start_s = dt_start_s,
                                   dt_stop_s = dt_stop_s)
+
+        # Sync this period object's timing attributes from the updated run cycle_param
+        cycpar = self._run.cycle_param
+        if self.period == 0:
+            self.period_start = cycpar.cycle_times.loc[self.cycle, 'start']
+        else:
+            self.period_start = cycpar.period_end_times.loc[self.period - 1, self.cycle]
+        self.period_stop = cycpar.period_end_times.loc[self.period, self.cycle]
+        self.period_dur = self.period_stop - self.period_start
+
+        # Update tsubfile window and discard cached filtered slices (now stale)
+        self.tfile._items['_start'] = self.period_start
+        self.tfile._items['_stop'] = self.period_stop
+        for key in [k for k in self.tfile._items if k not in ('_start', '_stop')]:
+            del self.tfile._items[key]

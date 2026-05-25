@@ -141,6 +141,36 @@ def test_modify_timing_does_not_raise(good_run):
     period = good_run[0, 1]
     period.modify_timing(dt_start_s=1.0, dt_stop_s=0.0)
 
+
+@pytest.mark.rootfile
+def test_modify_timing_updates_period_start(good_run):
+    """modify_timing(dt_start_s) updates period_start on the period object."""
+    period = good_run[0, 1]
+    before = period.period_start
+    period.modify_timing(dt_start_s=5.0)
+    # Compare the shift, not the absolute value — epoch timestamps are ~1.7e9 s,
+    # so pytest.approx's default relative tolerance (1e-6) would mask a 5 s error.
+    assert period.period_start - before == pytest.approx(5.0)
+
+
+@pytest.mark.rootfile
+def test_modify_timing_updates_period_stop(good_run):
+    """modify_timing(dt_stop_s) updates period_stop on the period object."""
+    period = good_run[0, 1]
+    before = period.period_stop
+    period.modify_timing(dt_stop_s=5.0)
+    assert period.period_stop - before == pytest.approx(5.0)
+
+
+@pytest.mark.rootfile
+def test_modify_timing_updates_period_dur(good_run):
+    """modify_timing updates period_dur to reflect the new start/stop."""
+    period = good_run[0, 1]
+    before = period.period_dur
+    # Shift start by +3 and stop by +2 → duration shrinks by 1
+    period.modify_timing(dt_start_s=3.0, dt_stop_s=2.0)
+    assert period.period_dur - before == pytest.approx(-1.0)
+
 # ---------------------------------------------------------------------------
 # is_pileup (BUG-1 regression)
 # ---------------------------------------------------------------------------
