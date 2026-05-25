@@ -459,11 +459,20 @@ Construct with the parent `ucnrun` (which builds `run.epics`).
 
 **`_modify_ptiming` / period timing:**
 
-- shifting a period start moves `period_end_times`; durations recomputed.
-- shifting a stop is clamped to the cycle end.
-- period 0 start shift moves the cycle start.
+- `dt_start_s` on period 0 moves `cycle_times['start']`, not `period_end_times`.
+- `dt_start_s` on period > 0 moves `period_end_times[period-1]` (the preceding boundary).
+- `dt_stop_s` moves `period_end_times[period]` for the given period.
+- shifting start of period N increases `period_durations_s[N-1]` and decreases `[N]`; period N+1 is unaffected.
+- shifting stop of period N increases `period_durations_s[N]` and decreases `[N+1]`; period N-1 is unaffected.
+- only the targeted cycle's `period_end_times` changes; other cycles are unaffected.
+- moving start past stop is unclamped — the period duration becomes negative.
+- moving stop before start is unclamped — the period duration becomes negative.
+- period 0 start (= cycle start) can be moved before the run epoch with no clamping.
+- a mid-run period boundary can be moved before the cycle start with no clamping.
+- on a zero-length period: `dt_start_s` moves only the start (stop stays), creating negative duration.
+- on a zero-length period: `dt_stop_s` moves the stop and creates a positive duration.
+- when stop of period N changes, an adjacent zero-length period N+1 propagates the shift (recursive), staying zero-length.
 - modifying timing clears `_nhits` and drops the affected cached cycle.
-- recursion path for adjacent zero-length periods.
 
 ### 6.7 `test_ucncycle.py` — Layer B + C
 
