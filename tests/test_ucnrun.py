@@ -453,3 +453,146 @@ def test_modify_ptiming_drops_cached_cycle(good_run):
     assert 0 in good_run._cycledict
     good_run._modify_ptiming(cycle=0, period=1, dt_start_s=2.0)
     assert 0 not in good_run._cycledict
+
+
+# Synthetic run layout (from _root_builder.py):
+#   T0 = 1717243200, 3 cycles each 100 s, period_durations = [20, 30, 50]
+#   Cycle 0: start=T0, stop=T0+100
+#     period 0 end = T0+20, period 1 end = T0+50, period 2 end = T0+100
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_start_period0_shifts_cycle_start(good_run):
+    """dt_start_s on period 0 moves cycle_times 'start', not period_end_times."""
+    before = good_run.cycle_param.cycle_times.loc[0, 'start']
+    good_run._modify_ptiming(cycle=0, period=0, dt_start_s=5.0)
+    after = good_run.cycle_param.cycle_times.loc[0, 'start']
+    assert after == pytest.approx(before + 5.0)
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_start_nonzero_period_shifts_boundary(good_run):
+    """dt_start_s on period 1 moves period_end_times[0] (the p0/p1 boundary)."""
+    before = good_run.cycle_param.period_end_times.loc[0, 0]
+    good_run._modify_ptiming(cycle=0, period=1, dt_start_s=5.0)
+    after = good_run.cycle_param.period_end_times.loc[0, 0]
+    assert after == pytest.approx(before + 5.0)
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_stop_shifts_period_end_time(good_run):
+    """dt_stop_s moves period_end_times for the given period."""
+    before = good_run.cycle_param.period_end_times.loc[1, 0]
+    good_run._modify_ptiming(cycle=0, period=1, dt_stop_s=5.0)
+    after = good_run.cycle_param.period_end_times.loc[1, 0]
+    assert after == pytest.approx(before + 5.0)
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_start_updates_neighbouring_durations(good_run):
+    """Shifting start of period 1 increases dur[0] and decreases dur[1]; dur[2] is unaffected."""
+    dur0_before = good_run.cycle_param.period_durations_s.loc[0, 0]
+    dur1_before = good_run.cycle_param.period_durations_s.loc[1, 0]
+    dur2_before = good_run.cycle_param.period_durations_s.loc[2, 0]
+    good_run._modify_ptiming(cycle=0, period=1, dt_start_s=5.0)
+    assert good_run.cycle_param.period_durations_s.loc[0, 0] == pytest.approx(dur0_before + 5.0)
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] == pytest.approx(dur1_before - 5.0)
+    assert good_run.cycle_param.period_durations_s.loc[2, 0] == pytest.approx(dur2_before)
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_stop_updates_neighbouring_durations(good_run):
+    """Shifting stop of period 1 increases dur[1] and decreases dur[2]; dur[0] is unaffected."""
+    dur0_before = good_run.cycle_param.period_durations_s.loc[0, 0]
+    dur1_before = good_run.cycle_param.period_durations_s.loc[1, 0]
+    dur2_before = good_run.cycle_param.period_durations_s.loc[2, 0]
+    good_run._modify_ptiming(cycle=0, period=1, dt_stop_s=5.0)
+    assert good_run.cycle_param.period_durations_s.loc[0, 0] == pytest.approx(dur0_before)
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] == pytest.approx(dur1_before + 5.0)
+    assert good_run.cycle_param.period_durations_s.loc[2, 0] == pytest.approx(dur2_before - 5.0)
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_only_target_cycle_affected(good_run):
+    """Modifying cycle 0 timing leaves cycle 1 period_end_times unchanged."""
+    end0_cycle1_before = good_run.cycle_param.period_end_times.loc[0, 1]
+    good_run._modify_ptiming(cycle=0, period=1, dt_start_s=5.0)
+    end0_cycle1_after = good_run.cycle_param.period_end_times.loc[0, 1]
+    assert end0_cycle1_after == pytest.approx(end0_cycle1_before)
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_start_past_stop_gives_negative_duration(good_run):
+    """Moving start past stop is unclamped — period duration becomes negative."""
+    # Period 1 has duration 30; shift start by 35 to push it past the stop
+    good_run._modify_ptiming(cycle=0, period=1, dt_start_s=35.0)
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] < 0
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_stop_before_start_gives_negative_duration(good_run):
+    """Moving stop before start is unclamped — period duration becomes negative."""
+    # Period 1 has duration 30; shift stop by -35 to push it before the start
+    good_run._modify_ptiming(cycle=0, period=1, dt_stop_s=-35.0)
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] < 0
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_period0_start_before_run_unclamped(good_run):
+    """Period 0 start (= cycle start) can be moved before the run epoch without clamping."""
+    before = good_run.cycle_param.cycle_times.loc[0, 'start']
+    good_run._modify_ptiming(cycle=0, period=0, dt_start_s=-150.0)
+    after = good_run.cycle_param.cycle_times.loc[0, 'start']
+    assert after == pytest.approx(before - 150.0)
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_start_before_cycle_start_unclamped(good_run):
+    """Start of a mid-run period can be pushed before the cycle start with no clamping."""
+    # Period 1 boundary (= end of period 0) is at T0+20; shift by -25 → T0-5
+    good_run._modify_ptiming(cycle=0, period=1, dt_start_s=-25.0)
+    boundary = good_run.cycle_param.period_end_times.loc[0, 0]
+    cycle_start = good_run.cycle_param.cycle_times.loc[0, 'start']
+    assert boundary < cycle_start
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_zero_length_period_start_change(good_run):
+    """Changing start of a zero-length period moves its start but not its stop."""
+    # Make period 1 zero-length by moving its start to its current stop (shift +30)
+    good_run._modify_ptiming(cycle=0, period=1, dt_start_s=30.0)
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] == pytest.approx(0.0)
+
+    # Moving start further forward leaves stop untouched → negative duration
+    stop_before = good_run.cycle_param.period_end_times.loc[1, 0]
+    good_run._modify_ptiming(cycle=0, period=1, dt_start_s=5.0)
+    stop_after = good_run.cycle_param.period_end_times.loc[1, 0]
+    assert stop_after == pytest.approx(stop_before)
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] < 0
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_zero_length_period_stop_change(good_run):
+    """Changing stop of a zero-length period moves its stop and creates positive duration."""
+    # Make period 1 zero-length
+    good_run._modify_ptiming(cycle=0, period=1, dt_start_s=30.0)
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] == pytest.approx(0.0)
+
+    good_run._modify_ptiming(cycle=0, period=1, dt_stop_s=5.0)
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] == pytest.approx(5.0)
+
+
+@pytest.mark.rootfile
+def test_modify_ptiming_zero_length_period_moves_with_prior_stop(good_run):
+    """When stop of period N changes, an adjacent zero-length period N+1 shifts with it."""
+    # Make period 1 zero-length
+    good_run._modify_ptiming(cycle=0, period=1, dt_start_s=30.0)
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] == pytest.approx(0.0)
+
+    end1_before = good_run.cycle_param.period_end_times.loc[1, 0]
+    # Shift stop of period 0; zero-length period 1 should propagate the shift
+    good_run._modify_ptiming(cycle=0, period=0, dt_stop_s=5.0)
+    end1_after = good_run.cycle_param.period_end_times.loc[1, 0]
+    assert end1_after == pytest.approx(end1_before + 5.0)
+    # Period 1 remains zero-length after the shift
+    assert good_run.cycle_param.period_durations_s.loc[1, 0] == pytest.approx(0.0)
