@@ -170,6 +170,9 @@ class applylist(list):
         # return the copy
         if not inplace: return copy
 
+    def copy(self):
+        return applylist(super().copy())
+
     def transpose(self):
         """Transpose by conversion to np.array and back
 

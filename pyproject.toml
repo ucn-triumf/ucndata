@@ -37,6 +37,22 @@ dynamic = ["version"]
 "Homepage" = "https://github.com/ucn-triumf/UCNanalysis/tree/2024"
 "Bug Tracker" = "https://github.com/ucn-triumf/UCNanalysis/issues"
 
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "--strict-markers -ra"
+markers = [
+    "rootfile: test requires the synthetic ROOT file fixture",
+    "plotting: test exercises matplotlib drawing code",
+    "slow: test is comparatively slow",
+]
+
+[tool.coverage.run]
+source = ["ucndata"]
+omit = ["ucndata/version.py", "ucndata/__init__.py"]
+
+[tool.coverage.report]
+exclude_lines = ["pragma: no cover", "raise NotImplementedError", "__repr__"]
+
 # set version
 [tool.hatch.version]
 path = "ucndata/version.py"
