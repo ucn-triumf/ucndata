@@ -8,6 +8,7 @@
   - [applylist](#applylist-1)
     - [applylist.apply](#applylistapply)
     - [applylist.astype](#applylistastype)
+    - [applylist.copy](#applylistcopy)
     - [applylist.transpose](#applylisttranspose)
 
 ## applylist
@@ -126,9 +127,19 @@ None, works in-place
 def astype(self, typecast): ...
 ```
 
-### applylist.transpose
+### applylist.copy
 
 [Show source in applylist.py:173](../ucndata/applylist.py#L173)
+
+#### Signature
+
+```python
+def copy(self): ...
+```
+
+### applylist.transpose
+
+[Show source in applylist.py:176](../ucndata/applylist.py#L176)
 
 Transpose by conversion to np.array and back
 

@@ -34,7 +34,7 @@ class ucnperiod(ucnbase):
 
 ### ucnperiod.get_nhits
 
-[Show source in ucnperiod.py:116](../ucndata/ucnperiod.py#L116)
+[Show source in ucnperiod.py:115](../ucndata/ucnperiod.py#L115)
 
 Get number of ucn hits
 
@@ -123,7 +123,7 @@ def is_pileup(self, detector): ...
 
 ### ucnperiod.modify_timing
 
-[Show source in ucnperiod.py:168](../ucndata/ucnperiod.py#L168)
+[Show source in ucnperiod.py:167](../ucndata/ucnperiod.py#L167)
 
 Change start and end times of period
 

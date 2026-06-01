@@ -47,7 +47,7 @@ def __getitem__(self, key): ...
 
 ### ttreeslow.columns
 
-[Show source in ttreeslow.py:96](../ucndata/ttreeslow.py#L96)
+[Show source in ttreeslow.py:97](../ucndata/ttreeslow.py#L97)
 
 #### Signature
 
@@ -58,7 +58,7 @@ def columns(self): ...
 
 ### ttreeslow.filters
 
-[Show source in ttreeslow.py:102](../ucndata/ttreeslow.py#L102)
+[Show source in ttreeslow.py:103](../ucndata/ttreeslow.py#L103)
 
 #### Signature
 
@@ -93,7 +93,7 @@ def hist1d(self, column=None, nbins=None, step=None, edges=None): ...
 
 ### ttreeslow.index
 
-[Show source in ttreeslow.py:105](../ucndata/ttreeslow.py#L105)
+[Show source in ttreeslow.py:106](../ucndata/ttreeslow.py#L106)
 
 #### Signature
 
@@ -104,7 +104,7 @@ def index(self): ...
 
 ### ttreeslow.index_name
 
-[Show source in ttreeslow.py:108](../ucndata/ttreeslow.py#L108)
+[Show source in ttreeslow.py:109](../ucndata/ttreeslow.py#L109)
 
 #### Signature
 
@@ -115,7 +115,7 @@ def index_name(self): ...
 
 ### ttreeslow.max
 
-[Show source in ttreeslow.py:118](../ucndata/ttreeslow.py#L118)
+[Show source in ttreeslow.py:119](../ucndata/ttreeslow.py#L119)
 
 #### Signature
 
@@ -125,7 +125,7 @@ def max(self): ...
 
 ### ttreeslow.mean
 
-[Show source in ttreeslow.py:112](../ucndata/ttreeslow.py#L112)
+[Show source in ttreeslow.py:113](../ucndata/ttreeslow.py#L113)
 
 #### Signature
 
@@ -135,7 +135,7 @@ def mean(self): ...
 
 ### ttreeslow.min
 
-[Show source in ttreeslow.py:115](../ucndata/ttreeslow.py#L115)
+[Show source in ttreeslow.py:116](../ucndata/ttreeslow.py#L116)
 
 #### Signature
 
@@ -145,7 +145,7 @@ def min(self): ...
 
 ### ttreeslow.reset
 
-[Show source in ttreeslow.py:74](../ucndata/ttreeslow.py#L74)
+[Show source in ttreeslow.py:75](../ucndata/ttreeslow.py#L75)
 
 Make a new set of trees
 
@@ -157,7 +157,7 @@ def reset(self): ...
 
 ### ttreeslow.rms
 
-[Show source in ttreeslow.py:121](../ucndata/ttreeslow.py#L121)
+[Show source in ttreeslow.py:122](../ucndata/ttreeslow.py#L122)
 
 #### Signature
 
@@ -167,7 +167,7 @@ def rms(self): ...
 
 ### ttreeslow.set_filter
 
-[Show source in ttreeslow.py:85](../ucndata/ttreeslow.py#L85)
+[Show source in ttreeslow.py:86](../ucndata/ttreeslow.py#L86)
 
 Set a filter on the dataframe to select a subset of the data
 
@@ -179,7 +179,7 @@ def set_filter(self, expression, inplace=True): ...
 
 ### ttreeslow.set_index
 
-[Show source in ttreeslow.py:80](../ucndata/ttreeslow.py#L80)
+[Show source in ttreeslow.py:81](../ucndata/ttreeslow.py#L81)
 
 Set the index column name
 
@@ -191,7 +191,7 @@ def set_index(self, column): ...
 
 ### ttreeslow.std
 
-[Show source in ttreeslow.py:124](../ucndata/ttreeslow.py#L124)
+[Show source in ttreeslow.py:125](../ucndata/ttreeslow.py#L125)
 
 #### Signature
 
@@ -201,7 +201,7 @@ def std(self): ...
 
 ### ttreeslow.treenames
 
-[Show source in ttreeslow.py:99](../ucndata/ttreeslow.py#L99)
+[Show source in ttreeslow.py:100](../ucndata/ttreeslow.py#L100)
 
 #### Signature
 
