@@ -130,14 +130,63 @@ for cycle in run:
 
 ## Cycle Start and End Times
 
-Cycle start and end times can be calculated in a few different ways. When the [ucnrun] object is created, during its construction it calls [ucnrun.set_cycle_times()](../docs/ucndata.md#ucnrunset_cycle_times) which in turn calculates the start and end times of each cycle. Fetching cycles uses the output of this function (saved to `ucnrun.cycle_param.cycle_times`) to determine what time range is associated with each cycle. To change how each cycle is determined, call [ucnrun.set_cycle_times()](../docs/ucndata.md#ucnrunset_cycle_times) with different parameters. The strategies are as follows:
+Cycle timing is determined in two stages: a **crude** pass that runs automatically on load, and an optional **precise** pass that you call manually when sub-millisecond accuracy matters.
 
-* **matched (default)**: look at He3 and Li6 detector transitions and find pairs which are the closest in time to each other. Start times are then set to the He3 transition state and the difference is saved as the offset. Raises a warning if unmatched pairs exist.
-* **sequencer**: Look at the `inCycle` flag of the `SequencerTree` and determine times from this parameter
-* **he3**: Uses the He3 detector transitions only (`RunTransitions_He3`)
-* **li6**: Uses the Li6 detector transitions only (`RunTransitions_Li6`)
+### Crude timing (automatic)
 
-For runs without a sequencer, this function returns the run start and stop times as the cycle timing.
+When a [ucnrun] object is created, `__init__` immediately calls [`set_cycle_times_crude()`](../docs/ucndata.md#ucnrunset_cycle_times_crude), which derives cycle start and end times from detector or sequencer data. The result is stored in `cycle_param.cycle_times` and used by all subsequent cycle/period indexing.
+
+The detection mode is tried in priority order until one succeeds (class default: `['matched', 'li6', 'he3', 'sequencer', 'beamon']`):
+
+| Mode | Source | Notes |
+|---|---|---|
+| **matched** | He3 + Li6 detector transitions | Pairs the closest-in-time He3/Li6 transition. Start times follow He3; `offset (s)` = He3_start − Li6_start. Warns if unmatched pairs exist. |
+| **li6** | Li6 detector transitions only | `RunTransitions_Li6` |
+| **he3** | He3 detector transitions only | `RunTransitions_He3` |
+| **sequencer** | `SequencerTree.inCycle` flag | |
+| **beamon** | Beam on/off detection | |
+
+If the sequencer is absent or disabled the entire run is treated as a single cycle.
+
+To re-run crude timing with a specific mode after loading:
+
+```python
+run.set_cycle_times_crude(mode='sequencer')
+```
+
+`cycle_param.cycle_times` is updated in-place and `cycle_param.using_precise_timing` is set to `False`.
+
+### Precise timing (manual)
+
+For analyses that need accurate cycle start times, call [`set_cycle_times_precise()`](../docs/ucndata.md#ucnrunset_cycle_times_precise) after loading the run. This reads hardware-trigger timestamps recorded on a dedicated TV1725 digitizer input channel of the Li6 detector (default channel 10), which have sub-millisecond precision compared to the sequencer-derived crude times.
+
+```python
+run = ucnrun(2687)
+run.set_cycle_times_precise()          # uses channel 10 by default
+run.set_cycle_times_precise(channel=8) # override the channel if needed
+```
+
+The function aligns the hardware timestamps against the existing crude cycle grid:
+
+* If the first hardware trigger was missed, it back-extrapolates from the average precise cycle duration.
+* Gaps where the trigger was not recorded are filled by linear interpolation.
+* After the last trigger, remaining cycles are forward-extrapolated.
+
+After a successful call `cycle_param` is updated as follows:
+
+| Attribute | Contents |
+|---|---|
+| `cycle_param.cycle_times` | Replaced with precise values |
+| `cycle_param.period_end_times` | Replaced with precise values |
+| `cycle_param.cycle_times_crude` | Original crude values preserved here |
+| `cycle_param.period_end_times_crude` | Original crude period end times preserved here |
+| `cycle_param.cycle_times_precise` | Alias to the new precise values |
+| `cycle_param.period_end_times_precise` | Alias to the new precise period end times |
+| `cycle_param.using_precise_timing` | Set to `True` |
+
+The `cycle_times` DataFrame also gains an `is_measured` column: `True` if the start time came from a recorded hardware hit, `False` if it was extrapolated or interpolated. You can use this to flag cycles whose start time is estimated rather than directly measured.
+
+If no hardware triggers are found on the requested channel the function returns without modifying `cycle_param`, so crude timing remains in effect.
 
 ---
 
