@@ -78,10 +78,10 @@ class ucnbase(object):
                 }
 
     # make these trees dataframes, ok since they're small - also resets the index
-    DATAFRAME_TREES = ('CycleParamTree', 'RunTransitions_He3', 'RunTransitions_Li6')
+    DATAFRAME_TREES = ('RunTransitions_He3', 'RunTransitions_Li6')
 
     # needed slow control trees: for checking data quality
-    SLOW_TREES = ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
+    SLOW_TREES = ('BeamlineEpics', 'SequencerTree')
 
     # EPICS trees to group into a single slow control tree
     EPICS_TREES = [ 'BeamlineEpics',        'UCN2EpPha5Last',   'UCN2EpicsPhase2B',

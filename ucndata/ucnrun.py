@@ -2,6 +2,7 @@
 # Derek Fujimoto
 # June 2024
 
+import time
 import ROOT
 ROOT.gROOT.SetBatch(1)
 from rootloader import tfile, ttree, attrdict
@@ -30,6 +31,7 @@ class ucnrun(ucnbase):
         run (int|str): if int, generate filename with self.datadir
             elif str then run is the path to the file
         ucn_only (bool): if true set filter tIsUCN==1 on all hit trees
+        precise_cycle_ch (int): channel in digitizer reading the hardward cycle start time
 
     Attributes:
         comment (str): comment input by users
@@ -119,7 +121,7 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, ucn_only=True):
+    def __init__(self, run, ucn_only=True, precise_cycle_ch=10):
 
         # check if copying
         if run is None:
@@ -168,31 +170,30 @@ class ucnrun(ucnbase):
             if name in self.tfile.keys():
                 self.tfile[name] = self.tfile[name].to_dataframe()
                 self.tfile[name].reset_index(inplace=True, drop=True)
-
+        
         # set cycle parameters
+        self.cycle_param = attrdict()
         self._get_cycle_param()
+        
+        # get crude cycle times (slow runtime)
+        cycle_failed = False
+        if isinstance(self.cycle_times_mode, str):
+            self.cycle_times_mode = [self.cycle_times_mode]
 
-        # get cycle times
-        if hasattr(self, 'cycle_param'):
-            cycle_failed = False
-            if isinstance(self.cycle_times_mode, str):
-                self.cycle_times_mode = [self.cycle_times_mode]
+        for mode in self.cycle_times_mode:
+            try:
+                self.set_cycle_times_crude(mode=mode)
+            except (AttributeError, IndexError):
+                warnings.warn(f'Run {self.run_number}: Unable to set cycle times. SequencerTree must exist and have entries.', MissingDataWarning)
+                break
+            except (KeyError, CycleError):
+                print(f'Run {self.run_number}: Cycle time detection mode {mode} failed')
+                cycle_failed = True
+            else:
+                break
 
-            for mode in self.cycle_times_mode:
-                try:
-                    self.set_cycle_times(mode=mode)
-                except (AttributeError, IndexError):
-                    warnings.warn(f'Run {self.run_number}: Unable to set cycle times. SequencerTree must exist and have entries.',
-                                MissingDataWarning)
-                    break
-                except (KeyError, CycleError):
-                    print(f'Run {self.run_number}: Cycle time detection mode {mode} failed')
-                    cycle_failed = True
-                else:
-                    break
-
-            if cycle_failed:
-                print(f'Run {self.run_number}: Set cycle times based on {mode} detection mode')
+        if cycle_failed:
+            print(f'Run {self.run_number}: Set cycle times based on {mode} detection mode')
 
         # setup tree filters
         for detector in self.DET_NAMES.keys():
@@ -207,12 +208,11 @@ class ucnrun(ucnbase):
             # filter on ucn hits
             if ucn_only:
                 tree.set_filter('tIsUCN>0', inplace=True)
-
-
+        
         # make slow control tree
-        self.epics = ttreeslow((self.tfile[name] for name in self.EPICS_TREES if name in self.tfile.keys()),
-                               parent=self)
-
+        self.epics = ttreeslow((self.tfile[name] for name in self.EPICS_TREES 
+                                if name in self.tfile.keys()), parent=self)
+        
         # store fetched cycles
         self._cycledict = dict()
 
@@ -330,16 +330,6 @@ class ucnrun(ucnbase):
     def _get_cycle_param(self):
         # set self.cycle_param dict
 
-        # reformat cycle param tree
-        paramtree = self.tfile.CycleParamTree
-        self.cycle_param = {'nperiods': paramtree.nPeriods[0],
-                            'nsupercyc': paramtree.nSuperCyc[0],
-                            'enable': bool(paramtree.enable[0]),
-                            'inf_cyc_enable': bool(paramtree.infCyclesEnable[0]),
-                            'ncycles': 1
-                            }
-        self.cycle_param = attrdict(self.cycle_param)
-
         # cycle filter
         self.cycle_param['filter'] = None
 
@@ -411,11 +401,12 @@ class ucnrun(ucnbase):
         cycle_start = tree.cycleStartTime
         df_diff = df.diff(axis='columns')
         df_diff[0] = df[0] - cycle_start
-
         self.cycle_param['period_durations_s'] = df_diff.transpose()
 
         # number of cycles
         self.cycle_param['ncycles'] = len(df.index)
+        self.cycle_param['nperiods'] = len(df.columns)
+        self.cycle_param['nsupercycle'] = len(set(self.cycle_param['supercycle']))
 
     def _get_nhits(self, detector, cycle=None, period=None, bin_ms=0):
         # Get number ucn hits
@@ -837,7 +828,7 @@ class ucnrun(ucnbase):
         for key, cyc in self._cycledict.items():
             cyc.cycle_param.filter = self.cycle_param.filter[key]
 
-    def set_cycle_times(self, mode):
+    def set_cycle_times_crude(self, mode):
         """Get start and end times of each cycle from the sequencer and save
         into self.cycle_param.cycle_times
 
@@ -867,7 +858,7 @@ class ucnrun(ucnbase):
         Example:
             ```python
             # this calculates new cycle start and end times based on the selected method
-            >>> run.set_cycle_times('li6')
+            >>> run.set_cycle_times_crude('li6')
             ```
         """
 
@@ -881,35 +872,23 @@ class ucnrun(ucnbase):
                                  index=[self.cycle])
 
         # get mode
+        self.cycle_param['using_precise_timing'] = False
         mode = mode.lower()
 
-        # get run end time from control trees - used in matched and detector cycles times
-        run_stop = -np.inf
-        for treename in self.SLOW_TREES:
-            try:
-                max_time = self.tfile[treename].index.max()
-
-            # tree not found, skip
-            except KeyError:
-                continue
-
-            run_stop = max((max_time, run_stop))
-
-        # bad end time
-        if np.isinf(run_stop):
-            raise MissingDataError(f"Run {self.run_number}: Missing slow control trees, cannot find run end time.")
+        # get run end time from sequencer tree
+        try:
+            run_stop = self.tfile.SequencerTree.timestamp.max()
+        except KeyError:
+            raise KeyError(f"Run {self.run_number}: Missing SequencerTree, cannot find run end time.")
 
         # get squencer data
         try:
             df = self.tfile.SequencerTree
         except AttributeError:
             df = None
-        else:
-            if type(df) == ttree:
-                df = df.to_dataframe()
 
         ## if no sequencer, make the whole run a single cycle
-        if df is None or not any(df.sequencerEnabled):
+        if df is None or not df.sequencerEnabled.max():
 
             times = {'start': np.inf,
                      'stop':  -np.inf,
@@ -987,6 +966,9 @@ class ucnrun(ucnbase):
         ## get timestamps from sequencer
         elif mode in 'sequencer':
 
+            if type(df) == ttree:
+                df = df.to_dataframe()
+
             # if sequencer is not enabled cause a stop transition
             df.inCycle *= df.sequencerEnabled
 
@@ -1061,3 +1043,90 @@ class ucnrun(ucnbase):
             self.cycle_param['period_durations_s'] = df_diff
 
         return times
+
+    def set_cycle_times_precise(self, channel=10):
+        """Get precise cycle times
+        
+        Args:
+            channel (int): input to TV1725 to read hardware signal of cycle start
+        """
+
+        # get precise cycle start hit times
+        tree = self.tfile.UCNHits_Li6.reset()
+        tree.set_filter(f'tChannel == {channel}', inplace=True)
+        ptimes = tree.tUnixTimePrecise.to_array()
+        ptimes = np.sort(ptimes)
+
+        # check if any precuse times
+        if len(ptimes) == 0:
+            return
+
+        # crude cycle times
+        ctimes = self.cycle_param.cycle_times.start.values
+
+        # average crude cycle duration
+        cdur = np.mean(np.diff(ctimes))
+
+        # get average precise cycle duration for one cycle
+        diff = np.diff(ptimes)
+        pdur = np.mean(diff[abs(diff - cdur) < 5]) # cycle durations should be within 5 seconds
+
+        # setup new values
+        new_times = []
+        is_measured = []
+
+        # check that the first precise timestamp was recorded, if not back-extrapolate
+        npre_cycles = 0
+        if abs(ctimes[0] - ptimes[0]) > pdur/2:
+            npre_cycles = abs(int(np.round((ctimes[0] - ptimes[0])/pdur)))
+            is_measured = [False] * npre_cycles
+            new_times = [ptimes[0] - pdur * i for i in range(npre_cycles, 0, -1)]
+
+        # get additional number of cycles to insert
+        ncycles = np.round(diff/pdur) - 1 
+
+        # interpolate missing values
+        t = ptimes[0]
+        for i, n in enumerate(ncycles):
+            t = ptimes[i]
+            new_times.append(t)
+            is_measured.append(True)
+
+            while n > 0:
+                t += pdur
+                new_times.append(t)
+                is_measured.append(False)
+                n -= 1
+                
+        if len(ptimes) > i+1:
+            new_times.append(ptimes[i+1])
+            is_measured.append(True)
+
+        # add run stop time
+        run_stop = self.tfile.SequencerTree.timestamp.max()
+
+        cycle_times = self.cycle_param.cycle_times.copy()
+        cycle_times['is_measured'] = is_measured
+        cycle_times['duration (s)'] = np.concat((np.diff(new_times), [run_stop - new_times[-1]]))
+        cycle_times['start'] = new_times
+        cycle_times['stop'] = np.array(new_times) + cycle_times['duration (s)']
+        # cycle_times.drop(columns='offset', inplace=True)
+
+        # get period end times
+        period_end_times = self.cycle_param.period_durations_s.copy()
+        starts = cycle_times.start
+        period_end_times = period_end_times.cumsum()
+
+        for cycle in period_end_times.columns:
+            period_end_times.loc[:,cycle] += starts[cycle]
+
+        # set new cycle param dicts
+        self.cycle_param.using_precise_timing = True
+        self.cycle_param['cycle_times_crude'] = self.cycle_param.cycle_times.copy() 
+        self.cycle_param['period_end_times_crude'] = self.cycle_param.period_end_times.copy() 
+        self.cycle_param['cycle_times_precise'] = cycle_times 
+        self.cycle_param['period_end_times_precise'] = period_end_times 
+        self.cycle_param.cycle_times = self.cycle_param.cycle_times_precise
+        self.cycle_param.period_end_times = self.cycle_param.period_end_times_precise
+        
+
