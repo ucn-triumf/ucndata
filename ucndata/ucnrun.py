@@ -1042,6 +1042,9 @@ class ucnrun(ucnbase):
             df_diff.loc[0] = df.loc[0] - start
             self.cycle_param['period_durations_s'] = df_diff
 
+        # reset cycle dict
+        self._cycledict = {}
+
         return times
 
     def set_cycle_times_precise(self, channel=10):
@@ -1174,4 +1177,5 @@ class ucnrun(ucnbase):
         self.cycle_param.cycle_times = self.cycle_param.cycle_times_precise
         self.cycle_param.period_end_times = self.cycle_param.period_end_times_precise
         
-
+        # reset cycle dict
+        self._cycledict = {}
