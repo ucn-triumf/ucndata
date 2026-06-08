@@ -1045,10 +1045,45 @@ class ucnrun(ucnbase):
         return times
 
     def set_cycle_times_precise(self, channel=10):
-        """Get precise cycle times
-        
+        """Replace crude cycle start times with hardware-timestamped precise times.
+
+        Reads hardware-trigger hit timestamps from the Li6 detector on the
+        specified TV1725 input channel. These timestamps have sub-millisecond
+        precision compared to the sequencer-derived crude cycle times. The
+        function aligns the precise timestamps against the existing crude cycle
+        grid, back-extrapolates if the first trigger was missed, and linearly
+        interpolates over any gaps where the hardware signal was not recorded.
+
+        After a successful call, ``cycle_param`` is updated as follows:
+
+        - ``cycle_param.cycle_times`` and ``cycle_param.period_end_times`` are
+          replaced with their precise counterparts.
+        - The original crude values are preserved as
+          ``cycle_param.cycle_times_crude`` and
+          ``cycle_param.period_end_times_crude``.
+        - The new precise values are also accessible as
+          ``cycle_param.cycle_times_precise`` and
+          ``cycle_param.period_end_times_precise``.
+        - ``cycle_param.using_precise_timing`` is set to ``True``.
+
+        The updated ``cycle_times`` DataFrame gains one extra column relative
+        to the crude version:
+
+        - ``is_measured`` (bool): ``True`` if the start time came directly from
+          a recorded hardware hit; ``False`` if it was back-extrapolated or
+          interpolated from the average precise cycle duration.
+
+        If no precise timestamps are found on the requested channel the function
+        returns immediately without modifying ``cycle_param``.
+
         Args:
-            channel (int): input to TV1725 to read hardware signal of cycle start
+            channel (int): TV1725 input channel carrying the hardware
+                cycle-start signal. Default is 10.
+
+        Note:
+            The average precise cycle duration is estimated from inter-hit
+            differences that agree with the crude average to within 5 seconds,
+            so the crude timing must already be a reasonable first approximation.
         """
 
         # get precise cycle start hit times
