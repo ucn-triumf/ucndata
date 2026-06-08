@@ -1043,12 +1043,21 @@ class ucnrun(ucnbase):
         self.cycle_param['ncycles'] = len(times.index)
 
         # finish setting up cycle_param
-        self.cycle_param['period_end_times'] = pd.DataFrame({0:times.loc[0, 'stop']}, index=[0])
-        self.cycle_param['period_end_times'].index.name = 'period'
-        self.cycle_param['period_end_times'].columns.name = 'cycle'
-
-        self.cycle_param['period_durations_s'] = pd.DataFrame({0:times.loc[0, 'duration (s)']}, index=[0])
-        self.cycle_param['period_durations_s'].index.name = 'period'
-        self.cycle_param['period_durations_s'].columns.name = 'cycle'
+        if 'period_end_times' not in self.cycle_param.keys():
+            # no transition tree — build single-period placeholders
+            self.cycle_param['period_end_times'] = pd.DataFrame({0:times.loc[0, 'stop']}, index=[0])
+            self.cycle_param['period_end_times'].index.name = 'period'
+            self.cycle_param['period_end_times'].columns.name = 'cycle'
+            self.cycle_param['period_durations_s'] = pd.DataFrame({0:times.loc[0, 'duration (s)']}, index=[0])
+            self.cycle_param['period_durations_s'].index.name = 'period'
+            self.cycle_param['period_durations_s'].columns.name = 'cycle'
+        elif len(times.index) == len(self.cycle_param['period_end_times'].columns):
+            # period_durations_s.loc[0] = period_end_times.loc[0] - cycle_start, so it must
+            # be recomputed whenever cycle_times['start'] changes (e.g. different mode)
+            start = times['start']
+            df = self.cycle_param['period_end_times']
+            df_diff = df.diff()
+            df_diff.loc[0] = df.loc[0] - start
+            self.cycle_param['period_durations_s'] = df_diff
 
         return times
