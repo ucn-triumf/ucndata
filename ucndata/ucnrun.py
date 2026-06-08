@@ -1104,7 +1104,11 @@ class ucnrun(ucnbase):
 
         # get average precise cycle duration for one cycle
         diff = np.diff(ptimes)
-        pdur = np.mean(diff[abs(diff - cdur) < 5]) # cycle durations should be within 5 seconds
+        filtered_diff = diff[abs(diff - cdur) < 5]  # cycle durations should be within 5 seconds
+        if len(filtered_diff) == 0:
+            warnings.warn(f'Run {self.run_number}: no precise cycle diffs within 5 s of crude duration; cannot set precise timing.', MissingDataWarning)
+            return
+        pdur = np.mean(filtered_diff)
 
         # setup new values
         new_times = []
@@ -1121,7 +1125,7 @@ class ucnrun(ucnbase):
         ncycles = np.round(diff/pdur) - 1 
 
         # interpolate missing values
-        t = ptimes[0]
+        i = -1
         for i, n in enumerate(ncycles):
             t = ptimes[i]
             new_times.append(t)
@@ -1137,6 +1141,13 @@ class ucnrun(ucnbase):
             new_times.append(ptimes[i+1])
             is_measured.append(True)
 
+        # forward-extrapolate for any cycles after the last hardware trigger
+        t = new_times[-1]
+        for _ in range(len(ctimes) - len(new_times)):
+            t += pdur
+            new_times.append(t)
+            is_measured.append(False)
+
         # add run stop time
         run_stop = self.tfile.SequencerTree.timestamp.max()
 
@@ -1145,7 +1156,6 @@ class ucnrun(ucnbase):
         cycle_times['duration (s)'] = np.concat((np.diff(new_times), [run_stop - new_times[-1]]))
         cycle_times['start'] = new_times
         cycle_times['stop'] = np.array(new_times) + cycle_times['duration (s)']
-        # cycle_times.drop(columns='offset', inplace=True)
 
         # get period end times
         period_end_times = self.cycle_param.period_durations_s.copy()
