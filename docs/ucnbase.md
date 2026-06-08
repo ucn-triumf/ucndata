@@ -34,9 +34,9 @@
 
 - `DET_NAMES` - detector tree names: {'He3': {'hits': 'UCNHits_He3', 'hits_orig': 'UCNHits_He3', 'charge': 'He3_Charge', 'rate': 'He3_Rate', 'transitions': 'RunTransitions_He3', 'hitsseq': 'hitsinsequence_he3', 'hitsseqcumul': 'hitsinsequencecumul_he3'}, 'Li6': {'hits': 'UCNHits_Li6', 'hits_orig': 'UCNHits_Li-6', 'charge': 'Li6_Charge', 'rate': 'Li6_Rate', 'transitions': 'RunTransitions_Li6', 'hitsseq': 'hitsinsequence_li6', 'hitsseqcumul': 'hitsinsequencecumul_li6'}}
 
-- `DATAFRAME_TREES` - make these trees dataframes, ok since they're small - also resets the index: ('CycleParamTree', 'RunTransitions_He3', 'RunTransitions_Li6')
+- `DATAFRAME_TREES` - make these trees dataframes, ok since they're small - also resets the index: ('RunTransitions_He3', 'RunTransitions_Li6')
 
-- `SLOW_TREES` - needed slow control trees: for checking data quality: ('BeamlineEpics', 'SequencerTree', 'LNDDetectorTree')
+- `SLOW_TREES` - needed slow control trees: for checking data quality: ('BeamlineEpics', 'SequencerTree')
 
 - `EPICS_TREES` - EPICS trees to group into a single slow control tree: ['BeamlineEpics', 'UCN2EpPha5Last', 'UCN2EpicsPhase2B', 'UCN2EpPha5Oth', 'UCN2EpicsPhase3', 'UCN2EpPha5Pre', 'UCN2EpicsPressures', 'UCN2EpPha5Tmp', 'UCN2EpicsTemperature', 'UCN2Epics', 'UCN2Pur', 'UCN2EpicsOthers', 'UCN2EpLD2']
 

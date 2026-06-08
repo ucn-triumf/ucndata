@@ -31,7 +31,6 @@ class ucnrun(ucnbase):
         run (int|str): if int, generate filename with self.datadir
             elif str then run is the path to the file
         ucn_only (bool): if true set filter tIsUCN==1 on all hit trees
-        precise_cycle_ch (int): channel in digitizer reading the hardward cycle start time
 
     Attributes:
         comment (str): comment input by users
@@ -121,7 +120,7 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, ucn_only=True, precise_cycle_ch=10):
+    def __init__(self, run, ucn_only=True):
 
         # check if copying
         if run is None:
