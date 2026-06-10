@@ -582,6 +582,7 @@ class ucnrun(ucnbase):
         
         self.cycle_param['cycle'] = cycleids % ncycles_per_supercycle
         self.cycle_param['supercycle'] = self.cycle_param.cycle_times['supercycle']
+        self.cycle_param['ncycles_per_supercycle'] = ncycles_per_supercycle
         self.cycle_param['ncycles'] = len(cycleids)
         self.cycle_param['nperiods'] = nperiods
         self.cycle_param['nsupercycles'] = len(self.cycle_param.cycle_times.supercycle.unique())
