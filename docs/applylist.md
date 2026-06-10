@@ -68,7 +68,7 @@ fn (function handle): function to apply to each element
 
 #### Returns
 
-- `ucnarray|None` - depending on the value of inplace
+- `applylist|None` - new applylist with results if inplace is False, else None
 
 #### Examples
 
@@ -100,15 +100,15 @@ def apply(self, fn, inplace=False): ...
 
 [Show source in applylist.py:111](../ucndata/applylist.py#L111)
 
-Convert datatypes in self to typecast
+Convert all elements in-place to the given type.
 
 #### Arguments
 
-- `typecase` *type* - type to convert to
+- `typecast` *type* - type to cast each element to (e.g. int, float, str)
 
 #### Returns
 
-None, works in-place
+- `None` - modifies the list in-place
 
 #### Examples
 
@@ -131,6 +131,24 @@ def astype(self, typecast): ...
 
 [Show source in applylist.py:173](../ucndata/applylist.py#L173)
 
+Return a shallow copy of this applylist.
+
+#### Returns
+
+- [applylist](#applylist) - a new applylist with the same elements
+
+#### Examples
+
+```python
+>>> x = applylist([1, 2, 3])
+>>> y = x.copy()
+>>> y[0] = 99
+>>> print(x)
+[1, 2, 3]
+>>> print(y)
+[99, 2, 3]
+```
+
 #### Signature
 
 ```python
@@ -139,17 +157,13 @@ def copy(self): ...
 
 ### applylist.transpose
 
-[Show source in applylist.py:176](../ucndata/applylist.py#L176)
+[Show source in applylist.py:191](../ucndata/applylist.py#L191)
 
-Transpose by conversion to np.array and back
-
-#### Arguments
-
-None
+Transpose a 2D applylist by converting to np.array and back.
 
 #### Returns
 
-- [applylist](#applylist) - transposed
+- [applylist](#applylist) - transposed list, where rows and columns are swapped
 
 #### Examples
 

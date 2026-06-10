@@ -17,36 +17,45 @@ from collections.abc import Iterable
 import matplotlib.patches as mpatches
 
 class ucnbase(object):
-    """UCN run data. Cleans data and performs analysis
+    """Base class shared by ucnrun, ucncycle, and ucnperiod.
 
-    Args:
-        run (int|str): if int, generate filename with ucndata.DATADIR
-            elif str then run is the path to the file
-        header_only (bool): if true, read only the header
+    Provides shared analysis methods and quick-access properties for
+    Ultra-Cold Neutron (UCN) experimental data loaded from ROOT files.
+    Not instantiated directly — use ucnrun, ucncycle, or ucnperiod instead.
 
     Attributes:
-        comment (str): comment input by users
-        cycle (int|none): cycle number, none if no cycle selected
-        cycle_param (attrdict): cycle parameters
-        experiment_number (str): experiment number input by users
-        month (int): month of run start
-        run_number (int): run number
-        run_title (str): run title input by users
-        shifter (str): experimenters on shift at time of run
-        start_time (str): start time of the run
-        stop_time (str): stop time of the run
-        supercycle (int|none): supercycle number, none if no cycle selected
-        tfile (tfile): stores tfile raw readback
-        year (int): year of run start
+        comment (str): comment input by users at the time of the run
+        cycle (int|None): cycle index within the run; None at the run level
+        cycle_param (attrdict): cycle timing and period structure parameters
+        epics (ttreeslow): unified EPICS slow-control interface
+        experiment_number (str): experiment number recorded by users
+        month (int): month of the run start date
+        run_number (int): run number as recorded in the ROOT file header
+        run_title (str): run title recorded by users
+        shifter (str): experimenter names on shift during the run
+        start_time (str): human-readable start time of the run
+        stop_time (str): human-readable stop time of the run
+        supercycle (int|None): supercycle index; None at the run level
+        tfile (tfile): rootloader tfile object holding all ROOT tree data
+        year (int): year of the run start date
 
     Notes:
-        Can access attributes of tfile directly from top-level object
-        Need to redefine the values if you want non-default
-        behaviour
-        Object is indexed as [cycle, period] for easy access to sub time frames
+        - Attributes of tfile can be accessed directly from the top-level
+          ucnrun, ucncycle, or ucnperiod object via attribute pass-through.
+        - ucncycle objects additionally expose cycle_start, cycle_stop, and
+          cycle_dur (epoch seconds).
+        - ucnperiod objects additionally expose period_start, period_stop,
+          period_dur (epoch seconds), and period (int index).
+        - Objects support indexing as [cycle] or [cycle, period] for easy
+          access to sub-timeframe views.
     """
 
     def __iter__(self):
+        """Initialize iteration over cycles (ucnrun) or periods (ucncycle).
+
+        Returns:
+            ucnbase: self, with internal iteration counter reset to zero.
+        """
         # setup iteration
         self._iter_current = 0
         return self
@@ -215,13 +224,37 @@ class ucnbase(object):
         return hist
 
     def inspect(self, detector='Li6', bin_ms=100, xmode='duration', slow=None):
-        """Draw counts and BL1A current with indicated periods to determine data quality
+        """Draw counts and BL1A current with indicated periods to determine data quality.
+
+        Produces a multi-panel figure with the BL1A beam current on the top panel,
+        UCN hit counts on the second panel, and optional EPICS slow-control channels
+        in additional panels below. Cycle start times are marked with solid black
+        vertical lines; period boundaries are marked with dashed coloured lines.
 
         Args:
-            detector (str): detector from which to get the counts from. Li6|He3
-            bin_ms (int): histogram bin size in ms
-            xmode (str): datetime|duration|epoch
-            slow (list|str): name of slow control tree to add in a separate axis, can be a list of names
+            detector (str): detector from which to get the counts. Li6|He3
+            bin_ms (int): histogram bin size in milliseconds
+            xmode (str): x-axis mode — datetime|duration|epoch
+            slow (list|str): name(s) of EPICS column(s) to add as extra axes below
+                the count panel. Accepts a single column name string or a list of
+                column name strings. Must be present in self.epics.columns.
+
+        Returns:
+            np.ndarray: array of matplotlib Axes objects for the figure panels.
+
+        Raises:
+            RuntimeError: if xmode is not one of datetime|duration|epoch.
+            KeyError: if a requested slow-control column is not found in self.epics.
+            RuntimeError: if slow is not a string or iterable.
+
+        Example:
+            ```python
+            # inspect full run
+            >>> axes = run.inspect('Li6', bin_ms=100, xmode='duration')
+
+            # inspect single cycle with extra slow control panel
+            >>> axes = run[3].inspect('He3', slow='UCN2EpicsTemperature_UCN_He3_TEMP')
+            ```
         """
 
         # check input
@@ -327,12 +360,29 @@ class ucnbase(object):
         return axes
 
     def plot_psd(self, detector='Li6', cut=None, cmap='RdBu'):
-        """Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
+        """Calculate PSD as (QLong-QShort)/QLong and draw as a 3x3 grid of 2D histograms.
+
+        One subplot per digitizer channel (channels 0–8). The x-axis is the long-gate
+        charge QLong, and the y-axis is the pulse-shape discriminant
+        (QLong - QShort) / QLong. All subplots share the same colour scale.
 
         Args:
-            detector (str): Li6|He3, select from which detector the data comes from
-            cut (tuple): lower left corner of box cut (QLong, PSD). If not none then draw
-            cmap (str): [matplotlib color map](https://matplotlib.org/stable/users/explain/colors/colormaps.html) To reverse the order of the colormap append "_r" to the end of the string
+            detector (str): Li6|He3, selects which detector hit tree to read
+            cut (tuple|None): (QLong, PSD) coordinates of the lower-left corner of a
+                rectangular selection box. If not None, a white rectangle is drawn on
+                every subplot from this corner to (max_QLong, 1).
+            cmap (str): matplotlib colormap name. See
+                https://matplotlib.org/stable/users/explain/colors/colormaps.html
+                Append "_r" to reverse the colormap direction.
+
+        Example:
+            ```python
+            # basic PSD plot for Li6 detector
+            >>> run.plot_psd('Li6')
+
+            # draw with a selection cut at QLong=200, PSD=0.2
+            >>> run.plot_psd('Li6', cut=(200, 0.2))
+            ```
         """
 
         # get the data from the tree
@@ -410,7 +460,7 @@ class ucnbase(object):
 
         Example:
             ```python
-                dt = [cyc[2].trigger_edge('Li6', 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+            >>> dt = [cyc[2].trigger_edge('Li6', 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
             ```
         """
         searched = 1 if rising else -1
@@ -441,10 +491,23 @@ class ucnbase(object):
     # quick access properties
     @property
     def beam1a_current_uA(self):
-        """Get beamline 1A current in uA (micro amps)
+        """Get beamline 1A current in uA (micro amps).
+
+        Reads the B1_FOIL_ADJCUR column from BeamlineEpics, which records
+        the adjusted extraction foil current on BL1A.
 
         Returns:
-            pd.Series: indexed by timestamps, current in uA
+            pd.Series: indexed by epoch timestamps, current values in uA.
+
+        Example:
+            ```python
+            >>> run.beam1a_current_uA
+            timestamp
+            1750164000    98.3
+            1750164005    98.2
+            1750164010    98.4
+            dtype: float64
+            ```
         """
         if type(self.tfile.BeamlineEpics) is pd.DataFrame:
             return self.tfile.BeamlineEpics.B1_FOIL_ADJCUR.copy()

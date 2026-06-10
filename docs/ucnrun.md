@@ -6,7 +6,12 @@
 
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
+    - [ucnrun.__getitem__](#ucnrun__getitem__)
+    - [ucnrun.__len__](#ucnrun__len__)
+    - [ucnrun.__next__](#ucnrun__next__)
+    - [ucnrun.__repr__](#ucnrun__repr__)
     - [ucnrun._set_period_times](#ucnrun_set_period_times)
+    - [ucnrun._set_valve_states](#ucnrun_set_valve_states)
     - [ucnrun.check_data](#ucnruncheck_data)
     - [ucnrun.gen_cycle_filter](#ucnrungen_cycle_filter)
     - [ucnrun.get_cycle](#ucnrunget_cycle)
@@ -138,11 +143,135 @@ class ucnrun(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
+### ucnrun.__getitem__
+
+[Show source in ucnrun.py:283](../ucndata/ucnrun.py#L283)
+
+Return cycle(s) or period(s) using index/slice notation.
+
+Supported index forms:
+
+- ``run[i]`` — single integer: return cycle *i* as a [ucncycle](./ucncycle.md#ucncycle).
+- ``run[i, j]`` — two-element tuple: return period *j* of cycle *i*.
+- ``run[slice]`` / ``run[array]`` — slice or array: return an
+  [applylist](./applylist.md#applylist) of cycles.  The cycle filter is applied when a slice
+  or array index is used (but not for a plain integer index).
+- ``run[slice, j]`` — slice of cycles then period *j* of each.
+
+Negative integer indices are supported and wrap around like standard
+Python lists.
+
+#### Arguments
+
+- `key` *int|tuple|slice|np.ndarray|list* - index specifying which
+    cycle(s) and optionally which period to return.
+
+#### Returns
+
+- `ucncycle|ucnperiod|applylist` - a single cycle/period, or a list of
+    them when a slice/array index is given.
+
+#### Raises
+
+- `IndexError` - if a single integer index exceeds the number of cycles,
+    or if *key* is of an unrecognised type.
+
+#### Examples
+
+```python
+>>> run[0]           # first cycle
+>>> run[-1]          # last cycle
+>>> run[0, 1]        # period 1 of cycle 0
+>>> run[:]           # all cycles as an applylist
+>>> run[:, 0]        # period 0 of every cycle
+>>> run[2:5]         # cycles 2, 3, 4
+```
+
+#### Signature
+
+```python
+def __getitem__(self, key): ...
+```
+
+### ucnrun.__len__
+
+[Show source in ucnrun.py:361](../ucndata/ucnrun.py#L361)
+
+Return the total number of cycles in the run (unfiltered).
+
+#### Returns
+
+- `int` - value of ``cycle_param.ncycles``.
+
+#### Signature
+
+```python
+def __len__(self): ...
+```
+
+### ucnrun.__next__
+
+[Show source in ucnrun.py:212](../ucndata/ucnrun.py#L212)
+
+Return next cycle during iteration, respecting the cycle filter.
+
+#### Returns
+
+- [ucncycle](./ucncycle.md#ucncycle) - the next cycle in iteration order.
+
+#### Raises
+
+- `StopIteration` - when all cycles (or all unfiltered cycles) have
+    been yielded.
+
+#### Signature
+
+```python
+def __next__(self): ...
+```
+
+### ucnrun.__repr__
+
+[Show source in ucnrun.py:246](../ucndata/ucnrun.py#L246)
+
+Return a human-readable summary of top-level public attributes.
+
+Attributes are sorted case-insensitively and laid out in columns that
+fit the current terminal width.
+
+#### Returns
+
+- `str` - multi-line string listing all public attributes, prefixed with
+    the run number.
+
+#### Signature
+
+```python
+def __repr__(self): ...
+```
+
 ### ucnrun._set_period_times
 
-[Show source in ucnrun.py:537](../ucndata/ucnrun.py#L537)
+[Show source in ucnrun.py:600](../ucndata/ucnrun.py#L600)
 
-Set period durations and end times based on cycle start times
+Compute and store period durations and end times from CycleParamTree.
+
+Reads the 'Duration'-prefixed columns from CycleParamTree, trims them to
+the declared nPeriods and nCycles, tiles the pattern across all cycles in
+the run, then derives cumulative period end times from the cycle start
+times already stored in ``cycle_param.cycle_times``.
+
+Updates ``cycle_param`` with:
+    period_durations_s (DataFrame): duration in seconds, indexed by
+        period (rows) and cycle (columns).
+    period_end_times (DataFrame): epoch end time of each period,
+        same index/column layout as period_durations_s.
+    nperiods (int): number of periods per cycle.
+    ncycles (int): total number of cycles in the run.
+    nsupercycles (int): number of supercycles.
+    ncycles_per_supercycle (int): cycles per supercycle from CycleParamTree.
+    cycle (np.ndarray): per-cycle index within its supercycle.
+    supercycle (Series): supercycle index for each cycle.
 
 #### Signature
 
@@ -150,9 +279,26 @@ Set period durations and end times based on cycle start times
 def _set_period_times(self): ...
 ```
 
+### ucnrun._set_valve_states
+
+[Show source in ucnrun.py:571](../ucndata/ucnrun.py#L571)
+
+Read valve-state columns from CycleParamTree and store in cycle_param.
+
+Parses the 'Valve'-prefixed columns of the CycleParamTree, extracts the
+valve number from each column name, and stores the result as a DataFrame
+in ``self.cycle_param['valve_states']`` with axes named 'period' (rows)
+and 'valve' (columns).
+
+#### Signature
+
+```python
+def _set_valve_states(self): ...
+```
+
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:594](../ucndata/ucnrun.py#L594)
+[Show source in ucnrun.py:675](../ucndata/ucnrun.py#L675)
 
 Run some checks to determine if the data is ok.
 
@@ -172,8 +318,10 @@ Run some checks to determine if the data is ok.
 #### Examples
 
 ```python
+>>> run = ucnrun(2684)
 >>> run.check_data()
 True
+>>> run.check_data(raise_error=True)  # raises MissingDataError if checks fail
 ```
 
 #### Signature
@@ -184,7 +332,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:657](../ucndata/ucnrun.py#L657)
+[Show source in ucnrun.py:738](../ucndata/ucnrun.py#L738)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -207,9 +355,9 @@ calls `ucncycle.check_data` on each cycle
 >>> run.gen_cycle_filter()
 Run 2575, cycle 0: 1A current dropped below 0.1 uA
 Run 2575, cycle 1: 1A current dropped below 0.1 uA
-
 array([False, False,  True,  True,  True,  True,  True,  True,  True,
         True,  True,  True])
+>>> run.set_cycle_filter(run.gen_cycle_filter(quiet=True))
 ```
 
 #### Signature
@@ -220,7 +368,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:688](../ucndata/ucnrun.py#L688)
+[Show source in ucnrun.py:767](../ucndata/ucnrun.py#L767)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -239,15 +387,9 @@ ucncycle:
 #### Examples
 
 ```python
-# get single cycle
->>> run.get_cycle(0)
-run 1846 (cycle 0):
-    comment            cycle_start        month              shifters           supercycle
-    cycle              cycle_stop         run_number         start_time         tfile
-    cycle_param        experiment_number  run_title          stop_time          year
-
-# get all cycles
->>> len(run.get_cycle.
+>>> run = ucnrun(1846)
+>>> run.get_cycle(0)       # returns ucncycle for cycle 0
+>>> len(run.get_cycle.   # returns applylist of all cycles
 17
 ```
 
@@ -259,9 +401,22 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:725](../ucndata/ucnrun.py#L725)
+[Show source in ucnrun.py:796](../ucndata/ucnrun.py#L796)
 
-Don't load all the data in each file, only that which is needed
+Decide whether a ROOT tree key should be loaded from the file.
+
+Called by ``tfile`` during file open to skip trees that are not needed
+for UCN analysis (e.g. raw digitiser waveform trees). The name is
+compared case-insensitively after spaces are replaced with underscores.
+
+#### Arguments
+
+- `name` *str* - ROOT tree key name as it appears in the file.
+
+#### Returns
+
+- `bool` - True if the tree should be loaded, False if it should be
+    skipped.
 
 #### Signature
 
@@ -271,7 +426,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:739](../ucndata/ucnrun.py#L739)
+[Show source in ucnrun.py:822](../ucndata/ucnrun.py#L822)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -302,36 +457,16 @@ Examples where the filter is not applied:
 #### Examples
 
 ```python
-# check how many cycles are fetched without filter
->>> len(run[:])
+>>> run = ucnrun(2684)
+>>> len(run[:])        # all 17 cycles before filtering
 17
-
-# apply a filter
->>> filter = np.full(17, True)
->>> filter[2] = False
->>> run.set_cycle_filter(filter)
-
-# check that cycle 2 is filtered out
->>> len(run[:])
+>>> cfilter = np.full(17, True)
+>>> cfilter[2] = False
+>>> run.set_cycle_filter(cfilter)
+>>> len(run[:])        # cycle 2 is now excluded
 16
->>> for c in run:
-        print(c.cycle)
-0
-1
-3
-4
-5
-6
-7
-8
-9
-10
-11
-12
-13
-14
-15
-16
+>>> [c.cycle for c in run]
+[0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 ```
 
 #### Signature
@@ -342,41 +477,30 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times_crude
 
-[Show source in ucnrun.py:812](../ucndata/ucnrun.py#L812)
+[Show source in ucnrun.py:872](../ucndata/ucnrun.py#L872)
 
 Get start and end times of each cycle from the sequencer and save
-into self.cycle_param.cycle_times
+into self.cycle_param.cycle_times.
 
-Run this if you want to change how cycle start times are calculated
+Reads cycleStarted timestamps from SequencerTree. Call this to reset
+cycle timing after set_cycle_times_precise.or to re-derive from scratch.
 
-#### Arguments
+#### Raises
 
-- `mode` *str* - default|matched|sequencer|he3|li6
-    - `if` *matched* - look for identical timestamps in RunTransitions from detectors
-    - `if` *sequencer* - look for inCycle timestamps in SequencerTree
-    - `if` *he3* - use He3 detector cycle start times
-    - `if` *li6* - use Li6 detector cycle start times
-
-#### Returns
-
-- `pd.DataFrame` - with columns "start", "stop", "offset" and "duration (s)". Values are in epoch time. Indexed by cycle id. Offset is the difference in detector start times: he3_start-li6_start
+- `DataError` - if SequencerTree is absent from the ROOT file.
 
 #### Notes
 
-- If run ends before sequencer stop is called, a stop is set to final timestamp.
-- If the sequencer is disabled mid-run, a stop is set when disable ocurrs.
-- If sequencer is not enabled, then make the entire run one cycle
-- For matched mode,
-    - set run stops as start of next transition
-    - set offset as start_He3 - start_Li6
-    - set start/stop/duration based on start_He3
-- If the object reflects a single cycle, return from cycle_start, cycle_stop
+- Cycle stop times are derived from the start of the next cycle;
+  the last cycle stops at the final SequencerTree timestamp.
+- Sets cycle_param.is_precise_timing to False.
 
 #### Examples
 
 ```python
-# this calculates new cycle start and end times based on the selected method
->>> run.set_cycle_times_crude('li6')
+>>> run = ucnrun(2684)
+>>> run.set_cycle_times_precise. # upgrade to precise timing
+>>> run.set_cycle_times_crude.   # revert to sequencer-derived timing
 ```
 
 #### Signature
@@ -387,7 +511,7 @@ def set_cycle_times_crude(self): ...
 
 ### ucnrun.set_cycle_times_precise
 
-[Show source in ucnrun.py:876](../ucndata/ucnrun.py#L876)
+[Show source in ucnrun.py:923](../ucndata/ucnrun.py#L923)
 
 Replace crude cycle start times with hardware-timestamped precise times.
 
@@ -424,6 +548,17 @@ returns immediately without modifying ``cycle_param``.
 The average precise cycle duration is estimated from inter-hit
 differences that agree with the crude average to within 5 seconds,
 so the crude timing must already be a reasonable first approximation.
+
+#### Examples
+
+```python
+>>> run = ucnrun(2684)
+>>> run.set_cycle_times_precise.          # use defaults
+>>> run.set_cycle_times_precise(hw_channel=10, detector='Li6')
+>>> run.cycle_param.is_precise_timing
+True
+>>> run.cycle_param.cycle_times['is_measured']  # True where hardware hit was recorded
+```
 
 #### Signature
 

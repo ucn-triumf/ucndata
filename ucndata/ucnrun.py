@@ -210,6 +210,15 @@ class ucnrun(ucnbase):
         self._run = self
 
     def __next__(self):
+        """Return next cycle during iteration, respecting the cycle filter.
+
+        Returns:
+            ucncycle: the next cycle in iteration order.
+
+        Raises:
+            StopIteration: when all cycles (or all unfiltered cycles) have
+                been yielded.
+        """
         # permit iteration over object like it was a list
 
         if self._iter_current < self.cycle_param.ncycles:
@@ -235,6 +244,15 @@ class ucnrun(ucnbase):
             raise StopIteration()
 
     def __repr__(self):
+        """Return a human-readable summary of top-level public attributes.
+
+        Attributes are sorted case-insensitively and laid out in columns that
+        fit the current terminal width.
+
+        Returns:
+            str: multi-line string listing all public attributes, prefixed with
+                the run number.
+        """
         klist = [d for d in self.__dict__.keys() if d[0] != '_']
         if klist:
 
@@ -263,6 +281,40 @@ class ucnrun(ucnbase):
             return self.__class__.__name__ + "()"
 
     def __getitem__(self, key):
+        """Return cycle(s) or period(s) using index/slice notation.
+
+        Supported index forms:
+
+        - ``run[i]`` — single integer: return cycle *i* as a ``ucncycle``.
+        - ``run[i, j]`` — two-element tuple: return period *j* of cycle *i*.
+        - ``run[slice]`` / ``run[array]`` — slice or array: return an
+          ``applylist`` of cycles.  The cycle filter is applied when a slice
+          or array index is used (but not for a plain integer index).
+        - ``run[slice, j]`` — slice of cycles then period *j* of each.
+
+        Negative integer indices are supported and wrap around like standard
+        Python lists.
+
+        Args:
+            key (int|tuple|slice|np.ndarray|list): index specifying which
+                cycle(s) and optionally which period to return.
+
+        Returns:
+            ucncycle|ucnperiod|applylist: a single cycle/period, or a list of
+                them when a slice/array index is given.
+
+        Raises:
+            IndexError: if a single integer index exceeds the number of cycles,
+                or if *key* is of an unrecognised type.
+
+        Example:
+            >>> run[0]           # first cycle
+            >>> run[-1]          # last cycle
+            >>> run[0, 1]        # period 1 of cycle 0
+            >>> run[:]           # all cycles as an applylist
+            >>> run[:, 0]        # period 0 of every cycle
+            >>> run[2:5]         # cycles 2, 3, 4
+        """
         # get cycle or period based on slicing indexes
 
         # get a single key
@@ -307,6 +359,11 @@ class ucnrun(ucnbase):
         raise IndexError(f'Run {self.run_number} given an unknown index type ({type(key)})')
 
     def __len__(self):
+        """Return the total number of cycles in the run (unfiltered).
+
+        Returns:
+            int: value of ``cycle_param.ncycles``.
+        """
         return self.cycle_param.ncycles
 
     def _get_nhits(self, detector, cycle=None, period=None, bin_ms=0):
@@ -512,7 +569,13 @@ class ucnrun(ucnbase):
         self._nhits = {}
 
     def _set_valve_states(self):
-        """"""
+        """Read valve-state columns from CycleParamTree and store in cycle_param.
+
+        Parses the 'Valve'-prefixed columns of the CycleParamTree, extracts the
+        valve number from each column name, and stores the result as a DataFrame
+        in ``self.cycle_param['valve_states']`` with axes named 'period' (rows)
+        and 'valve' (columns).
+        """
         # get full tree as dataframe
         df = self.tfile.CycleParamTree
         if isinstance(df, ttree):
@@ -535,7 +598,25 @@ class ucnrun(ucnbase):
         self.cycle_param['valve_states'] = df
 
     def _set_period_times(self):
-        """Set period durations and end times based on cycle start times"""
+        """Compute and store period durations and end times from CycleParamTree.
+
+        Reads the 'Duration'-prefixed columns from CycleParamTree, trims them to
+        the declared nPeriods and nCycles, tiles the pattern across all cycles in
+        the run, then derives cumulative period end times from the cycle start
+        times already stored in ``cycle_param.cycle_times``.
+
+        Updates ``cycle_param`` with:
+            period_durations_s (DataFrame): duration in seconds, indexed by
+                period (rows) and cycle (columns).
+            period_end_times (DataFrame): epoch end time of each period,
+                same index/column layout as period_durations_s.
+            nperiods (int): number of periods per cycle.
+            ncycles (int): total number of cycles in the run.
+            nsupercycles (int): number of supercycles.
+            ncycles_per_supercycle (int): cycles per supercycle from CycleParamTree.
+            cycle (np.ndarray): per-cycle index within its supercycle.
+            supercycle (Series): supercycle index for each cycle.
+        """
 
         # get tree as dataframe
         dur = self.tfile.CycleParamTree
@@ -605,10 +686,10 @@ class ucnrun(ucnbase):
             * Are there nonzero counts in UCNHits?
 
         Example:
-            ```python
+            >>> run = ucnrun(2684)
             >>> run.check_data()
             True
-            ```
+            >>> run.check_data(raise_error=True)  # raises MissingDataError if checks fail
         """
 
         # check some necessary data trees
@@ -667,15 +748,13 @@ class ucnrun(ucnbase):
             calls `ucncycle.check_data` on each cycle
 
         Example:
-            ```python
             >>> run = ucnrun(2575)
             >>> run.gen_cycle_filter()
             Run 2575, cycle 0: 1A current dropped below 0.1 uA
             Run 2575, cycle 1: 1A current dropped below 0.1 uA
-
             array([False, False,  True,  True,  True,  True,  True,  True,  True,
                     True,  True,  True])
-            ```
+            >>> run.set_cycle_filter(run.gen_cycle_filter(quiet=True))
         """
 
         cycles = self.get_cycle()
@@ -698,19 +777,11 @@ class ucnrun(ucnbase):
                 if cycle > 0:  ucncycle object
                 if cycle < 0 | None: a list ucncycle objects for all cycles
 
-        Examples:
-            ```python
-            # get single cycle
-            >>> run.get_cycle(0)
-            run 1846 (cycle 0):
-                comment            cycle_start        month              shifters           supercycle
-                cycle              cycle_stop         run_number         start_time         tfile
-                cycle_param        experiment_number  run_title          stop_time          year
-
-            # get all cycles
-            >>> len(run.get_cycle())
+        Example:
+            >>> run = ucnrun(1846)
+            >>> run.get_cycle(0)       # returns ucncycle for cycle 0
+            >>> len(run.get_cycle())   # returns applylist of all cycles
             17
-            ```
         """
 
         if cycle is None or cycle < 0:
@@ -723,7 +794,19 @@ class ucnrun(ucnbase):
             return self._cycledict[cycle]
 
     def keyfilter(self, name):
-        """Don't load all the data in each file, only that which is needed"""
+        """Decide whether a ROOT tree key should be loaded from the file.
+
+        Called by ``tfile`` during file open to skip trees that are not needed
+        for UCN analysis (e.g. raw digitiser waveform trees). The name is
+        compared case-insensitively after spaces are replaced with underscores.
+
+        Args:
+            name (str): ROOT tree key name as it appears in the file.
+
+        Returns:
+            bool: True if the tree should be loaded, False if it should be
+                skipped.
+        """
 
         name = name.replace(' ', '_').lower()
 
@@ -761,39 +844,16 @@ class ucnrun(ucnbase):
                 * run.get_cycle(2)
 
         Example:
-
-            ```python
-            # check how many cycles are fetched without filter
-            >>> len(run[:])
+            >>> run = ucnrun(2684)
+            >>> len(run[:])        # all 17 cycles before filtering
             17
-
-            # apply a filter
-            >>> filter = np.full(17, True)
-            >>> filter[2] = False
-            >>> run.set_cycle_filter(filter)
-
-            # check that cycle 2 is filtered out
-            >>> len(run[:])
+            >>> cfilter = np.full(17, True)
+            >>> cfilter[2] = False
+            >>> run.set_cycle_filter(cfilter)
+            >>> len(run[:])        # cycle 2 is now excluded
             16
-            >>> for c in run:
-                    print(c.cycle)
-            0
-            1
-            3
-            4
-            5
-            6
-            7
-            8
-            9
-            10
-            11
-            12
-            13
-            14
-            15
-            16
-            ```
+            >>> [c.cycle for c in run]
+            [0, 1, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
         """
 
         # check input
@@ -825,9 +885,9 @@ class ucnrun(ucnbase):
             - Sets cycle_param.is_precise_timing to False.
 
         Example:
-            ```python
-            >>> run.set_cycle_times_crude()
-            ```
+            >>> run = ucnrun(2684)
+            >>> run.set_cycle_times_precise()  # upgrade to precise timing
+            >>> run.set_cycle_times_crude()    # revert to sequencer-derived timing
         """
 
         # check for sequencer tree, if not then single cycle run
@@ -894,6 +954,14 @@ class ucnrun(ucnbase):
             The average precise cycle duration is estimated from inter-hit
             differences that agree with the crude average to within 5 seconds,
             so the crude timing must already be a reasonable first approximation.
+
+        Example:
+            >>> run = ucnrun(2684)
+            >>> run.set_cycle_times_precise()           # use defaults
+            >>> run.set_cycle_times_precise(hw_channel=10, detector='Li6')
+            >>> run.cycle_param.is_precise_timing
+            True
+            >>> run.cycle_param.cycle_times['is_measured']  # True where hardware hit was recorded
         """
 
         # check if already precise times

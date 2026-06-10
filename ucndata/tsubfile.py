@@ -8,12 +8,23 @@ import pandas as pd
 from rootloader import tfile, ttree
 
 class tsubfile(tfile):
-    """Wrapper for tfile which restricts access to values only within given times
+    """Time-bounded wrapper around a rootloader.tfile object.
+
+    Acts like a tfile but silently filters any DataFrame or ttree whose index
+    is a time axis, returning only rows whose timestamp falls within [start, stop].
+    Non-time-indexed data is returned unchanged. Accessed values are cached in
+    the internal _items dict to avoid redundant filtering on repeated access.
 
     Args:
-        tfileobj (tfile): object to wrap
-        start (int): starting epoch time
-        stop (int): stopping epoch time
+        tfileobj (tfile): rootloader tfile object to wrap
+        start (int): inclusive start of the allowed epoch time range (seconds)
+        stop (int): inclusive end of the allowed epoch time range (seconds)
+
+    Example:
+
+        >>> # Wrap an open run's tfile to the time window of one cycle
+        >>> sub = tsubfile(run.tfile, cycle_start, cycle_stop)
+        >>> sub['He3'].head()   # only rows within [cycle_start, cycle_stop]
     """
 
     def __init__(self, tfileobj, start, stop):

@@ -6,6 +6,10 @@
 
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
+    - [ucncycle.__getitem__](#ucncycle__getitem__)
+    - [ucncycle.__len__](#ucncycle__len__)
+    - [ucncycle.__next__](#ucncycle__next__)
+    - [ucncycle.__repr__](#ucncycle__repr__)
     - [ucncycle.check_data](#ucncyclecheck_data)
     - [ucncycle.draw_cycle_times](#ucncycledraw_cycle_times)
     - [ucncycle.get_nhits](#ucncycleget_nhits)
@@ -39,39 +43,136 @@ class ucncycle(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
+### ucncycle.__getitem__
+
+[Show source in ucncycle.py:147](../ucndata/ucncycle.py#L147)
+
+Index into the cycle to retrieve one or more periods.
+
+#### Arguments
+
+key (int | slice): period index or slice. Negative integers are
+    supported and wrap around from the last period.
+
+#### Returns
+
+ucnperiod | applylist: a single [ucnperiod](./ucnperiod.md#ucnperiod) for an integer key,
+    or an [applylist](./applylist.md#applylist) of [ucnperiod](./ucnperiod.md#ucnperiod) objects for a slice.
+
+#### Raises
+
+- `IndexError` - if ``key`` is an integer larger than the number of
+    periods, or if ``key`` is not an int or slice.
+
+#### Examples
+
+```python
+>>> cycle = run[0]
+>>> period0 = cycle[0]        # first period
+>>> last = cycle[-1]          # last period
+>>> first_two = cycle[0:2]    # applylist of two periods
+```
+
+#### Signature
+
+```python
+def __getitem__(self, key): ...
+```
+
+### ucncycle.__len__
+
+[Show source in ucncycle.py:76](../ucndata/ucncycle.py#L76)
+
+Return the number of periods in this cycle.
+
+#### Returns
+
+- `int` - number of periods defined in ``cycle_param.nperiods``.
+
+#### Signature
+
+```python
+def __len__(self): ...
+```
+
+### ucncycle.__next__
+
+[Show source in ucncycle.py:84](../ucndata/ucncycle.py#L84)
+
+Advance the iterator and return the next period.
+
+Enables ``for period in cycle`` iteration. Internally increments
+``_iter_current`` and delegates to ``__getitem__``.
+
+#### Returns
+
+- [ucnperiod](./ucnperiod.md#ucnperiod) - the next period object.
+
+#### Raises
+
+- `StopIteration` - when all periods have been yielded.
+
+#### Signature
+
+```python
+def __next__(self): ...
+```
+
+### ucncycle.__repr__
+
+[Show source in ucncycle.py:108](../ucndata/ucncycle.py#L108)
+
+Return a human-readable string listing all public attributes in columns.
+
+The column count is derived from the current terminal width so the
+output fills the screen without wrapping. Includes the run number and
+cycle index in the header line.
+
+#### Returns
+
+- `str` - formatted multi-column attribute listing, e.g.
+    ``"run 1846 (cycle 0):\n  attr1  attr2  ..."``.
+
+#### Signature
+
+```python
+def __repr__(self): ...
+```
+
 ### ucncycle.check_data
 
-[Show source in ucncycle.py:201](../ucndata/ucncycle.py#L201)
+[Show source in ucncycle.py:257](../ucndata/ucncycle.py#L257)
 
 Run some checks to determine if the data is ok.
 
 #### Arguments
 
-- `period_production` *int* - index of period where the beam should be stable. Enables checks of beam stability
-- `period_count` *int* - index of period where we count ucn. Enables checks of data quantity
-- `period_background` *int* - index of period where we do not count ucn. Enables checks of background
-- `raise_error` *bool* - if true, raise an error if check fails, else return false. Inactive if quiet=True
-- `quiet` *bool* - if true don't print or raise exception
+- `raise_error` *bool* - if True, raise an error when a check fails
+    instead of returning False. Has no effect when ``quiet=True``.
+- `quiet` *bool* - if True, suppress all printed messages and exceptions;
+    always returns False on failure without side effects.
 
 #### Returns
 
-- `bool` - true if check passes, else false.
+- `bool` - True if all checks pass, False otherwise.
 
 #### Notes
 
-Checks performed
+Checks performed:
 
-* is there BeamlineEpics data?
+* is there BeamlineEpics data (1A and 1U beam currents)?
 * is the cycle duration greater than 0?
 * is at least one valve opened during at least one period?
-* are there counts in each detector?
+* does the sum of period durations fit within the cycle duration?
+* did the 1A beam current stay above the minimum threshold throughout
+  the cycle and the 20 seconds before it?
 
 #### Examples
 
 ```python
 >>> cycle = run[0]
 >>> x = cycle.check_data()
-Run 1846, cycle 0: Beam current dropped to 0.0 uA
+Run 1846, cycle 0: 1A current dropped below 1.0 uA
 >>> x
 False
 ```
@@ -84,20 +185,44 @@ def check_data(self, raise_error=False, quiet=False): ...
 
 ### ucncycle.draw_cycle_times
 
-[Show source in ucncycle.py:284](../ucndata/ucncycle.py#L284)
+[Show source in ucncycle.py:338](../ucndata/ucncycle.py#L338)
 
-Draw cycle start times as thick black lines, period end times as dashed lines
+Draw cycle start time as a thick black line and period end times as dashed lines.
+
+The cycle label is rendered vertically at the cycle start. If the cycle
+is excluded by ``cycle_param.filter``, the label is struck through in red.
 
 #### Arguments
 
-- `ax` *plt.Axes* - axis to draw in, if None, draw in current axes
-- `xmode` *str* - datetime|duration|duration_run|duration_cycle|epoch
+- `ax` *plt.Axes* - axes to draw into. Uses ``plt.gca.` when None.
+- `xmode` *str* - x-axis time representation. One of:
+
+* ``'datetime'`` — absolute wall-clock timestamps
+* ``'duration'`` — seconds since the start of the run
+* ``'duration_run'`` — same as ``'duration'``
+* ``'duration_cycle'`` — seconds since this cycle's start
+* ``'epoch'`` — raw Unix epoch seconds
+
+#### Returns
+
+- `numpy.ndarray` - unique period indices that were drawn (zero-length
+    periods are skipped).
+
+#### Raises
+
+- `RuntimeError` - if ``xmode`` is not one of the accepted values.
 
 #### Notes
 
-- `Assumed` *periods* - 0 - irradiation
-                    1 - storage
-                    2 - count
+Assumed period layout: 0 - irradiation, 1 - storage, 2 - count.
+
+#### Examples
+
+```python
+>>> fig, ax = plt.subplots()
+>>> run[0].draw_cycle_times(ax=ax, xmode='duration_cycle')
+array([0, 1, 2])
+```
 
 #### Signature
 
@@ -107,56 +232,56 @@ def draw_cycle_times(self, ax=None, xmode="datetime"): ...
 
 ### ucncycle.get_nhits
 
-[Show source in ucncycle.py:365](../ucndata/ucncycle.py#L365)
+[Show source in ucncycle.py:438](../ucndata/ucncycle.py#L438)
 
-Get number of ucn hits
+Get the total number of UCN hits recorded in this cycle.
+
+Delegates to the parent run's ``_get_nhits`` with this cycle's index.
+See that method for caching and performance details.
 
 #### Arguments
 
-- `detector` *str* - Li6|He3
-- `bin_ms` *int* - UCN hit event resolution in milliseconds.
-    If 0, use raw hits for max precision. Else construct histogram
-    with bins of size resolution_ms, and compute per-period/cycle hits
-    from that.
+- `detector` *str* - detector to query — ``'Li6'`` or ``'He3'``.
+- `bin_ms` *int* - hit-event time resolution in milliseconds.
+    When 0, raw hit timestamps are used for maximum precision and a
+    per-period histogram is cached keyed on the current period
+    boundaries. When > 0, a fixed-bin histogram of that width is
+    built and reused across repeated calls with the same value,
+    which is faster when period timings are modified frequently.
 
 #### Returns
 
-- `int` - number of events
+- `int` - total number of UCN hit events in this cycle.
 
 #### Notes
 
-Getting the hits with resolution_ms=0 requires that you parse the
-entire tree, so to speed this up, a histogram is created where the
-bin edges are set to the period and cycle start/end times. This
-histogram is cached as `self._nhits` so future requests of the
-number of hits is fast. However, if you modify the start/end times
-of the periods, this histogram is no longer accurate and so must
-be recomputed. This happens automatically, but rebuilding the
-histogram adds to your runtime. Thus the following works, but is
-slow:
+With ``bin_ms=0`` the hit histogram is cached against the current
+period boundaries. Modifying timings invalidates the cache and
+forces a rebuild on the next call. To avoid per-iteration rebuilds,
+finish all timing modifications before calling ``get_nhits``
 
 ```python
+# slow — rebuilds histogram every iteration
 hits = []
 for cycle in run:
     cycle[1].modify_timing(1)
-    hits.append(cycle[1].get_nhits('Li6')) # hits histogram recomputed every loop
-```
+    hits.append(cycle[1].get_nhits('Li6'))
 
-Whereas the following is much faster but does the same thing:
-
-```python
+# fast — histogram built once after all modifications
 for cycle in run:
     cycle[1].modify_timing(1)
-hits = run[:, 1].get_nhits('Li6') # hits histogram recomputed only once
+hits = run[:, 1].get_nhits('Li6')
 ```
 
-In contrast, when bin_ms > 0, a histogram with bins of size bins_ms
-is created. This histogram is independent of the period timings and
-is only recreated when get_nhits is called with a new value of
-bin_ms is changed. While the above rules still apply, recreating
-the periods hits histogram from the bin_ms histogram is much faster,
-allowing for speedups of analyses where modifying the period timings
-frequently is important.
+#### Examples
+
+```python
+>>> cycle = run[0]
+>>> cycle.get_nhits('Li6')
+4321
+>>> cycle.get_nhits('He3', bin_ms=100)
+4289
+```
 
 #### Signature
 
@@ -166,26 +291,30 @@ def get_nhits(self, detector, bin_ms=0): ...
 
 ### ucncycle.get_period
 
-[Show source in ucncycle.py:416](../ucndata/ucncycle.py#L416)
+[Show source in ucncycle.py:484](../ucndata/ucncycle.py#L484)
 
-Return a copy of this object, but trees are trimmed to only one period.
+Return a ucnperiod (or list of all periods) for this cycle.
 
-#### Notes
-
-* This process converts all objects to dataframes
-* Must be called for a single cycle only
-* Equivalent to indexing style: `cycle[period]`
+Equivalent to the indexing shorthand ``cycle[period]``. Results are
+cached in ``_perioddict`` so repeated calls for the same period are
+cheap.
 
 #### Arguments
 
-- `period` *int* - period number, if None, get all periods
-cycle (int|None) if cycle not specified then specify a cycle
+period (int | None): zero-based period index. Pass ``None`` or a
+    negative integer to retrieve all periods as an [applylist](./applylist.md#applylist).
 
 #### Returns
 
-run:
-    if period > 0: a copy of this object but with data from only one period.
-    if period < 0 | None: a list of copies of this object for all periods for a single cycle
+ucnperiod | applylist:
+    * a single [ucnperiod](./ucnperiod.md#ucnperiod) when ``period >= 0``.
+    * an [applylist](./applylist.md#applylist) of all [ucnperiod](./ucnperiod.md#ucnperiod) objects when
+      ``period`` is ``None`` or negative.
+
+#### Notes
+
+Each [ucnperiod](./ucnperiod.md#ucnperiod) is a time-restricted view; all data frames and
+trees are filtered to the period's [start, stop] window.
 
 #### Examples
 
@@ -193,10 +322,13 @@ run:
 >>> cycle = run[0]
 >>> cycle.get_period(0)
 run 1846 (cycle 0, period 0):
-    comment            cycle_stop         period_start       shifters           tfile
-    cycle              experiment_number  period_stop        start_time         year
-    cycle_param        month              run_number         stop_time
-    cycle_start        period             run_title          supercycle
+  comment            cycle_stop         period_start       shifters           tfile
+  cycle              experiment_number  period_stop        start_time         year
+  cycle_param        month              run_number         stop_time
+  cycle_start        period             run_title          supercycle
+>>> all_periods = cycle.get_period.  # applylist of all periods
+>>> len(all_periods)
+3
 ```
 
 #### Signature
@@ -207,27 +339,39 @@ def get_period(self, period=None): ...
 
 ### ucncycle.shift_timing
 
-[Show source in ucncycle.py:455](../ucndata/ucncycle.py#L455)
+[Show source in ucncycle.py:528](../ucndata/ucncycle.py#L528)
 
-Shift all periods by a constant time, maintaining the period durations.
-This shifts the cycle start time and shortens the cycle, potentially creating gaps between cycles
+Shift every period in this cycle by a constant offset, preserving period durations.
+
+The cycle start time is advanced by ``dt`` while each period boundary
+is shifted by the same amount, so durations remain unchanged. This may
+create a gap between adjacent cycles.
 
 #### Arguments
 
-- `dt` *float* - time in seconds to add to each period start/end time
+- `dt` *float* - seconds to add to every period start and end time.
+    Negative values shift earlier.
 
-#### Examples
+#### Notes
+
+Internally calls ``ucnrun._modify_ptiming`` for each period, which
+resets all cached hit histograms. To avoid redundant histogram
+rebuilds, collect all shift values first and then apply them
 
 ```python
-# this avoids recomputing the histograms each iteration
-dt = [cyc.get_time_shift('Li6', 2, 50) if cyc[2].period_dur > 0 else 0 for cyc in run]
+# compute shifts without rebuilding histograms mid-loop
+dt = [cyc.get_time_shift('Li6', 2, 50) if cyc[2].period_dur > 0 else 0
+      for cyc in run]
 for i, t in enumerate(dt):
     run[i].shift_timing(t)
 ```
 
-#### Notes
+#### Examples
 
-* This function makes use of `ucnrun._modify_ptiming`, which resets all saved histograms and hits
+```python
+>>> # shift cycle 0 forward by 2 seconds
+>>> run[0].shift_timing(2.0)
+```
 
 #### Signature
 

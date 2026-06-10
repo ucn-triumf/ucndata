@@ -20,7 +20,18 @@ class ucnperiod(ucnbase):
     """
 
     def __init__(self, ucycle, period):
+        """Initialize a ucnperiod by slicing a ucncycle to a single period's time window.
 
+        Copies all attributes from ``ucycle``, replacing ``tfile`` with a
+        ``tsubfile`` restricted to [period_start, period_stop] and rebuilding
+        ``epics`` against the new tsubfile. ``period_durations_s`` and
+        ``period_end_times`` in ``cycle_param`` are trimmed to the scalar
+        values for this period.
+
+        Args:
+            ucycle (ucncycle): parent cycle object to slice.
+            period (int): zero-based period index within the cycle.
+        """
         # get start and stop time
         if period > 0:      start = ucycle.cycle_param.period_end_times[period-1]
         else:               start = ucycle.cycle_start
@@ -48,6 +59,15 @@ class ucnperiod(ucnbase):
         self.period_dur = stop-start
 
     def __repr__(self):
+        """Return a human-readable string listing all public attributes in columns.
+
+        The column count is derived from the current terminal width. The header
+        line includes the run number, cycle index, and period index.
+
+        Returns:
+            str: formatted multi-column attribute listing, e.g.
+                ``"run 1846 (cycle 0, period 1):\\n  attr1  attr2  ..."``.
+        """
         klist = [d for d in self.__dict__.keys() if d[0] != '_']
         if klist:
 
@@ -88,11 +108,9 @@ class ucnperiod(ucnbase):
             bool: true if pileup detected
 
         Example:
-            ```python
             >>> p = run[0, 0]
             >>> p.is_pileup('Li6')
             False
-            ```
         """
 
         # get hit timestamps as array
@@ -114,69 +132,80 @@ class ucnperiod(ucnbase):
         return any(piled_up)
 
     def get_nhits(self, detector, bin_ms=0):
-        """Get number of ucn hits
+        """Get the total number of UCN hits recorded in this period.
+
+        Delegates to the parent run's ``_get_nhits`` with this cycle and period
+        index. See that method for full caching and performance details.
 
         Args:
-            detector (str): Li6|He3
-            bin_ms (int): UCN hit event resolution in milliseconds. 
-                If 0, use raw hits for max precision. Else construct histogram
-                with bins of size resolution_ms, and compute per-period/cycle hits
-                from that.
-        
-        Returns: 
-            int: number of events
+            detector (str): detector to query — ``'Li6'`` or ``'He3'``.
+            bin_ms (int): hit-event time resolution in milliseconds.
+                When 0, raw hit timestamps are used for maximum precision and a
+                per-period histogram is cached keyed on the current period
+                boundaries. When > 0, a fixed-bin histogram of that width is
+                built and reused across repeated calls with the same value,
+                which is faster when period timings are modified frequently.
 
-        Notes: 
-            Getting the hits with bin_ms=0 requires that you parse the 
-            entire tree, so to speed this up, a histogram is created where the 
-            bin edges are set to the period and cycle start/end times. This 
-            histogram is cached as `self._nhits` so future requests of the 
-            number of hits is fast. However, if you modify the start/end times 
-            of the periods, this histogram is no longer accurate and so must 
-            be recomputed. This happens automatically, but rebuilding the 
-            histogram adds to your runtime. Thus the following works, but is 
-            slow:
-            
-            ```python
+        Returns:
+            int: total number of UCN hit events in this period.
+
+        Notes:
+            With ``bin_ms=0`` the hit histogram is cached against the current
+            period boundaries. Modifying timings invalidates the cache and
+            forces a rebuild on the next call. To avoid per-iteration rebuilds,
+            finish all timing modifications before calling ``get_nhits``::
+
+                # slow — rebuilds histogram every iteration
                 hits = []
-                for cycle in run: 
+                for cycle in run:
                     cycle[1].modify_timing(1)
-                    hits.append(cycle[1].get_nhits('Li6')) # hits histogram recomputed every loop
-            ```
+                    hits.append(cycle[1].get_nhits('Li6'))
 
-            Whereas the following is much faster but does the same thing:
-            
-            ```python
-                for cycle in run: 
+                # fast — histogram built once after all modifications
+                for cycle in run:
                     cycle[1].modify_timing(1)
-                hits = run[:, 1].get_nhits('Li6') # hits histogram recomputed only once
-            ```
+                hits = run[:, 1].get_nhits('Li6')
 
-            In contrast, when bin_ms > 0, a histogram with bins of size bins_ms 
-            is created. This histogram is independent of the period timings and 
-            is only recreated when get_nhits is called with a new value of 
-            bin_ms is changed. While the above rules still apply, recreating 
-            the periods hits histogram from the bin_ms histogram is much faster, 
-            allowing for speedups of analyses where modifying the period timings 
-            frequently is important. 
+        Example:
+            >>> period = run[0, 1]
+            >>> period.get_nhits('Li6')
+            1204
+            >>> period.get_nhits('He3', bin_ms=100)
+            1197
         """
-        return self._run._get_nhits(detector, 
-                                    cycle=self.cycle, 
+        return self._run._get_nhits(detector,
+                                    cycle=self.cycle,
                                     period=self.period,
                                     bin_ms=bin_ms)
 
     def modify_timing(self, dt_start_s=0, dt_stop_s=0):
-        """Change start and end times of period
+        """Change the start and/or end time of this period.
+
+        Adjusts ``period_start`` by ``dt_start_s`` and ``period_stop`` by
+        ``dt_stop_s``, then propagates the change back into the parent run via
+        ``ucnrun._modify_ptiming`` so that the run-level ``cycle_param`` and
+        the ``tsubfile`` window stay consistent.
 
         Args:
-            dt_start_s (float): change to the period start time
-            dt_stop_s (float): change to the period stop time
+            dt_start_s (float): seconds to add to the period start time.
+                Negative values move the boundary earlier.
+            dt_stop_s (float): seconds to add to the period stop time.
+                Negative values move the boundary earlier.
+
+        Returns:
+            None
 
         Notes:
-            * as a result of this, cycles may overlap or have gaps
-            * periods are forced to not overlap and have no gaps
-            * cannot change cycle end time, but can change cycle start time
-            * this function resets all saved histgrams and hits
+            * Adjacent periods are forced to remain contiguous (no overlap,
+              no gap), so changing one boundary shifts the neighbouring period
+              boundary accordingly.
+            * The cycle end time cannot be changed; only the cycle start time
+              can be shifted (by adjusting period 0's start).
+            * All cached hit histograms are reset after the timing change.
+
+        Example:
+            >>> period = run[0, 1]
+            >>> period.modify_timing(dt_start_s=2.0, dt_stop_s=-1.0)
         """
         self._run._modify_ptiming(cycle = self.cycle,
                                   period = self.period,

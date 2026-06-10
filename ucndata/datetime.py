@@ -7,16 +7,24 @@ import numpy as np
 from . import ucnbase
 
 def from_datetime(item):
-    """Convert to epoch time
+    """Convert datetime-indexed data back to integer Unix epoch timestamps.
+
+    Accepts either a DataFrame/Series (converts its index) or any iterable of
+    datetime-like values. Timezone-aware inputs are converted to UTC first;
+    naive inputs are treated as UTC. The result is truncated to whole seconds.
 
     Args:
-        item (pd.DataFrame|iterable): if dataframe, convert the index, else convert the array
+        item (pd.DataFrame|pd.Series|iterable): data to convert. If a
+            DataFrame or Series, the index is replaced with epoch integers and
+            the original object is returned; otherwise an array of integers is
+            returned.
 
     Returns:
-        pd.DataFrame|np.array
+        pd.DataFrame|pd.Series|np.ndarray: input with index (or values)
+            replaced by integer Unix epoch timestamps (seconds since 1970-01-01
+            UTC).
 
     Example:
-        ```python
         >>> run = ucnrun(1846)
         >>> df = to_datetime(run.tfile.BeamlineEpics.to_dataframe())
         >>> df2 = from_datetime(df)
@@ -25,22 +33,10 @@ def from_datetime(item):
         timestamp                                       ...
         1572460997          0.018750           0.00000  ...                  0.0        0.000000
         1572461002          0.000000           0.01875  ...                  0.0        2.151400
-        1572461007          0.021875           0.01250  ...                  0.0        2.151400
-        1572461012          0.012500           0.00000  ...                  0.0        2.151400
-        1572461017          0.000000           0.00000  ...                  0.0        2.151400
-        ...                      ...               ...  ...                  ...             ...
-        1572466463          0.000000           0.01250  ...                  0.0       38.294899
-        1572466468          0.000000           0.00000  ...                  0.0       38.294899
-        1572466473          0.018750           0.00000  ...                  0.0       37.864700
-        1572466478          0.034375           0.00000  ...                  0.0       37.864700
-        1572466479          0.000000           0.01250  ...                  0.0       38.294899
+        ...
 
-        [1093 rows x 49 columns]
-
-        # check that conversion worked
         >>> all(df2.index == run.tfile.BeamlineEpics.index)
         np.True_
-        ```
     """
 
     # dataframe conversion
@@ -72,34 +68,36 @@ def from_datetime(item):
         return converted.values
 
 def to_datetime(item, timezone='America/Vancouver'):
-    """Convert to datetime objects
+    """Convert Unix epoch timestamps to timezone-aware datetime objects.
+
+    Accepts either a DataFrame/Series (converts its index) or any iterable of
+    numeric epoch values. Timestamps are interpreted as seconds since
+    1970-01-01 UTC and then converted to the requested timezone.
 
     Args:
-        item (pd.DataFrame|iterable): if dataframe, convert the index, else convert the array
+        item (pd.DataFrame|pd.Series|iterable): data to convert. If a
+            DataFrame or Series, the index is replaced with datetime values and
+            the original object is returned; otherwise an array of datetime
+            values is returned.
+        timezone (str): IANA timezone name for the output timestamps. Defaults
+            to 'America/Vancouver'.
 
     Returns:
-        pd.DataFrame|np.array
+        pd.DataFrame|pd.Series|pd.DatetimeIndex: input with index (or values)
+            replaced by timezone-aware datetime objects.
 
     Example:
-        ```python
         >>> run = ucnrun(1846)
         >>> to_datetime(run.tfile.BeamlineEpics.to_dataframe())
                            B1UT_CM01_RDCOND  B1UT_CM02_RDCOND  ...  B1V_KSM_RDMODE_VAL1  B1_FOIL_ADJCUR
         timestamp                                                      ...
         2019-10-30 11:43:17-07:00          0.018750           0.00000  ...                  0.0        0.000000
         2019-10-30 11:43:22-07:00          0.000000           0.01875  ...                  0.0        2.151400
-        2019-10-30 11:43:27-07:00          0.021875           0.01250  ...                  0.0        2.151400
-        2019-10-30 11:43:32-07:00          0.012500           0.00000  ...                  0.0        2.151400
-        2019-10-30 11:43:37-07:00          0.000000           0.00000  ...                  0.0        2.151400
-        ...                                     ...               ...  ...                  ...             ...
-        2019-10-30 13:14:23-07:00          0.000000           0.01250  ...                  0.0       38.294899
-        2019-10-30 13:14:28-07:00          0.000000           0.00000  ...                  0.0       38.294899
-        2019-10-30 13:14:33-07:00          0.018750           0.00000  ...                  0.0       37.864700
-        2019-10-30 13:14:38-07:00          0.034375           0.00000  ...                  0.0       37.864700
-        2019-10-30 13:14:39-07:00          0.000000           0.01250  ...                  0.0       38.294899
+        ...
 
-        [1093 rows x 49 columns]
-        ```
+        >>> to_datetime([1572460997, 1572461002], timezone='UTC')
+        DatetimeIndex(['2019-10-30 18:43:17+00:00', '2019-10-30 18:43:22+00:00'],
+                      dtype='datetime64[ns, UTC]', freq=None)
     """
 
     # dataframe conversion

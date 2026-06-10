@@ -109,13 +109,13 @@ class applylist(list):
             return x 
 
     def astype(self, typecast):
-        """Convert datatypes in self to typecast
+        """Convert all elements in-place to the given type.
 
         Args:
-            typecase (type): type to convert to
+            typecast (type): type to cast each element to (e.g. int, float, str)
 
         Returns:
-            None, works in-place
+            None: modifies the list in-place
 
         Example:
 
@@ -137,7 +137,7 @@ class applylist(list):
             inplace (bool): if false return a copy, else act in-place
 
         Returns:
-            ucnarray|None: depending on the value of inplace
+            applylist|None: new applylist with results if inplace is False, else None
 
         Examples:
 
@@ -171,16 +171,28 @@ class applylist(list):
         if not inplace: return copy
 
     def copy(self):
+        """Return a shallow copy of this applylist.
+
+        Returns:
+            applylist: a new applylist with the same elements
+
+        Example:
+
+            >>> x = applylist([1, 2, 3])
+            >>> y = x.copy()
+            >>> y[0] = 99
+            >>> print(x)
+            [1, 2, 3]
+            >>> print(y)
+            [99, 2, 3]
+        """
         return applylist(super().copy())
 
     def transpose(self):
-        """Transpose by conversion to np.array and back
-
-        Args:
-            None
+        """Transpose a 2D applylist by converting to np.array and back.
 
         Returns:
-            applylist: transposed
+            applylist: transposed list, where rows and columns are swapped
 
         Example:
 
