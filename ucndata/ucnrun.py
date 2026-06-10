@@ -545,10 +545,11 @@ class ucnrun(ucnbase):
         dur = dur.reindex(sorted(dur.columns), axis=1)
         
         # drop all-zero columns
-        dur = dur.loc[:, dur.sum(axis=0)>0]      
+        dur = dur.loc[:, dur.sum(axis=0)>0]    
+        ncycles_per_supercycle = len(dur.columns)  
 
         # expand for all cycles
-        dur = pd.concat([dur]*max((2, self.cycle_param.ncycles//len(dur.columns))),
+        dur = pd.concat([dur]*max((2, ncycles_per_supercycle // len(dur.columns))),
                        axis='columns')
         dur.columns = np.arange(len(dur.columns))
         
@@ -570,8 +571,17 @@ class ucnrun(ucnbase):
         for i, st in enumerate(start):
             ends.loc[:, i] += st
 
+        # update cycle_param
         self.cycle_param['period_end_times'] = ends
         self.cycle_param['nperiods'] = len(ends.index)
+        
+        cycleids = self.cycle_param.cycle_times.index.values
+        self.cycle_param.cycle_times['supercycle'] = cycleids // ncycles_per_supercycle
+        
+        self.cycle_param['cycle'] = cycleids % ncycles_per_supercycle
+        self.cycle_param['supercycle'] = self.cycle_param.cycle_times['supercycle']
+        self.cycle_param['ncycles'] = len(cycleids)
+        self.cycle_param['nsupercycles'] = len(self.cycle_param.cycle_times.supercycle.unique())
 
     def check_data(self, raise_error=False):
         """Run some checks to determine if the data is ok.
@@ -834,9 +844,6 @@ class ucnrun(ucnbase):
         start = tree.timestamp.values.astype(float)
         run_stop = self.tfile.SequencerTree.timestamp.max()
 
-        # get number of cycles per supercycle
-        ncycles = self.tfile.CycleParamTree.nCycles.values[0]
-
         # get run durations
         duration = np.diff(np.concatenate((start, [run_stop])))
         times = {'start': start,
@@ -848,17 +855,10 @@ class ucnrun(ucnbase):
         times = pd.DataFrame(times)
         times.index.name = 'cycle'
 
-        # set supercycle id
-        times['supercycle'] = times.index // ncycles
-
         # save
         self.cycle_param['cycle_times'] = times
-        self.cycle_param['cycle'] = times.index % ncycles
-        self.cycle_param['supercycle'] = times['supercycle']
-        self.cycle_param['ncycles'] = len(times.index)
-        self.cycle_param['nsupercycles'] = len(times['supercycle'].unique())
         self.cycle_param['is_precise_timing'] = False
-
+        
         # update period times
         self._set_period_times()
 
