@@ -28,19 +28,19 @@ class ucnrun(ucnbase):
     """UCN run data. Cleans data and performs analysis
 
     Args:
-        run (int|str): if int, generate filename with DATADIR
+        run (int|str): if int, generate filename with `DATADIR`
             elif str then run is the path to the file
-        ucn_only (bool): if true set filter tIsUCN==1 on all hit trees
-        use_precise_cycles (bool): if true attempt to use precise cycle times. 
-            First, check if the RunTransition_Li6 tree has precise times in it (precise times found from midas2root). 
+        ucn_only (bool): if true set filter `tIsUCN==1` on all hit trees
+        use_precise_cycles (bool): if true attempt to use precise cycle times.
+            First, check if the `RunTransition_Li6` tree has precise times in it (precise times found from midas2root).
             If not, then check if there are any hits in hardware cycle start channel on the digitizer.
             If not, raise a warning
-            Default inputs are listed as ucndata.DEFAULT_CYCLE_TIMES_PRECISE
+            Default inputs are listed as `ucndata.DEFAULT_CYCLE_TIMES_PRECISE`
 
     Attributes:
         comment (str): comment input by users
-        cycle (int|none): cycle number, none if no cycle selected
-        cycle_param (attrdict): cycle parameters from sequencer settings
+        cycle (int|None): cycle number, None if no cycle selected
+        cycle_param (`attrdict`): cycle parameters from sequencer settings
         experiment_number (str): experiment number input by users
         month (int): month of run start
         run_number (int): run number
@@ -48,14 +48,14 @@ class ucnrun(ucnbase):
         shifter (str): experimenters on shift at time of run
         start_time (str): start time of the run
         stop_time (str): stop time of the run
-        supercycle (int|none): supercycle number, none if no cycle selected
-        tfile (tfile): stores tfile raw readback
+        supercycle (int|None): supercycle number, None if no cycle selected
+        tfile (`tfile`): stores tfile raw readback
         year (int): year of run start
 
     Notes:
-        * Can access attributes of tfile directly from top-level object
+        * Can access attributes of `tfile` directly from top-level object
         * Need to define the values if you want non-default behaviour
-        * Object is indexed as [cycle, period] for easy access to sub time frames
+        * Object is indexed as `[cycle, period]` for easy access to sub time frames
 
         Cycle param contents
 
@@ -569,9 +569,9 @@ class ucnrun(ucnbase):
         self._nhits = {}
 
     def _set_valve_states(self):
-        """Read valve-state columns from CycleParamTree and store in cycle_param.
+        """Read valve-state columns from `CycleParamTree` and store in `cycle_param`.
 
-        Parses the 'Valve'-prefixed columns of the CycleParamTree, extracts the
+        Parses the 'Valve'-prefixed columns of the `CycleParamTree`, extracts the
         valve number from each column name, and stores the result as a DataFrame
         in ``self.cycle_param['valve_states']`` with axes named 'period' (rows)
         and 'valve' (columns).
@@ -598,24 +598,24 @@ class ucnrun(ucnbase):
         self.cycle_param['valve_states'] = df
 
     def _set_period_times(self):
-        """Compute and store period durations and end times from CycleParamTree.
+        """Compute and store period durations and end times from `CycleParamTree`.
 
-        Reads the 'Duration'-prefixed columns from CycleParamTree, trims them to
-        the declared nPeriods and nCycles, tiles the pattern across all cycles in
+        Reads the 'Duration'-prefixed columns from `CycleParamTree`, trims them to
+        the declared `nPeriods` and `nCycles`, tiles the pattern across all cycles in
         the run, then derives cumulative period end times from the cycle start
         times already stored in ``cycle_param.cycle_times``.
 
         Updates ``cycle_param`` with:
-            period_durations_s (DataFrame): duration in seconds, indexed by
+            `period_durations_s` (DataFrame): duration in seconds, indexed by
                 period (rows) and cycle (columns).
-            period_end_times (DataFrame): epoch end time of each period,
-                same index/column layout as period_durations_s.
-            nperiods (int): number of periods per cycle.
-            ncycles (int): total number of cycles in the run.
-            nsupercycles (int): number of supercycles.
-            ncycles_per_supercycle (int): cycles per supercycle from CycleParamTree.
-            cycle (np.ndarray): per-cycle index within its supercycle.
-            supercycle (Series): supercycle index for each cycle.
+            `period_end_times` (DataFrame): epoch end time of each period,
+                same index/column layout as `period_durations_s`.
+            `nperiods` (int): number of periods per cycle.
+            `ncycles` (int): total number of cycles in the run.
+            `nsupercycles` (int): number of supercycles.
+            `ncycles_per_supercycle` (int): cycles per supercycle from `CycleParamTree`.
+            `cycle` (np.ndarray): per-cycle index within its supercycle.
+            `supercycle` (Series): supercycle index for each cycle.
         """
 
         # get tree as dataframe
@@ -682,8 +682,8 @@ class ucnrun(ucnbase):
             bool: true if check passes, else false.
 
         Notes:
-            * Do the ucndata.SLOW_TREES exist and have entries?
-            * Are there nonzero counts in UCNHits?
+            * Do the `ucndata.SLOW_TREES` exist and have entries?
+            * Are there nonzero counts in `UCNHits`?
 
         Example:
             >>> run = ucnrun(2684)
@@ -736,16 +736,16 @@ class ucnrun(ucnbase):
         return True
 
     def gen_cycle_filter(self, quiet=False):
-        """Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
+        """Generate filter array for cycles. Use with `self.set_cycle_filter` to filter cycles.
 
         Args:
             quiet (bool): if true don't print or raise exception
 
         Returns:
-            np.array(bool): true if keep cycle, false if discard
+            `np.array(bool)`: `True` if keep cycle, `False` if discard
 
         Notes:
-            calls `ucncycle.check_data` on each cycle
+            Calls `ucncycle.check_data` on each cycle
 
         Example:
             >>> run = ucnrun(2575)
@@ -772,8 +772,8 @@ class ucnrun(ucnbase):
 
         Returns:
             ucncycle:
-                if cycle > 0:  ucncycle object
-                if cycle < 0 | None: a list ucncycle objects for all cycles
+                * if `cycle > 0`: `ucncycle` object
+                * if `cycle < 0` | `None`: a list of `ucncycle` objects for all cycles
 
         Example:
             >>> run = ucnrun(1846)
@@ -825,10 +825,10 @@ class ucnrun(ucnbase):
                 if None then same as if all True
 
         Returns:
-            None: sets self.cycle_param.filter
+            None: sets `self.cycle_param.filter`
 
         Notes:
-            * Filter is ONLY applied when fetching cycles as a slice or as an iterator. ucnrun.`get_cycle()` always returns unfiltered cycles.
+            * Filter is ONLY applied when fetching cycles as a slice or as an iterator. `ucnrun.get_cycle()` always returns unfiltered cycles.
 
             * Examples where the filter is applied:
                 * `run[:]`
@@ -879,8 +879,8 @@ class ucnrun(ucnbase):
 
         Notes:
             - Cycle stop times are derived from the start of the next cycle;
-              the last cycle stops at the final SequencerTree timestamp.
-            - Sets cycle_param.is_precise_timing to False.
+              the last cycle stops at the final `SequencerTree` timestamp.
+            - Sets `cycle_param.is_precise_timing` to `False`.
 
         Example:
             >>> run = ucnrun(2684)
@@ -921,9 +921,9 @@ class ucnrun(ucnbase):
     def set_cycle_times_precise(self, hw_channel=10, detector='Li6'):
         """Replace crude cycle start times with hardware-timestamped precise times.
 
-        Reads hardware-trigger hit timestamps on the specified TV1725 input hw_channel. 
-        These timestamps have sub-millisecond precision compared to the sequencer-derived 
-        crude cycle times. The function aligns the precise timestamps against the existing 
+        Reads hardware-trigger hit timestamps on the specified TV1725 input `hw_channel`.
+        These timestamps have sub-millisecond precision compared to the sequencer-derived
+        crude cycle times. The function aligns the precise timestamps against the existing
         crude cycle grid, back-extrapolates if the first trigger was missed, and linearly
         interpolates over any gaps where the hardware signal was not recorded.
 
@@ -940,13 +940,13 @@ class ucnrun(ucnbase):
           a recorded hardware hit; ``False`` if it was back-extrapolated or
           interpolated from the average precise cycle duration.
 
-        If no precise timestamps are found on the requested hw_channel the function
+        If no precise timestamps are found on the requested `hw_channel` the function
         returns immediately without modifying ``cycle_param``.
 
         Args:
             hw_channel (int): TV1725 input channel carrying the hardware
                 cycle-start signal. Default is 10.
-            detector (str): Li6 | He3, select between RunTransition_* trees
+            detector (str): `Li6` | `He3`, select between `RunTransition_*` trees
 
         Note:
             The average precise cycle duration is estimated from inter-hit

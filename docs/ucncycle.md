@@ -60,7 +60,7 @@ Run some checks to determine if the data is ok.
 
 Checks performed:
 
-* is there BeamlineEpics data (1A and 1U beam currents)?
+* is there `BeamlineEpics` data (1A and 1U beam currents)?
 * is the cycle duration greater than 0?
 * is at least one valve opened during at least one period?
 * does the sum of period durations fit within the cycle duration?

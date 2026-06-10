@@ -9,15 +9,15 @@ import numpy as np
 class ttreeslow(ttree):
     """Unified interface to multiple EPICS slow-control ROOT trees.
 
-    Merges several rootloader.ttree objects (e.g. BeamlineEpics, UCN2Epics)
+    Merges several `rootloader.ttree` objects (e.g. `BeamlineEpics`, `UCN2Epics`)
     into a single object so callers can access any column without knowing
     which underlying tree it lives in. Aggregate statistics (mean, min, max,
-    std, rms) concatenate results across all trees into a single pd.Series.
+    std, rms) concatenate results across all trees into a single `pd.Series`.
 
     Attributes:
         _columns (dict): maps column name to the source tree name
         _treenames (list): names of all underlying trees
-        _parent: ucnrun/ucncycle/ucnperiod object that owns the tfile
+        _parent: `ucnrun`/`ucncycle`/`ucnperiod` object that owns the `tfile`
 
     Example:
 
@@ -27,21 +27,21 @@ class ttreeslow(ttree):
     """
 
     def __init__(self, ttree_list, parent=None):
-        """Initialize from a list of ttree objects or an existing ttreeslow.
+        """Initialize from a list of `ttree` objects or an existing `ttreeslow`.
 
-        When initialized from a list of ttree objects, builds internal column-
-        to-tree mapping and requires a parent object for tfile access. When
-        initialized from an existing ttreeslow, copies its mapping and inherits
+        When initialized from a list of `ttree` objects, builds internal column-
+        to-tree mapping and requires a parent object for `tfile` access. When
+        initialized from an existing `ttreeslow`, copies its mapping and inherits
         the parent unless a new one is provided.
 
         Args:
             ttree_list (list[ttree] | ttreeslow): source trees to merge, or an
-                existing ttreeslow to copy
-            parent: ucnrun, ucncycle, or ucnperiod instance that owns the tfile;
-                required when ttree_list is a list
+                existing `ttreeslow` to copy
+            parent: `ucnrun`, `ucncycle`, or `ucnperiod` instance that owns the `tfile`;
+                required when `ttree_list` is a list
 
         Raises:
-            RuntimeError: if ttree_list is a list and parent is not provided
+            RuntimeError: if `ttree_list` is a list and `parent` is not provided
         """
         # make dict of which tree to get for which column
         if isinstance(ttree_list, ttreeslow):
@@ -93,17 +93,17 @@ class ttreeslow(ttree):
             column (str): column name to histogram; required when the object
                 contains more than one column
             nbins (int): number of equally-spaced bins spanning the full data
-                range; mutually exclusive with step and edges
+                range; mutually exclusive with `step` and `edges`
             step (float): bin width in data units, spanning the full range;
-                mutually exclusive with nbins and edges
+                mutually exclusive with `nbins` and `edges`
             edges (array-like): explicit bin-edge array; mutually exclusive with
-                nbins and step
+                `nbins` and `step`
 
         Returns:
             rootloader.th1: histogram object
 
         Raises:
-            KeyError: if column is not specified when there are multiple columns,
+            KeyError: if `column` is not specified when there are multiple columns,
                 or if the specified column does not exist
 
         Example:
@@ -124,10 +124,10 @@ class ttreeslow(ttree):
         return tree.hist1d(column=column, nbins=nbins, step=step, edges=edges)
 
     def reset(self):
-        """Reset all underlying trees and return a fresh ttreeslow copy.
+        """Reset all underlying trees and return a fresh `ttreeslow` copy.
 
-        Calls reset() on each source tree (clearing any cached data or filters)
-        and then constructs a new ttreeslow with the same column mapping.
+        Calls `reset()` on each source tree (clearing any cached data or filters)
+        and then constructs a new `ttreeslow` with the same column mapping.
 
         Returns:
             ttreeslow: new instance wrapping the reset trees
@@ -155,12 +155,12 @@ class ttreeslow(ttree):
 
         Args:
             expression (str): boolean expression string evaluated against each
-                tree's columns (e.g. 'timestamp > 1000')
-            inplace (bool): must be True; non-inplace filtering on parent trees
+                tree's columns (e.g. `'timestamp > 1000'`)
+            inplace (bool): must be `True`; non-inplace filtering on parent trees
                 is not supported
 
         Raises:
-            RuntimeError: if inplace is False
+            RuntimeError: if `inplace` is `False`
 
         Example:
 

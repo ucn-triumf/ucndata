@@ -36,25 +36,25 @@ Return a cperiod for the requested period, or all periods.
 
 Trees are time-restricted to the requested period; this process
 converts all ROOT objects to dataframes on first access. Results are
-cached in self._perioddict so repeated calls are cheap. The last
+cached in `self._perioddict` so repeated calls are cheap. The last
 period is dropped if it contains no data.
 
 #### Notes
 
 * This process converts all objects to dataframes.
-* Must be called on a single cycle object, not on applylist.
+* Must be called on a single cycle object, not on [applylist](./applylist.md#applylist).
 * Equivalent to indexing style: ``cycle[period]``.
 
 #### Arguments
 
-- `period` *int|None* - period index (0-based). Pass None or a negative
-    integer to get all periods. Defaults to None.
+- `period` *int|None* - period index (0-based). Pass `None` or a negative
+    integer to get all periods. Defaults to `None`.
 
 #### Returns
 
-- `cperiod|applylist` - a single cperiod when period >= 0, or an
-    applylist of cperiod objects for all periods when period is
-    None or negative.
+- `cperiod|applylist` - a single [cperiod](#cperiod) when `period >= 0`, or an
+    [applylist](./applylist.md#applylist) of [cperiod](#cperiod) objects for all periods when `period` is
+    `None` or negative.
 
 #### Examples
 
@@ -93,12 +93,12 @@ class cframe(ucndata.ucnbase):
 
 Get the number of UCN hits recorded in this chopper frame.
 
-Delegates to the parent crun._get_nhits_frame, which bins hits by
+Delegates to the parent `crun._get_nhits_frame`, which bins hits by
 frame start time on first call and caches the result.
 
 #### Arguments
 
-- `detector` *str* - detector name. One of 'Li6' or 'He3'.
+- `detector` *str* - detector name. One of `'Li6'` or `'He3'`.
 
 #### Returns
 
@@ -137,17 +137,17 @@ class cperiod(ucndata.ucnperiod):
 Return a cframe for the requested frame, or all frames.
 
 Trees are time-restricted to the requested chopper frame. Results are
-cached in self._framedict so repeated calls are cheap.
+cached in `self._framedict` so repeated calls are cheap.
 
 #### Arguments
 
-- `frame` *int|None* - frame index (0-based). Pass None or a negative
-    integer to get all frames. Defaults to None.
+- `frame` *int|None* - frame index (0-based). Pass `None` or a negative
+    integer to get all frames. Defaults to `None`.
 
 #### Returns
 
-- `cframe|applylist` - a single cframe when frame >= 0, or an applylist
-    of cframe objects for all frames when frame is None or negative.
+- `cframe|applylist` - a single [cframe](#cframe) when `frame >= 0`, or an [applylist](./applylist.md#applylist)
+    of [cframe](#cframe) objects for all frames when `frame` is `None` or negative.
 
 #### Examples
 
@@ -181,19 +181,19 @@ class crun(ucndata.ucnrun):
 
 Return a ccycle for the requested cycle, or all cycles.
 
-Trees are time-restricted to the requested cycle via tsubfile; this
+Trees are time-restricted to the requested cycle via [tsubfile](./tsubfile.md#tsubfile); this
 process converts all ROOT objects to dataframes on first access.
-Results are cached in self._cycledict so repeated calls are cheap.
+Results are cached in `self._cycledict` so repeated calls are cheap.
 
 #### Arguments
 
-- `cycle` *int|None* - cycle index (0-based). Pass None or a negative
-    integer to get all cycles. Defaults to None.
+- `cycle` *int|None* - cycle index (0-based). Pass `None` or a negative
+    integer to get all cycles. Defaults to `None`.
 
 #### Returns
 
-- `ccycle|applylist` - a single ccycle when cycle >= 0, or an applylist
-    of ccycle objects for all cycles when cycle is None or negative.
+- `ccycle|applylist` - a single [ccycle](#ccycle) when `cycle >= 0`, or an [applylist](./applylist.md#applylist)
+    of [ccycle](#ccycle) objects for all cycles when `cycle` is `None` or negative.
 
 #### Examples
 
@@ -224,7 +224,7 @@ Compute a time-of-flight histogram over all good cycles.
 
 Each neutron hit time is expressed relative to the most recent chopper
 opening (channel 15 pulse), producing a ToF value. Bad cycles excluded
-by cycle_param.filter are removed before histogramming.
+by `cycle_param.filter` are removed before histogramming.
 
 #### Arguments
 
@@ -232,8 +232,8 @@ by cycle_param.filter are removed before histogramming.
 
 #### Returns
 
-- `tuple` - (bin_edges, counts) where bin_edges is a np.ndarray of
-    length N+1 and counts is a np.ndarray of length N.
+- `tuple` - `(bin_edges, counts)` where `bin_edges` is a `np.ndarray` of
+    length N+1 and `counts` is a `np.ndarray` of length N.
 
 #### Examples
 
@@ -255,23 +255,23 @@ def get_tof(self, bin_ms=1): ...
 
 Draw counts and BL1A current with shaded chopper frames to assess data quality.
 
-Calls the parent ucnrun.inspect and then overlays alternating grey
+Calls the parent `ucnrun.inspect` and then overlays alternating grey
 shading for each chopper frame so the frame structure is visible
 alongside the rate and beam-current traces.
 
 #### Arguments
 
-- `detector` *str* - detector to histogram. One of 'Li6' or 'He3'.
-    Defaults to 'Li6'.
+- `detector` *str* - detector to histogram. One of `'Li6'` or `'He3'`.
+    Defaults to `'Li6'`.
 - `bin_ms` *int* - histogram bin width in milliseconds. Defaults to 100.
-- `xmode` *str* - x-axis units. One of 'datetime', 'duration', or
-    'epoch'. Defaults to 'duration'.
+- `xmode` *str* - x-axis units. One of `'datetime'`, `'duration'`, or
+    `'epoch'`. Defaults to `'duration'`.
 - `slow` *list|str|None* - slow-control channel name(s) to plot on an
-    additional axis. Defaults to None.
+    additional axis. Defaults to `None`.
 
 #### Returns
 
-- `list` - matplotlib Axes objects created by the parent inspect call.
+- `list` - matplotlib `Axes` objects created by the parent `inspect` call.
 
 #### Examples
 
@@ -291,7 +291,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 Shift all chopper frame start times by a constant offset.
 
-Updates frame_start_times at the run, cycle, and period levels, and
+Updates `frame_start_times` at the run, cycle, and period levels, and
 resets the cached nhits-per-frame histogram so it is recomputed on the
 next access.
 

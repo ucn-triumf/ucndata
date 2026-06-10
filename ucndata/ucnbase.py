@@ -17,15 +17,15 @@ from collections.abc import Iterable
 import matplotlib.patches as mpatches
 
 class ucnbase(object):
-    """Base class shared by ucnrun, ucncycle, and ucnperiod.
+    """Base class shared by `ucnrun`, `ucncycle`, and `ucnperiod`.
 
     Provides shared analysis methods and quick-access properties for
     Ultra-Cold Neutron (UCN) experimental data loaded from ROOT files.
-    Not instantiated directly — use ucnrun, ucncycle, or ucnperiod instead.
+    Not instantiated directly — use `ucnrun`, `ucncycle`, or `ucnperiod` instead.
 
     Attributes:
         comment (str): comment input by users at the time of the run
-        cycle (int|None): cycle index within the run; None at the run level
+        cycle (int|None): cycle index within the run; `None` at the run level
         cycle_param (attrdict): cycle timing and period structure parameters
         epics (ttreeslow): unified EPICS slow-control interface
         experiment_number (str): experiment number recorded by users
@@ -35,23 +35,23 @@ class ucnbase(object):
         shifter (str): experimenter names on shift during the run
         start_time (str): human-readable start time of the run
         stop_time (str): human-readable stop time of the run
-        supercycle (int|None): supercycle index; None at the run level
+        supercycle (int|None): supercycle index; `None` at the run level
         tfile (tfile): rootloader tfile object holding all ROOT tree data
         year (int): year of the run start date
 
     Notes:
-        - Attributes of tfile can be accessed directly from the top-level
-          ucnrun, ucncycle, or ucnperiod object via attribute pass-through.
-        - ucncycle objects additionally expose cycle_start, cycle_stop, and
-          cycle_dur (epoch seconds).
-        - ucnperiod objects additionally expose period_start, period_stop,
-          period_dur (epoch seconds), and period (int index).
-        - Objects support indexing as [cycle] or [cycle, period] for easy
+        - Attributes of `tfile` can be accessed directly from the top-level
+          `ucnrun`, `ucncycle`, or `ucnperiod` object via attribute pass-through.
+        - `ucncycle` objects additionally expose `cycle_start`, `cycle_stop`, and
+          `cycle_dur` (epoch seconds).
+        - `ucnperiod` objects additionally expose `period_start`, `period_stop`,
+          `period_dur` (epoch seconds), and `period` (int index).
+        - Objects support indexing as `[cycle]` or `[cycle, period]` for easy
           access to sub-timeframe views.
     """
 
     def __iter__(self):
-        """Initialize iteration over cycles (ucnrun) or periods (ucncycle).
+        """Initialize iteration over cycles (`ucnrun`) or periods (`ucncycle`).
 
         Returns:
             ucnbase: self, with internal iteration counter reset to zero.
@@ -123,7 +123,7 @@ class ucnbase(object):
             detector (str): one of the keys to `ucndata.DET_NAMES`
 
         Returns:
-            np.array: array of timestamps corresponding to an UCN hit. Note that this returns all events in the case where ucn_only=False
+            np.array: array of timestamps corresponding to an UCN hit. Note that this returns all events in the case where `ucn_only=False`
 
         Example:
             ```python
@@ -146,9 +146,9 @@ class ucnbase(object):
         """Get histogram of UCNHits ttree times
 
         Args:
-            detector (str): Li6|He3
+            detector (str): `Li6`|`He3`
             bin_ms (int): histogram bin size in milliseconds
-            as_datetime (bool): if true, convert bin_centers to datetime objects
+            as_datetime (bool): if true, convert `bin_centers` to datetime objects
 
         Returns:
             rootloader.th1: histogram object
@@ -232,20 +232,20 @@ class ucnbase(object):
         vertical lines; period boundaries are marked with dashed coloured lines.
 
         Args:
-            detector (str): detector from which to get the counts. Li6|He3
+            detector (str): detector from which to get the counts. `Li6`|`He3`
             bin_ms (int): histogram bin size in milliseconds
-            xmode (str): x-axis mode — datetime|duration|epoch
+            xmode (str): x-axis mode — `datetime`|`duration`|`epoch`
             slow (list|str): name(s) of EPICS column(s) to add as extra axes below
                 the count panel. Accepts a single column name string or a list of
-                column name strings. Must be present in self.epics.columns.
+                column name strings. Must be present in `self.epics.columns`.
 
         Returns:
             np.ndarray: array of matplotlib Axes objects for the figure panels.
 
         Raises:
-            RuntimeError: if xmode is not one of datetime|duration|epoch.
-            KeyError: if a requested slow-control column is not found in self.epics.
-            RuntimeError: if slow is not a string or iterable.
+            RuntimeError: if `xmode` is not one of `datetime`|`duration`|`epoch`.
+            KeyError: if a requested slow-control column is not found in `self.epics`.
+            RuntimeError: if `slow` is not a string or iterable.
 
         Example:
             ```python
@@ -360,20 +360,20 @@ class ucnbase(object):
         return axes
 
     def plot_psd(self, detector='Li6', cut=None, cmap='RdBu'):
-        """Calculate PSD as (QLong-QShort)/QLong and draw as a 3x3 grid of 2D histograms.
+        """Calculate PSD as `(QLong-QShort)/QLong` and draw as a 3x3 grid of 2D histograms.
 
         One subplot per digitizer channel (channels 0–8). The x-axis is the long-gate
-        charge QLong, and the y-axis is the pulse-shape discriminant
-        (QLong - QShort) / QLong. All subplots share the same colour scale.
+        charge `QLong`, and the y-axis is the pulse-shape discriminant
+        `(QLong - QShort) / QLong`. All subplots share the same colour scale.
 
         Args:
-            detector (str): Li6|He3, selects which detector hit tree to read
-            cut (tuple|None): (QLong, PSD) coordinates of the lower-left corner of a
-                rectangular selection box. If not None, a white rectangle is drawn on
-                every subplot from this corner to (max_QLong, 1).
+            detector (str): `Li6`|`He3`, selects which detector hit tree to read
+            cut (tuple|None): `(QLong, PSD)` coordinates of the lower-left corner of a
+                rectangular selection box. If not `None`, a white rectangle is drawn on
+                every subplot from this corner to `(max_QLong, 1)`.
             cmap (str): matplotlib colormap name. See
                 https://matplotlib.org/stable/users/explain/colors/colormaps.html
-                Append "_r" to reverse the colormap direction.
+                Append `"_r"` to reverse the colormap direction.
 
         Example:
             ```python
@@ -450,7 +450,7 @@ class ucnbase(object):
     def trigger_edge(self, detector, thresh, bin_ms=10, rising=True):
         """Detect period start time based on a rising or falling edge
         Args:
-            detector (str): Li6|He3
+            detector (str): `Li6`|`He3`
             thresh (float): calculate cycle start time shift based on edge detection passing through this level
             bin_ms (int): histogram bin size in milliseconds
             rising (bool): if true do rising edge, else do falling edge
@@ -493,7 +493,7 @@ class ucnbase(object):
     def beam1a_current_uA(self):
         """Get beamline 1A current in uA (micro amps).
 
-        Reads the B1_FOIL_ADJCUR column from BeamlineEpics, which records
+        Reads the `B1_FOIL_ADJCUR` column from `BeamlineEpics`, which records
         the adjusted extraction foil current on BL1A.
 
         Returns:

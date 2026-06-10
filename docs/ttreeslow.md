@@ -27,16 +27,16 @@
 
 Unified interface to multiple EPICS slow-control ROOT trees.
 
-Merges several rootloader.ttree objects (e.g. BeamlineEpics, UCN2Epics)
+Merges several `rootloader.ttree` objects (e.g. `BeamlineEpics`, `UCN2Epics`)
 into a single object so callers can access any column without knowing
 which underlying tree it lives in. Aggregate statistics (mean, min, max,
-std, rms) concatenate results across all trees into a single pd.Series.
+std, rms) concatenate results across all trees into a single `pd.Series`.
 
 #### Attributes
 
 - `_columns` *dict* - maps column name to the source tree name
 - `_treenames` *list* - names of all underlying trees
-- `_parent` - ucnrun/ucncycle/ucnperiod object that owns the tfile
+- `_parent` - `ucnrun`/`ucncycle`/`ucnperiod` object that owns the `tfile`
 
 #### Examples
 
@@ -90,11 +90,11 @@ Return a 1D histogram of a column's data.
 - `column` *str* - column name to histogram; required when the object
     contains more than one column
 - `nbins` *int* - number of equally-spaced bins spanning the full data
-    range; mutually exclusive with step and edges
+    range; mutually exclusive with `step` and `edges`
 - `step` *float* - bin width in data units, spanning the full range;
-    mutually exclusive with nbins and edges
+    mutually exclusive with `nbins` and `edges`
 - `edges` *array-like* - explicit bin-edge array; mutually exclusive with
-    nbins and step
+    `nbins` and `step`
 
 #### Returns
 
@@ -102,7 +102,7 @@ Return a 1D histogram of a column's data.
 
 #### Raises
 
-- `KeyError` - if column is not specified when there are multiple columns,
+- `KeyError` - if `column` is not specified when there are multiple columns,
     or if the specified column does not exist
 
 #### Examples
@@ -213,10 +213,10 @@ def min(self): ...
 
 [Show source in ttreeslow.py:126](../ucndata/ttreeslow.py#L126)
 
-Reset all underlying trees and return a fresh ttreeslow copy.
+Reset all underlying trees and return a fresh [ttreeslow](#ttreeslow) copy.
 
-Calls reset() on each source tree (clearing any cached data or filters)
-and then constructs a new ttreeslow with the same column mapping.
+Calls `reset()` on each source tree (clearing any cached data or filters)
+and then constructs a new [ttreeslow](#ttreeslow) with the same column mapping.
 
 #### Returns
 
@@ -266,13 +266,13 @@ Apply a row-selection filter to all underlying trees.
 #### Arguments
 
 - `expression` *str* - boolean expression string evaluated against each
-    tree's columns (e.g. 'timestamp > 1000')
-- `inplace` *bool* - must be True; non-inplace filtering on parent trees
+    tree's columns (e.g. `'timestamp > 1000'`)
+- `inplace` *bool* - must be `True`; non-inplace filtering on parent trees
     is not supported
 
 #### Raises
 
-- `RuntimeError` - if inplace is False
+- `RuntimeError` - if `inplace` is `False`
 
 #### Examples
 

@@ -23,20 +23,20 @@ UCN run data. Cleans data and performs analysis
 
 #### Arguments
 
-- `run` *int|str* - if int, generate filename with DATADIR
+- `run` *int|str* - if int, generate filename with `DATADIR`
     elif str then run is the path to the file
-- `ucn_only` *bool* - if true set filter tIsUCN==1 on all hit trees
+- `ucn_only` *bool* - if true set filter `tIsUCN==1` on all hit trees
 - `use_precise_cycles` *bool* - if true attempt to use precise cycle times.
-    First, check if the RunTransition_Li6 tree has precise times in it (precise times found from midas2root).
+    First, check if the `RunTransition_Li6` tree has precise times in it (precise times found from midas2root).
     If not, then check if there are any hits in hardware cycle start channel on the digitizer.
     If not, raise a warning
-    Default inputs are listed as ucndata.DEFAULT_CYCLE_TIMES_PRECISE
+    Default inputs are listed as `ucndata.DEFAULT_CYCLE_TIMES_PRECISE`
 
 #### Attributes
 
 - `comment` *str* - comment input by users
-- `cycle` *int|none* - cycle number, none if no cycle selected
-- `cycle_param` *attrdict* - cycle parameters from sequencer settings
+- `cycle` *int|None* - cycle number, None if no cycle selected
+- `cycle_param` *`attrdict`* - cycle parameters from sequencer settings
 - `experiment_number` *str* - experiment number input by users
 - `month` *int* - month of run start
 - `run_number` *int* - run number
@@ -44,15 +44,15 @@ UCN run data. Cleans data and performs analysis
 - `shifter` *str* - experimenters on shift at time of run
 - `start_time` *str* - start time of the run
 - `stop_time` *str* - stop time of the run
-- `supercycle` *int|none* - supercycle number, none if no cycle selected
-- `tfile` *tfile* - stores tfile raw readback
+- `supercycle` *int|None* - supercycle number, None if no cycle selected
+- `tfile` *`tfile`* - stores tfile raw readback
 - `year` *int* - year of run start
 
 #### Notes
 
-* Can access attributes of tfile directly from top-level object
+* Can access attributes of `tfile` directly from top-level object
 * Need to define the values if you want non-default behaviour
-* Object is indexed as [cycle, period] for easy access to sub time frames
+* Object is indexed as `[cycle, period]` for easy access to sub time frames
 
 Cycle param contents
 
@@ -153,8 +153,8 @@ Run some checks to determine if the data is ok.
 
 #### Notes
 
-* Do the ucndata.SLOW_TREES exist and have entries?
-* Are there nonzero counts in UCNHits?
+* Do the `ucndata.SLOW_TREES` exist and have entries?
+* Are there nonzero counts in `UCNHits`?
 
 #### Examples
 
@@ -175,7 +175,7 @@ def check_data(self, raise_error=False): ...
 
 [Show source in ucnrun.py:738](../ucndata/ucnrun.py#L738)
 
-Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
+Generate filter array for cycles. Use with `self.set_cycle_filter` to filter cycles.
 
 #### Arguments
 
@@ -183,11 +183,11 @@ Generate filter array for cycles. Use with self.set_cycle_filter to filter cycle
 
 #### Returns
 
-- `np.array(bool)` - true if keep cycle, false if discard
+- ``np.array(bool)`` - `True` if keep cycle, `False` if discard
 
 #### Notes
 
-calls `ucncycle.check_data` on each cycle
+Calls `ucncycle.check_data` on each cycle
 
 #### Examples
 
@@ -220,8 +220,8 @@ Return a copy of this object, but trees are trimmed to only one cycle.
 #### Returns
 
 ucncycle:
-    if cycle > 0:  ucncycle object
-    if cycle < 0 | None: a list ucncycle objects for all cycles
+    * if `cycle > 0`: [ucncycle](./ucncycle.md#ucncycle) object
+    * if `cycle < 0` | `None`: a list of [ucncycle](./ucncycle.md#ucncycle) objects for all cycles
 
 #### Examples
 
@@ -276,11 +276,11 @@ Set filter for which cycles to fetch when slicing or iterating
 
 #### Returns
 
-- `None` - sets self.cycle_param.filter
+- `None` - sets `self.cycle_param.filter`
 
 #### Notes
 
-* Filter is ONLY applied when fetching cycles as a slice or as an iterator. ucnrun.`get_cycle()` always returns unfiltered cycles.
+* Filter is ONLY applied when fetching cycles as a slice or as an iterator. `ucnrun.get_cycle()` always returns unfiltered cycles.
 
 * Examples where the filter is applied:
     * `run[:]`
@@ -331,8 +331,8 @@ cycle timing after `set_cycle_times_precise()` or to re-derive from scratch.
 #### Notes
 
 - Cycle stop times are derived from the start of the next cycle;
-  the last cycle stops at the final SequencerTree timestamp.
-- Sets cycle_param.is_precise_timing to False.
+  the last cycle stops at the final `SequencerTree` timestamp.
+- Sets `cycle_param.is_precise_timing` to `False`.
 
 #### Examples
 
@@ -354,7 +354,7 @@ def set_cycle_times_crude(self): ...
 
 Replace crude cycle start times with hardware-timestamped precise times.
 
-Reads hardware-trigger hit timestamps on the specified TV1725 input hw_channel.
+Reads hardware-trigger hit timestamps on the specified TV1725 input `hw_channel`.
 These timestamps have sub-millisecond precision compared to the sequencer-derived
 crude cycle times. The function aligns the precise timestamps against the existing
 crude cycle grid, back-extrapolates if the first trigger was missed, and linearly
@@ -373,14 +373,14 @@ to the crude version:
   a recorded hardware hit; ``False`` if it was back-extrapolated or
   interpolated from the average precise cycle duration.
 
-If no precise timestamps are found on the requested hw_channel the function
+If no precise timestamps are found on the requested `hw_channel` the function
 returns immediately without modifying ``cycle_param``.
 
 #### Arguments
 
 - `hw_channel` *int* - TV1725 input channel carrying the hardware
     cycle-start signal. Default is 10.
-- `detector` *str* - Li6 | He3, select between RunTransition_* trees
+- `detector` *str* - `Li6` | `He3`, select between `RunTransition_*` trees
 
 #### Notes
 

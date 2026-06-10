@@ -13,10 +13,10 @@
 
 Time-bounded wrapper around a rootloader.tfile object.
 
-Acts like a tfile but silently filters any DataFrame or ttree whose index
-is a time axis, returning only rows whose timestamp falls within [start, stop].
+Acts like a `tfile` but silently filters any `DataFrame` or `ttree` whose index
+is a time axis, returning only rows whose timestamp falls within [`start`, `stop`].
 Non-time-indexed data is returned unchanged. Accessed values are cached in
-the internal _items dict to avoid redundant filtering on repeated access.
+the internal `_items` dict to avoid redundant filtering on repeated access.
 
 #### Arguments
 

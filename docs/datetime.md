@@ -14,14 +14,14 @@
 
 Convert datetime-indexed data back to integer Unix epoch timestamps.
 
-Accepts either a DataFrame/Series (converts its index) or any iterable of
+Accepts either a `DataFrame`/`Series` (converts its index) or any iterable of
 datetime-like values. Timezone-aware inputs are converted to UTC first;
 naive inputs are treated as UTC. The result is truncated to whole seconds.
 
 #### Arguments
 
 - `item` *pd.DataFrame|pd.Series|iterable* - data to convert. If a
-    DataFrame or Series, the index is replaced with epoch integers and
+    `DataFrame` or `Series`, the index is replaced with epoch integers and
     the original object is returned; otherwise an array of integers is
     returned.
 
@@ -64,18 +64,18 @@ def from_datetime(item): ...
 
 Convert Unix epoch timestamps to timezone-aware datetime objects.
 
-Accepts either a DataFrame/Series (converts its index) or any iterable of
+Accepts either a `DataFrame`/`Series` (converts its index) or any iterable of
 numeric epoch values. Timestamps are interpreted as seconds since
 1970-01-01 UTC and then converted to the requested timezone.
 
 #### Arguments
 
 - `item` *pd.DataFrame|pd.Series|iterable* - data to convert. If a
-    DataFrame or Series, the index is replaced with datetime values and
+    `DataFrame` or `Series`, the index is replaced with datetime values and
     the original object is returned; otherwise an array of datetime
     values is returned.
 - `timezone` *str* - IANA timezone name for the output timestamps. Defaults
-    to 'America/Vancouver'.
+    to `'America/Vancouver'`.
 
 #### Returns
 

@@ -7,9 +7,9 @@ import numpy as np
 class applylist(list):
     """A list object with the following enhancements:
 
-    * An apply function: like in pandas, apply takes a function handle and applies it to every element in the list. This acts recursively, if the list has a depth of more than 1
-    * Element access: accessing attributes, if not an attribute of the applylist, instead try to fetch attributes of the contained objects. The same for functions. This also works recursively.
-    * Numpy-like array slicing: slicing with a np.ndarray first converts this object to an array, then does the slice, then converts back. This allows slicing on arrays of indices for re-ordering or booleans for selection based on criteria
+    * An `apply` function: like in pandas, `apply` takes a function handle and applies it to every element in the list. This acts recursively, if the list has a depth of more than 1
+    * Element access: accessing attributes, if not an attribute of the `applylist`, instead try to fetch attributes of the contained objects. The same for functions. This also works recursively.
+    * Numpy-like array slicing: slicing with a `np.ndarray` first converts this object to an array, then does the slice, then converts back. This allows slicing on arrays of indices for re-ordering or booleans for selection based on criteria
     * Arithmetic works element-wise as in numpy arrays
 
     Examples:
@@ -134,10 +134,10 @@ class applylist(list):
 
         Args:
             fn (function handle): function to apply to each element
-            inplace (bool): if false return a copy, else act in-place
+            inplace (bool): if `False` return a copy, else act in-place
 
         Returns:
-            applylist|None: new applylist with results if inplace is False, else None
+            applylist|None: new `applylist` with results if `inplace` is `False`, else `None`
 
         Examples:
 
@@ -174,7 +174,7 @@ class applylist(list):
         """Return a shallow copy of this applylist.
 
         Returns:
-            applylist: a new applylist with the same elements
+            applylist: a new `applylist` with the same elements
 
         Example:
 

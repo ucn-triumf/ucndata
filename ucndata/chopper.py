@@ -14,9 +14,9 @@ class crun(ucndata.ucnrun):
     def __init__(self, run, ucn_only=True, chop_time_ch=15):
         """Load a UCN run file and extract chopper frame timing.
 
-        Extends ucnrun by reading chopper opening times from a dedicated
+        Extends `ucnrun` by reading chopper opening times from a dedicated
         Li6 digitizer channel and storing them as frame start times in
-        cycle_param. Frame times are clipped to the maximum cycle stop time.
+        `cycle_param`. Frame times are clipped to the maximum cycle stop time.
 
         Args:
             run (int|str): run number or path to ROOT file.
@@ -52,16 +52,16 @@ class crun(ucndata.ucnrun):
         """Return cycle(s), period(s), or frame(s) via index or slice notation.
 
         Supports integer indexing, slices, and tuples of up to three elements
-        corresponding to (cycle, period, frame) dimensions. Negative integers
-        are resolved relative to the total cycle count. When cycle_param.filter
+        corresponding to `(cycle, period, frame)` dimensions. Negative integers
+        are resolved relative to the total cycle count. When `cycle_param.filter`
         is set, filtered-out cycles are excluded from slice results.
 
         Args:
             key (int|slice|tuple): index into the run hierarchy.
-                * int — return a single ccycle.
-                * slice — return an applylist of ccycle objects.
-                * (cycle, period) — return period(s) within cycle(s).
-                * (cycle, period, frame) — return frame(s) within period(s).
+                * `int` — return a single `ccycle`.
+                * `slice` — return an `applylist` of `ccycle` objects.
+                * `(cycle, period)` — return period(s) within cycle(s).
+                * `(cycle, period, frame)` — return frame(s) within period(s).
 
         Returns:
             ccycle|cperiod|cframe|applylist: the requested object or list of
@@ -174,17 +174,17 @@ class crun(ucndata.ucnrun):
     def get_cycle(self, cycle=None):
         """Return a ccycle for the requested cycle, or all cycles.
 
-        Trees are time-restricted to the requested cycle via tsubfile; this
+        Trees are time-restricted to the requested cycle via `tsubfile`; this
         process converts all ROOT objects to dataframes on first access.
-        Results are cached in self._cycledict so repeated calls are cheap.
+        Results are cached in `self._cycledict` so repeated calls are cheap.
 
         Args:
-            cycle (int|None): cycle index (0-based). Pass None or a negative
-                integer to get all cycles. Defaults to None.
+            cycle (int|None): cycle index (0-based). Pass `None` or a negative
+                integer to get all cycles. Defaults to `None`.
 
         Returns:
-            ccycle|applylist: a single ccycle when cycle >= 0, or an applylist
-                of ccycle objects for all cycles when cycle is None or negative.
+            ccycle|applylist: a single `ccycle` when `cycle >= 0`, or an `applylist`
+                of `ccycle` objects for all cycles when `cycle` is `None` or negative.
 
         Example:
             >>> run.get_cycle(0)
@@ -211,14 +211,14 @@ class crun(ucndata.ucnrun):
 
         Each neutron hit time is expressed relative to the most recent chopper
         opening (channel 15 pulse), producing a ToF value. Bad cycles excluded
-        by cycle_param.filter are removed before histogramming.
+        by `cycle_param.filter` are removed before histogramming.
 
         Args:
             bin_ms (float): histogram bin width in milliseconds. Defaults to 1.
 
         Returns:
-            tuple: (bin_edges, counts) where bin_edges is a np.ndarray of
-                length N+1 and counts is a np.ndarray of length N.
+            tuple: `(bin_edges, counts)` where `bin_edges` is a `np.ndarray` of
+                length N+1 and `counts` is a `np.ndarray` of length N.
 
         Example:
             >>> edges, hist = run.get_tof(bin_ms=1)
@@ -272,21 +272,21 @@ class crun(ucndata.ucnrun):
     def inspect(self, detector='Li6', bin_ms=100, xmode='duration', slow=None):
         """Draw counts and BL1A current with shaded chopper frames to assess data quality.
 
-        Calls the parent ucnrun.inspect and then overlays alternating grey
+        Calls the parent `ucnrun.inspect` and then overlays alternating grey
         shading for each chopper frame so the frame structure is visible
         alongside the rate and beam-current traces.
 
         Args:
-            detector (str): detector to histogram. One of 'Li6' or 'He3'.
-                Defaults to 'Li6'.
+            detector (str): detector to histogram. One of `'Li6'` or `'He3'`.
+                Defaults to `'Li6'`.
             bin_ms (int): histogram bin width in milliseconds. Defaults to 100.
-            xmode (str): x-axis units. One of 'datetime', 'duration', or
-                'epoch'. Defaults to 'duration'.
+            xmode (str): x-axis units. One of `'datetime'`, `'duration'`, or
+                `'epoch'`. Defaults to `'duration'`.
             slow (list|str|None): slow-control channel name(s) to plot on an
-                additional axis. Defaults to None.
+                additional axis. Defaults to `None`.
 
         Returns:
-            list: matplotlib Axes objects created by the parent inspect call.
+            list: matplotlib `Axes` objects created by the parent `inspect` call.
 
         Example:
             >>> run.inspect(detector='Li6', bin_ms=50, xmode='datetime')
@@ -326,7 +326,7 @@ class crun(ucndata.ucnrun):
     def offset_frames(self, dt):
         """Shift all chopper frame start times by a constant offset.
 
-        Updates frame_start_times at the run, cycle, and period levels, and
+        Updates `frame_start_times` at the run, cycle, and period levels, and
         resets the cached nhits-per-frame histogram so it is recomputed on the
         next access.
 
@@ -374,8 +374,8 @@ class ccycle(ucndata.ucncycle):
     def __init__(self, urun, cycle):
         """Create a time-restricted view of a single cycle with chopper frames.
 
-        Calls the ucncycle constructor and then trims frame_start_times to only
-        those frames whose start time falls within [cycle_start, cycle_stop).
+        Calls the `ucncycle` constructor and then trims `frame_start_times` to only
+        those frames whose start time falls within `[cycle_start, cycle_stop)`.
 
         Args:
             urun (crun): parent crun object containing the full run data.
@@ -393,15 +393,15 @@ class ccycle(ucndata.ucncycle):
         """Return period(s) or frame(s) via index or slice notation.
 
         Supports integer indexing, slices, and two-element tuples of the form
-        (period, frame). Negative integers are resolved relative to the total
-        period count. When cycle_param.filter is set, filtered-out periods are
+        `(period, frame)`. Negative integers are resolved relative to the total
+        period count. When `cycle_param.filter` is set, filtered-out periods are
         excluded from slice results.
 
         Args:
             key (int|slice|tuple): index into this cycle.
-                * int — return a single cperiod.
-                * slice — return an applylist of cperiod objects.
-                * (period, frame) — return frame(s) within period(s).
+                * `int` — return a single `cperiod`.
+                * `slice` — return an `applylist` of `cperiod` objects.
+                * `(period, frame)` — return frame(s) within period(s).
 
         Returns:
             cperiod|cframe|applylist: the requested object or list of objects.
@@ -463,22 +463,22 @@ class ccycle(ucndata.ucncycle):
 
         Trees are time-restricted to the requested period; this process
         converts all ROOT objects to dataframes on first access. Results are
-        cached in self._perioddict so repeated calls are cheap. The last
+        cached in `self._perioddict` so repeated calls are cheap. The last
         period is dropped if it contains no data.
 
         Notes:
             * This process converts all objects to dataframes.
-            * Must be called on a single cycle object, not on applylist.
+            * Must be called on a single cycle object, not on `applylist`.
             * Equivalent to indexing style: ``cycle[period]``.
 
         Args:
-            period (int|None): period index (0-based). Pass None or a negative
-                integer to get all periods. Defaults to None.
+            period (int|None): period index (0-based). Pass `None` or a negative
+                integer to get all periods. Defaults to `None`.
 
         Returns:
-            cperiod|applylist: a single cperiod when period >= 0, or an
-                applylist of cperiod objects for all periods when period is
-                None or negative.
+            cperiod|applylist: a single `cperiod` when `period >= 0`, or an
+                `applylist` of `cperiod` objects for all periods when `period` is
+                `None` or negative.
 
         Example:
             >>> cycle = run[0]
@@ -507,9 +507,9 @@ class cperiod(ucndata.ucnperiod):
     def __init__(self, ucycle, period):
         """Create a time-restricted view of a single period with chopper frames.
 
-        Calls the ucnperiod constructor and then trims frame_start_times to
-        only those frames whose start time falls within [period_start,
-        period_stop). Initialises an empty _framedict cache.
+        Calls the `ucnperiod` constructor and then trims `frame_start_times` to
+        only those frames whose start time falls within `[period_start,
+        period_stop)`. Initialises an empty `_framedict` cache.
 
         Args:
             ucycle (ccycle): parent ccycle object containing the cycle data.
@@ -530,7 +530,7 @@ class cperiod(ucndata.ucnperiod):
         """Return the number of chopper frames in this period.
 
         Returns:
-            int: number of frames (cycle_param.nframes).
+            int: number of frames (`cycle_param.nframes`).
         """
         return self.cycle_param.nframes
 
@@ -554,8 +554,8 @@ class cperiod(ucndata.ucnperiod):
 
         Args:
             key (int|slice): index into this period's frames.
-                * int — return a single cframe.
-                * slice — return an applylist of cframe objects.
+                * `int` — return a single `cframe`.
+                * `slice` — return an `applylist` of `cframe` objects.
 
         Returns:
             cframe|applylist: the requested frame or list of frames.
@@ -591,15 +591,15 @@ class cperiod(ucndata.ucnperiod):
         """Return a cframe for the requested frame, or all frames.
 
         Trees are time-restricted to the requested chopper frame. Results are
-        cached in self._framedict so repeated calls are cheap.
+        cached in `self._framedict` so repeated calls are cheap.
 
         Args:
-            frame (int|None): frame index (0-based). Pass None or a negative
-                integer to get all frames. Defaults to None.
+            frame (int|None): frame index (0-based). Pass `None` or a negative
+                integer to get all frames. Defaults to `None`.
 
         Returns:
-            cframe|applylist: a single cframe when frame >= 0, or an applylist
-                of cframe objects for all frames when frame is None or negative.
+            cframe|applylist: a single `cframe` when `frame >= 0`, or an `applylist`
+                of `cframe` objects for all frames when `frame` is `None` or negative.
 
         Example:
             >>> period.get_frame(0)          # first frame
@@ -620,10 +620,10 @@ class cframe(ucndata.ucnbase):
     def __init__(self, uperiod, frame):
         """Create a time-restricted view of a single chopper frame.
 
-        Copies all attributes from the parent cperiod, replacing tfile with a
-        tsubfile restricted to [frame_start, frame_stop) and rebuilding the
-        epics interface for the new time window. If the period contains no
-        frames, all time attributes are set to None.
+        Copies all attributes from the parent `cperiod`, replacing `tfile` with a
+        `tsubfile` restricted to `[frame_start, frame_stop)` and rebuilding the
+        `epics` interface for the new time window. If the period contains no
+        frames, all time attributes are set to `None`.
 
         Args:
             uperiod (cperiod): parent cperiod object containing the period data.
@@ -664,11 +664,11 @@ class cframe(ucndata.ucnbase):
     def get_nhits(self, detector):
         """Get the number of UCN hits recorded in this chopper frame.
 
-        Delegates to the parent crun._get_nhits_frame, which bins hits by
+        Delegates to the parent `crun._get_nhits_frame`, which bins hits by
         frame start time on first call and caches the result.
 
         Args:
-            detector (str): detector name. One of 'Li6' or 'He3'.
+            detector (str): detector name. One of `'Li6'` or `'He3'`.
 
         Returns:
             int: number of UCN hits in this frame for the given detector.
