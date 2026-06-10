@@ -19,35 +19,13 @@
 
 ## ucnbase
 
-[Show source in ucnbase.py:18](../ucndata/ucnbase.py#L18)
-
-#### Attributes
-
-- `datadir` - path to the directory which contains the root files: '/data3/ucn/root_files'
-
-- `timezone` - timezone for datetime conversion: 'America/Vancouver'
-
-- `cycle_times_mode` - cycle times finding mode order: ['matched', 'li6', 'he3', 'sequencer', 'beamon']
-
-- `tree_filter` - filter what trees and branches to load in each file. If unspecified then load the whole tree
-  treename: (filter, columns). See [rootloader documentation](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree-1) for details: {}
-
-- `DET_NAMES` - detector tree names: {'He3': {'hits': 'UCNHits_He3', 'hits_orig': 'UCNHits_He3', 'charge': 'He3_Charge', 'rate': 'He3_Rate', 'transitions': 'RunTransitions_He3', 'hitsseq': 'hitsinsequence_he3', 'hitsseqcumul': 'hitsinsequencecumul_he3'}, 'Li6': {'hits': 'UCNHits_Li6', 'hits_orig': 'UCNHits_Li-6', 'charge': 'Li6_Charge', 'rate': 'Li6_Rate', 'transitions': 'RunTransitions_Li6', 'hitsseq': 'hitsinsequence_li6', 'hitsseqcumul': 'hitsinsequencecumul_li6'}}
-
-- `DATAFRAME_TREES` - make these trees dataframes, ok since they're small - also resets the index: ('RunTransitions_He3', 'RunTransitions_Li6')
-
-- `SLOW_TREES` - needed slow control trees: for checking data quality: ('BeamlineEpics', 'SequencerTree')
-
-- `EPICS_TREES` - EPICS trees to group into a single slow control tree: ['BeamlineEpics', 'UCN2EpPha5Last', 'UCN2EpicsPhase2B', 'UCN2EpPha5Oth', 'UCN2EpicsPhase3', 'UCN2EpPha5Pre', 'UCN2EpicsPressures', 'UCN2EpPha5Tmp', 'UCN2EpicsTemperature', 'UCN2Epics', 'UCN2Pur', 'UCN2EpicsOthers', 'UCN2EpLD2']
-
-- `DATA_CHECK_THRESH` - data thresholds for checking data: {'beam_min_current': 0.1, 'pileup_cnt_per_ms': 10, 'pileup_within_first_s': 1}
-
+[Show source in ucnbase.py:19](../ucndata/ucnbase.py#L19)
 
 UCN run data. Cleans data and performs analysis
 
 #### Arguments
 
-- `run` *int|str* - if int, generate filename with self.datadir
+- `run` *int|str* - if int, generate filename with ucndata.DATADIR
     elif str then run is the path to the file
 - `header_only` *bool* - if true, read only the header
 
@@ -82,7 +60,7 @@ class ucnbase(object): ...
 
 ### ucnbase.apply
 
-[Show source in ucnbase.py:144](../ucndata/ucnbase.py#L144)
+[Show source in ucnbase.py:93](../ucndata/ucnbase.py#L93)
 
 Apply function to each cycle
 
@@ -109,7 +87,7 @@ def apply(self, fn_handle): ...
 
 ### ucnbase.beam1a_current_uA
 
-[Show source in ucnbase.py:493](../ucndata/ucnbase.py#L493)
+[Show source in ucnbase.py:442](../ucndata/ucnbase.py#L442)
 
 Get beamline 1A current in uA (micro amps)
 
@@ -126,7 +104,7 @@ def beam1a_current_uA(self): ...
 
 ### ucnbase.beam1u_current_uA
 
-[Show source in ucnbase.py:505](../ucndata/ucnbase.py#L505)
+[Show source in ucnbase.py:454](../ucndata/ucnbase.py#L454)
 
 Get beam current in uA (micro amps)
 
@@ -166,7 +144,7 @@ def beam1u_current_uA(self): ...
 
 ### ucnbase.beam_off_s
 
-[Show source in ucnbase.py:584](../ucndata/ucnbase.py#L584)
+[Show source in ucnbase.py:533](../ucndata/ucnbase.py#L533)
 
 Get the beam-off duration in seconds for each cycle as given by `B1V_KSM_RDBEAMOFF_VAL1`
 
@@ -208,7 +186,7 @@ def beam_off_s(self): ...
 
 ### ucnbase.beam_on_s
 
-[Show source in ucnbase.py:549](../ucndata/ucnbase.py#L549)
+[Show source in ucnbase.py:498](../ucndata/ucnbase.py#L498)
 
 Get the beam-on duration in seconds for each cycle as given by `B1V_KSM_RDBEAMON_VAL1`
 
@@ -250,13 +228,13 @@ def beam_on_s(self): ...
 
 ### ucnbase.get_hits_array
 
-[Show source in ucnbase.py:161](../ucndata/ucnbase.py#L161)
+[Show source in ucnbase.py:110](../ucndata/ucnbase.py#L110)
 
 Get times of ucn hits as a numpy array
 
 #### Arguments
 
-- `detector` *str* - one of the keys to `self.DET_NAMES`
+- `detector` *str* - one of the keys to `ucndata.DET_NAMES`
 
 #### Returns
 
@@ -278,7 +256,7 @@ def get_hits_array(self, detector): ...
 
 ### ucnbase.get_hits_histogram
 
-[Show source in ucnbase.py:187](../ucndata/ucnbase.py#L187)
+[Show source in ucnbase.py:136](../ucndata/ucnbase.py#L136)
 
 Get histogram of UCNHits ttree times
 
@@ -327,7 +305,7 @@ def get_hits_histogram(self, detector, bin_ms=10, as_datetime=False): ...
 
 ### ucnbase.inspect
 
-[Show source in ucnbase.py:268](../ucndata/ucnbase.py#L268)
+[Show source in ucnbase.py:217](../ucndata/ucnbase.py#L217)
 
 Draw counts and BL1A current with indicated periods to determine data quality
 
@@ -346,7 +324,7 @@ def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 
 ### ucnbase.plot_psd
 
-[Show source in ucnbase.py:380](../ucndata/ucnbase.py#L380)
+[Show source in ucnbase.py:329](../ucndata/ucnbase.py#L329)
 
 Calculate PSD as (QLong-QShort)/QLong, draw as a grid, 2D histograms
 
@@ -364,7 +342,7 @@ def plot_psd(self, detector="Li6", cut=None, cmap="RdBu"): ...
 
 ### ucnbase.trigger_edge
 
-[Show source in ucnbase.py:451](../ucndata/ucnbase.py#L451)
+[Show source in ucnbase.py:400](../ucndata/ucnbase.py#L400)
 
 Detect period start time based on a rising or falling edge
 

@@ -12,7 +12,7 @@
 
 ## ucnperiod
 
-[Show source in ucnperiod.py:13](../ucndata/ucnperiod.py#L13)
+[Show source in ucnperiod.py:14](../ucndata/ucnperiod.py#L14)
 
 Stores the data from a single UCN period from a single cycle
 
@@ -34,7 +34,7 @@ class ucnperiod(ucnbase):
 
 ### ucnperiod.get_nhits
 
-[Show source in ucnperiod.py:115](../ucndata/ucnperiod.py#L115)
+[Show source in ucnperiod.py:116](../ucndata/ucnperiod.py#L116)
 
 Get number of ucn hits
 
@@ -93,7 +93,7 @@ def get_nhits(self, detector, bin_ms=0): ...
 
 ### ucnperiod.is_pileup
 
-[Show source in ucnperiod.py:78](../ucndata/ucnperiod.py#L78)
+[Show source in ucnperiod.py:79](../ucndata/ucnperiod.py#L79)
 
 Check if pileup may be an issue in this period.
 
@@ -101,7 +101,7 @@ Histograms the first `pileup_within_first_s` seconds of data in 1 ms bins and ch
 
 #### Arguments
 
-- `detector` *str* - one of the keys to self.DET_NAMES
+- `detector` *str* - one of the keys to ucndata.DET_NAMES
 
 #### Returns
 
@@ -123,7 +123,7 @@ def is_pileup(self, detector): ...
 
 ### ucnperiod.modify_timing
 
-[Show source in ucnperiod.py:167](../ucndata/ucnperiod.py#L167)
+[Show source in ucnperiod.py:168](../ucndata/ucnperiod.py#L168)
 
 Change start and end times of period
 

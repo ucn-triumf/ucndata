@@ -6,6 +6,7 @@
 
 - [ucnrun](#ucnrun)
   - [ucnrun](#ucnrun-1)
+    - [ucnrun._set_period_times](#ucnrun_set_period_times)
     - [ucnrun.check_data](#ucnruncheck_data)
     - [ucnrun.gen_cycle_filter](#ucnrungen_cycle_filter)
     - [ucnrun.get_cycle](#ucnrunget_cycle)
@@ -23,9 +24,14 @@ UCN run data. Cleans data and performs analysis
 
 #### Arguments
 
-- `run` *int|str* - if int, generate filename with self.datadir
+- `run` *int|str* - if int, generate filename with DATADIR
     elif str then run is the path to the file
 - `ucn_only` *bool* - if true set filter tIsUCN==1 on all hit trees
+- `use_precise_cycles` *bool* - if true attempt to use precise cycle times.
+    First, check if the RunTransition_Li6 tree has precise times in it (precise times found from midas2root).
+    If not, then check if there are any hits in hardware cycle start channel on the digitizer.
+    If not, raise a warning
+    Default inputs are listed as ucndata.DEFAULT_CYCLE_TIMES_PRECISE
 
 #### Attributes
 
@@ -70,10 +76,11 @@ Loading runs
 
 ```python
 from ucndata import ucnrun, settings
+import ucndata
 # load from filename
 ucnrun('/pa../ucndata/file/ucn_run_00002684.root')
 # load from run number
-ucnrun.datadir = '/pa../ucndata/file/'
+ucndata.DATADIR = '/pa../ucndata/file/'
 ucnrun(2684)
 ```
 
@@ -124,16 +131,28 @@ run.inspect('Li6', bin_ms=100, xmode='dur')
 
 ```python
 class ucnrun(ucnbase):
-    def __init__(self, run, ucn_only=True): ...
+    def __init__(self, run, ucn_only=True, use_precise_cycles=True): ...
 ```
 
 #### See also
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
+### ucnrun._set_period_times
+
+[Show source in ucnrun.py:533](../ucndata/ucnrun.py#L533)
+
+Set period durations and end times based on cycle start times
+
+#### Signature
+
+```python
+def _set_period_times(self): ...
+```
+
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:612](../ucndata/ucnrun.py#L612)
+[Show source in ucnrun.py:576](../ucndata/ucnrun.py#L576)
 
 Run some checks to determine if the data is ok.
 
@@ -147,7 +166,7 @@ Run some checks to determine if the data is ok.
 
 #### Notes
 
-* Do the self.SLOW_TREES exist and have entries?
+* Do the ucndata.SLOW_TREES exist and have entries?
 * Are there nonzero counts in UCNHits?
 
 #### Examples
@@ -165,7 +184,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:675](../ucndata/ucnrun.py#L675)
+[Show source in ucnrun.py:639](../ucndata/ucnrun.py#L639)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -201,7 +220,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:706](../ucndata/ucnrun.py#L706)
+[Show source in ucnrun.py:670](../ucndata/ucnrun.py#L670)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -240,7 +259,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:743](../ucndata/ucnrun.py#L743)
+[Show source in ucnrun.py:707](../ucndata/ucnrun.py#L707)
 
 Don't load all the data in each file, only that which is needed
 
@@ -252,7 +271,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:757](../ucndata/ucnrun.py#L757)
+[Show source in ucnrun.py:721](../ucndata/ucnrun.py#L721)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -323,7 +342,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times_crude
 
-[Show source in ucnrun.py:830](../ucndata/ucnrun.py#L830)
+[Show source in ucnrun.py:794](../ucndata/ucnrun.py#L794)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
@@ -363,33 +382,26 @@ Run this if you want to change how cycle start times are calculated
 #### Signature
 
 ```python
-def set_cycle_times_crude(self, mode): ...
+def set_cycle_times_crude(self): ...
 ```
 
 ### ucnrun.set_cycle_times_precise
 
-[Show source in ucnrun.py:1049](../ucndata/ucnrun.py#L1049)
+[Show source in ucnrun.py:868](../ucndata/ucnrun.py#L868)
 
 Replace crude cycle start times with hardware-timestamped precise times.
 
-Reads hardware-trigger hit timestamps from the Li6 detector on the
-specified TV1725 input channel. These timestamps have sub-millisecond
-precision compared to the sequencer-derived crude cycle times. The
-function aligns the precise timestamps against the existing crude cycle
-grid, back-extrapolates if the first trigger was missed, and linearly
+Reads hardware-trigger hit timestamps on the specified TV1725 input hw_channel.
+These timestamps have sub-millisecond precision compared to the sequencer-derived
+crude cycle times. The function aligns the precise timestamps against the existing
+crude cycle grid, back-extrapolates if the first trigger was missed, and linearly
 interpolates over any gaps where the hardware signal was not recorded.
 
 After a successful call, ``cycle_param`` is updated as follows:
 
 - ``cycle_param.cycle_times`` and ``cycle_param.period_end_times`` are
   replaced with their precise counterparts.
-- The original crude values are preserved as
-  ``cycle_param.cycle_times_crude`` and
-  ``cycle_param.period_end_times_crude``.
-- The new precise values are also accessible as
-  ``cycle_param.cycle_times_precise`` and
-  ``cycle_param.period_end_times_precise``.
-- ``cycle_param.using_precise_timing`` is set to ``True``.
+- ``cycle_param.is_precise_timing`` is set to ``True``.
 
 The updated ``cycle_times`` DataFrame gains one extra column relative
 to the crude version:
@@ -398,13 +410,14 @@ to the crude version:
   a recorded hardware hit; ``False`` if it was back-extrapolated or
   interpolated from the average precise cycle duration.
 
-If no precise timestamps are found on the requested channel the function
+If no precise timestamps are found on the requested hw_channel the function
 returns immediately without modifying ``cycle_param``.
 
 #### Arguments
 
-- `channel` *int* - TV1725 input channel carrying the hardware
+- `hw_channel` *int* - TV1725 input channel carrying the hardware
     cycle-start signal. Default is 10.
+- `detector` *str* - Li6 | He3, select between RunTransition_* trees
 
 #### Notes
 
@@ -415,7 +428,7 @@ so the crude timing must already be a reasonable first approximation.
 #### Signature
 
 ```python
-def set_cycle_times_precise(self, channel=10): ...
+def set_cycle_times_precise(self, hw_channel=10, detector="Li6"): ...
 ```
 
 
