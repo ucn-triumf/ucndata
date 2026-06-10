@@ -76,10 +76,7 @@ class ucnbase(object):
                         'hitsseqcumul': 'hitsinsequencecumul_li6',
                         },
                 }
-
-    # make these trees dataframes, ok since they're small - also resets the index
-    DATAFRAME_TREES = ('RunTransitions_He3', 'RunTransitions_Li6')
-
+    
     # needed slow control trees: for checking data quality
     SLOW_TREES = ('BeamlineEpics', 'SequencerTree')
 
