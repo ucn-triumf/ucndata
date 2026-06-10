@@ -545,10 +545,10 @@ class ucnrun(ucnbase):
         dur = dur.reindex(sorted(dur.columns), axis=1)
         
         # drop all-zero columns
-        dur = dur.loc[:, dur.sum(axis=0)>0]
+        dur = dur.loc[:, dur.sum(axis=0)>0]      
 
         # expand for all cycles
-        dur = pd.concat([dur]*max((1, self.cycle_param.ncycles//len(dur.columns))),
+        dur = pd.concat([dur]*max((2, self.cycle_param.ncycles//len(dur.columns))),
                        axis='columns')
         dur.columns = np.arange(len(dur.columns))
         
