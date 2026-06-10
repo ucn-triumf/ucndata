@@ -513,16 +513,20 @@ class ucnrun(ucnbase):
 
     def _set_valve_states(self):
         """"""
-        # get tree as dataframe
+        # get full tree as dataframe
         df = self.tfile.CycleParamTree
-        df = df[[col for col in df.columns if 'Valve' in col]]
-        
         if isinstance(df, ttree):
             df = df.to_dataframe()
 
-        # valve states -------------------------------------------------------
-        df = df[[col for col in df.columns if 'Valve' in col]]
-        col_map = {col:int(re.sub(r'\D', '', col)) for col in df.columns}
+        # select valve-state columns (names must contain 'Valve', capital V)
+        valve_cols = [col for col in df.columns if 'Valve' in col]
+        df = df[valve_cols]
+
+        # ensure result is always a DataFrame (single column selects as Series)
+        if isinstance(df, pd.Series):
+            df = df.to_frame()
+
+        col_map = {col: int(re.sub(r'\D', '', col)) for col in df.columns}
         df = df.rename(columns=col_map)
         df.reset_index(inplace=True, drop=True)
         df.columns.name = 'valve'

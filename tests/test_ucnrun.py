@@ -163,11 +163,138 @@ def test_set_cycle_times_precise_adds_is_measured_column(good_run):
 @pytest.mark.rootfile
 def test_set_cycle_times_precise_warns_when_no_channel(good_run):
     """Missing hardware channel emits MissingDataWarning and leaves timing unchanged."""
+    # Reset to crude timing so is_precise_timing starts as False; the default
+    # ucnrun fixture loads with use_precise_cycles=True.
+    good_run.set_cycle_times_crude()
     with warnings.catch_warnings(record=True) as w:
         warnings.simplefilter("always")
         good_run.set_cycle_times_precise(hw_channel=99)
     assert any(issubclass(warning.category, MissingDataWarning) for warning in w)
     assert good_run.cycle_param.is_precise_timing is False
+
+
+# set_cycle_times_crude — value and state assertions
+
+@pytest.mark.rootfile
+def test_set_cycle_times_crude_start_values(good_run):
+    """Cycle start times match the known SequencerTree cycleStarted timestamps."""
+    good_run.set_cycle_times_crude()
+    start = good_run.cycle_param.cycle_times["start"].values
+    assert start[0] == pytest.approx(T0)
+    assert start[1] == pytest.approx(T0 + 100)
+    assert start[2] == pytest.approx(T0 + 200)
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_crude_stop_values(good_run):
+    """Cycle stop times are one cycle-duration after the corresponding starts."""
+    good_run.set_cycle_times_crude()
+    stop = good_run.cycle_param.cycle_times["stop"].values
+    assert stop[0] == pytest.approx(T0 + 100, abs=1)
+    assert stop[1] == pytest.approx(T0 + 200, abs=1)
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_crude_duration_values(good_run):
+    """Each cycle duration is approximately 100 s."""
+    good_run.set_cycle_times_crude()
+    durations = good_run.cycle_param.cycle_times["duration (s)"].values
+    for dur in durations:
+        assert dur == pytest.approx(100, abs=1)
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_crude_resets_cycledict(good_run):
+    """Calling set_cycle_times_crude discards any cached ucncycle objects."""
+    _ = good_run[0]  # populate _cycledict
+    assert len(good_run._cycledict) > 0
+    good_run.set_cycle_times_crude()
+    assert good_run._cycledict == {}
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_crude_period_durations_shape(good_run):
+    """period_durations_s has shape (nperiods, ncycles) = (3, 3)."""
+    good_run.set_cycle_times_crude()
+    assert good_run.cycle_param.period_durations_s.shape == (3, 3)
+
+
+# set_cycle_times_precise — value and state assertions
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_start_values(good_run):
+    """Precise start times equal the Li6 hit-channel timestamps: T0 + i*100."""
+    good_run.set_cycle_times_crude()
+    good_run.set_cycle_times_precise(hw_channel=10)
+    start = good_run.cycle_param.cycle_times["start"].values
+    for i in range(3):
+        assert start[i] == pytest.approx(T0 + i * 100, abs=1e-3)
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_all_cycles_measured(good_run):
+    """All three cycles should have is_measured=True when all triggers were recorded."""
+    good_run.set_cycle_times_crude()
+    good_run.set_cycle_times_precise(hw_channel=10)
+    assert good_run.cycle_param.cycle_times["is_measured"].all()
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_ncycles_unchanged(good_run):
+    """set_cycle_times_precise must not change the number of cycles."""
+    n_before = len(good_run.cycle_param.cycle_times)
+    good_run.set_cycle_times_crude()
+    good_run.set_cycle_times_precise(hw_channel=10)
+    assert len(good_run.cycle_param.cycle_times) == n_before
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_stop_start_duration_consistent(good_run):
+    """stop == start + duration for every cycle after a precise call."""
+    good_run.set_cycle_times_crude()
+    good_run.set_cycle_times_precise(hw_channel=10)
+    ct = good_run.cycle_param.cycle_times
+    np.testing.assert_allclose(
+        ct["stop"].values,
+        ct["start"].values + ct["duration (s)"].values,
+        atol=1e-9,
+    )
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_period_end_times_updated(good_run):
+    """period_end_times is still a (3, 3) DataFrame after precise timing."""
+    good_run.set_cycle_times_crude()
+    good_run.set_cycle_times_precise(hw_channel=10)
+    assert good_run.cycle_param.period_end_times.shape == (3, 3)
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_resets_cycledict(good_run):
+    """Calling set_cycle_times_precise discards any cached ucncycle objects."""
+    good_run.set_cycle_times_crude()
+    _ = good_run[0]  # populate _cycledict
+    assert len(good_run._cycledict) > 0
+    good_run.set_cycle_times_precise(hw_channel=10)
+    assert good_run._cycledict == {}
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_warns_if_already_precise(good_run):
+    """Calling set_cycle_times_precise on an already-precise run emits UserWarning."""
+    # Fixture already has is_precise_timing=True from __init__(use_precise_cycles=True).
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        good_run.set_cycle_times_precise(hw_channel=10)
+    assert any(issubclass(warning.category, UserWarning) for warning in w)
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_raises_missing_transitions(good_run):
+    """Requesting a non-existent RunTransitions tree raises KeyError."""
+    good_run.set_cycle_times_crude()
+    with pytest.raises(KeyError):
+        good_run.set_cycle_times_precise(detector='BadDetector')
 
 
 # ---------------------------------------------------------------------------

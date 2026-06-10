@@ -73,6 +73,8 @@ def _write_cycle_param(f):
     set_period_times filters for 'Duration' columns (one per cycle per supercycle),
     renames them by extracting the embedded digit (cycle index), and builds the
     period_durations_s DataFrame of shape (nperiods × ncycles).
+    _set_valve_states filters for 'Valve' columns (capital V) to build the
+    valve_states DataFrame of shape (nperiods × nvalves).
     """
     tree = ROOT.TTree("CycleParamTree", "CycleParamTree")
 
@@ -81,6 +83,8 @@ def _write_cycle_param(f):
     n_super   = ctypes.c_int(1)
     enable    = ctypes.c_int(1)
     inf_cyc   = ctypes.c_int(0)
+    # One valve open throughout (value=1); column name must contain 'Valve' (capital V).
+    valve0    = ctypes.c_int(1)
 
     # One Duration branch per cycle in the supercycle (digit = cycle index).
     dur_vals = [ctypes.c_double(0) for _ in range(N_CYCLES)]
@@ -90,6 +94,7 @@ def _write_cycle_param(f):
     tree.Branch("nSuperCyc",       n_super,   "nSuperCyc/I")
     tree.Branch("enable",          enable,    "enable/I")
     tree.Branch("infCyclesEnable", inf_cyc,   "infCyclesEnable/I")
+    tree.Branch("Valve0",          valve0,    "Valve0/I")
     for ci, dv in enumerate(dur_vals):
         tree.Branch(f"period{ci}Duration_s", dv, f"period{ci}Duration_s/D")
 
