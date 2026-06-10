@@ -35,6 +35,7 @@ class ucnrun(ucnbase):
             First, check if the RunTransition_Li6 tree has precise times in it (precise times found from midas2root). 
             If not, then check if there are any hits in hardware cycle start channel on the digitizer.
             If not, raise a warning
+            Default inputs are listed as ucndata.DEFAULT_CYCLE_TIMES_PRECISE
 
     Attributes:
         comment (str): comment input by users
@@ -125,7 +126,7 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, ucn_only=True):
+    def __init__(self, run, ucn_only=True, use_precise_cycles=True):
 
         # check if copying
         if run is None:
@@ -173,6 +174,8 @@ class ucnrun(ucnbase):
         self.cycle_param = attrdict({'filter': None})
         self._set_valve_states()
         self.set_cycle_times_crude()
+        if use_precise_cycles:
+            self.set_cycle_times_precise(**ucndata.DEFAULT_CYCLE_TIMES_PRECISE)
 
         # setup tree filters
         for detector in ucndata.DET_NAMES.keys():
