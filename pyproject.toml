@@ -28,7 +28,7 @@ dependencies = [
     "datetime",
     "tqdm",
     "pandas",
-    "rootloader",
+    "rootloader >= 1.4.1",
     "tqdm",
 ]
 dynamic = ["version"]
