@@ -931,6 +931,7 @@ class ucnrun(ucnbase):
         self.cycle_param['supercycle'] = times['supercycle']
         self.cycle_param['ncycles'] = len(times.index)
         self.cycle_param['nsupercycle'] = len(times['supercycle'].unique())
+        self.cycle_param['is_precise_timing'] = False
 
         # update period times
         self.set_period_times()
@@ -952,13 +953,7 @@ class ucnrun(ucnbase):
 
         - ``cycle_param.cycle_times`` and ``cycle_param.period_end_times`` are
           replaced with their precise counterparts.
-        - The original crude values are preserved as
-          ``cycle_param.cycle_times_crude`` and
-          ``cycle_param.period_end_times_crude``.
-        - The new precise values are also accessible as
-          ``cycle_param.cycle_times_precise`` and
-          ``cycle_param.period_end_times_precise``.
-        - ``cycle_param.using_precise_timing`` is set to ``True``.
+        - ``cycle_param.is_precise_timing`` is set to ``True``.
 
         The updated ``cycle_times`` DataFrame gains one extra column relative
         to the crude version:
@@ -986,10 +981,12 @@ class ucnrun(ucnbase):
         ptimes = tree.tUnixTimePrecise.to_array()
         ptimes = np.sort(ptimes)
 
-        # check if any precuse times
+        # check if any precise times
         if len(ptimes) == 0:
+            warnings.warn(f'No cycle start time hits detected in channel {hw_channel}',
+                          MissingDataWarning)
             return
-
+        
         # crude cycle times
         ctimes = self.cycle_param.cycle_times.start.values
 
@@ -1046,12 +1043,16 @@ class ucnrun(ucnbase):
         run_stop = self.tfile.SequencerTree.timestamp.max()
         durations = np.concat((np.diff(new_times), [run_stop - new_times[-1]]))
 
-        # set in memory
+        # setup cycle times
         cycle_times = self.cycle_param.cycle_times.copy()
         cycle_times['is_measured'] = is_measured
         cycle_times['duration (s)'] = durations
         cycle_times['start'] = new_times
         cycle_times['stop'] = np.array(new_times) + durations
+
+        # copy dicts
+        self.cycle_param.cycle_times = cycle_times
+        self.cycle_param['is_precise_timing'] = True
 
         # update period timings
         self.set_period_times()

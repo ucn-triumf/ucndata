@@ -51,9 +51,6 @@ class ucnbase(object):
     # timezone for datetime conversion
     timezone = 'America/Vancouver'
 
-    # cycle times finding mode order
-    cycle_times_mode = ['matched', 'li6', 'he3', 'sequencer', 'beamon']
-
     # filter what trees and branches to load in each file. If unspecified then load the whole tree
     # treename: (filter, columns). See [rootloader documentation](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree-1) for details
     tree_filter = {}
