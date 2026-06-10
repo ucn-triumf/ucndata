@@ -106,7 +106,7 @@ class crun(ucndata.ucnrun):
     def _get_nhits_frame(self, detector, frame_time=None):
 
         # get hits tree
-        tree = self.tfile[self.DET_NAMES[detector]['hits']]
+        tree = self.tfile[ucndata.DET_NAMES[detector]['hits']]
 
         # get hits for run
         if frame_time is None:

@@ -71,7 +71,7 @@ def from_datetime(item):
     else:
         return converted.values
 
-def to_datetime(item):
+def to_datetime(item, timezone='America/Vancouver'):
     """Convert to datetime objects
 
     Args:
@@ -111,7 +111,7 @@ def to_datetime(item):
 
     # convert values
     converted = pd.to_datetime(item, unit='s', utc=True)
-    converted = converted.tz_convert(ucnbase.ucnbase.timezone)
+    converted = converted.tz_convert(timezone)
 
     # dataframe conversion
     if df is not None:

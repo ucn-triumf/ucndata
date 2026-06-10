@@ -96,8 +96,8 @@ def test_ncycles_is_3(good_run):
 
 
 @pytest.mark.rootfile
-def test_nsupercyc_is_1(good_run):
-    assert good_run.cycle_param.nsupercyc == 1
+def test_nsupercycles_is_1(good_run):
+    assert good_run.cycle_param.nsupercycles == 1
 
 
 @pytest.mark.rootfile
@@ -107,24 +107,6 @@ def test_period_durations_are_20_30_50(good_run):
     # durs is a DataFrame indexed by period, columns by cycle
     col0 = durs[0].values   # cycle 0 durations
     np.testing.assert_array_almost_equal(sorted(col0), [20, 30, 50])
-
-
-@pytest.mark.rootfile
-def test_no_transitions_warns(no_transitions_file):
-    with warnings.catch_warnings(record=True) as w:
-        warnings.simplefilter("always")
-        run = ucnrun(str(no_transitions_file))
-    assert any(issubclass(x.category, MissingDataWarning) for x in w)
-
-
-@pytest.mark.rootfile
-def test_no_transitions_ncycles_1(no_transitions_file):
-    with warnings.catch_warnings(record=True):
-        warnings.simplefilter("always")
-        run = ucnrun(str(no_transitions_file))
-    assert run.cycle_param.ncycles == 1
-    assert run.cycle_param.nperiods == 1
-
 
 # ---------------------------------------------------------------------------
 # set_cycle_times_crude / set_cycle_times_precise

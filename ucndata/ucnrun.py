@@ -853,7 +853,7 @@ class ucnrun(ucnbase):
         self.cycle_param['cycle'] = times.index % ncycles
         self.cycle_param['supercycle'] = times['supercycle']
         self.cycle_param['ncycles'] = len(times.index)
-        self.cycle_param['nsupercycle'] = len(times['supercycle'].unique())
+        self.cycle_param['nsupercycles'] = len(times['supercycle'].unique())
         self.cycle_param['is_precise_timing'] = False
 
         # update period times

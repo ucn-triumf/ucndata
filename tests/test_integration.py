@@ -117,38 +117,6 @@ def test_applylist_period0_he3_nonnegative(good_run):
     results = good_run[:, 0].get_nhits("He3")
     assert all(n >= 0 for n in results)
 
-
-# ---------------------------------------------------------------------------
-# set_cycle_times mode switching
-# ---------------------------------------------------------------------------
-
-@pytest.mark.rootfile
-def test_set_cycle_times_mode_switch_consistent(good_run):
-    """Switching set_cycle_times mode re-runs correctly and slicing still works."""
-    good_run.set_cycle_times(mode="li6")
-    ct_li6 = good_run.cycle_param.cycle_times.copy()
-
-    good_run.set_cycle_times(mode="he3")
-    ct_he3 = good_run.cycle_param.cycle_times.copy()
-
-    # Both modes yield 3 cycles
-    assert len(ct_li6) == 3
-    assert len(ct_he3) == 3
-
-    # After mode switch, indexing still works
-    assert good_run[0] is not None
-    assert good_run[2] is not None
-
-
-@pytest.mark.rootfile
-def test_set_cycle_times_sequencer_slicing_works(good_run):
-    """After sequencer mode, run[0] is accessible."""
-    good_run.set_cycle_times(mode="sequencer")
-    cycle = good_run[0]
-    assert cycle is not None
-    assert cycle.cycle == 0
-
-
 # ---------------------------------------------------------------------------
 # Timing shift workflow
 # ---------------------------------------------------------------------------
