@@ -20,7 +20,7 @@ print(run.tfile.UCNHits_Li6.filters)
 # output: ['tUnixTimePrecise > 15e8', 'tIsUCN>0']
 ```
 
-When you do any operation on this [ttree] it will do that operation only on the rows that satisfy all the filters. If `unc_only=False`, you will see that the `'tIsUCN>0'` filter is now absent. 
+When you do any operation on this [ttree] it will do that operation only on the rows that satisfy all the filters. If `ucn_only=False`, you will see that the `'tIsUCN>0'` filter is now absent. 
 
 ## Setting Custom Filters
 
@@ -90,7 +90,7 @@ print(len(run.tfile.UCNHits_Li6))
 
 ## Cycles and Periods
 
-When cycles or periods are selected, the existing filters from the [ttrees] are copied over, and new filters on the timestamps are added, based on the start and stop times of the cycle or period. 
+When cycles or periods are selected, the existing filters from the [ttree] are copied over, and new filters on the timestamps are added, based on the start and stop times of the cycle or period. 
 
 ```python
 from ucndata import ucnrun

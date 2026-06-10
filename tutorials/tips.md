@@ -35,7 +35,7 @@ The UCN hits trees can be quite large. To speed up processing and to make effici
 
 In the below, we modify the timing of period 0 in each cycle and get the number of hits in that period. This structure is bad, because at every iteration we reset the saved hits histogram (due to modifying the timings). Thus we need to re-run the calculation each iteration of the loop.
 ```python
-from ucnrun import ucnrun
+from ucndata import ucnrun
 
 run = ucnrun(2575)
 hits = []
@@ -46,7 +46,7 @@ for cycle in run:
 
 The below shows a better version of the above. We modify all the timings at once, then recalculate the number of UCN hits in each period on the first iteration of the second `for` loop, after which we only need retrieve the values from the saved histogram.
 ```python
-from ucnrun import ucnrun
+from ucndata import ucnrun
 
 run = ucnrun(2575)
 hits = []

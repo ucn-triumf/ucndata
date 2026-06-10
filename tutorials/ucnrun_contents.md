@@ -52,23 +52,23 @@ Let's inspect the contents of this attribute:
 
 ```python
 In [4]: run.cycle_param
-Out[4]: attrdict: {'nperiods', 'nsupercyc', 'enable', 'inf_cyc_enable', 'cycle', 'supercycle', 'valve_states', 'period_end_times', 'period_durations_s', 'ncycles', 'filter', 'cycle_times'}
+Out[4]: attrdict: {'nperiods', 'nsupercycles', 'cycle', 'supercycle', 'valve_states', 'period_end_times', 'period_durations_s', 'ncycles', 'ncycles_per_supercycle', 'filter', 'cycle_times', 'is_precise_timing'}
 ```
 
 These are the various settings and properties of each cycle and period.
 
 * `nperiods`: Number of periods in each cycle
-* `nsupercyc`: Number of supercycles contained in the run
-* `enable`: Enable status of the sequencer
-* `inf_cyc_enable`: Enable status of infinite cycles
-* `cycle`: Cycle ID numbers
-* `supercycle`: Supercycle ID numbers
+* `nsupercycles`: Number of supercycles contained in the run
+* `ncycles_per_supercycle`: Number of cycles per supercycle
+* `ncycles`: Number of total cycles contained in the run
+* `cycle`: Cycle ID numbers within each supercycle
+* `supercycle`: Supercycle ID numbers for each cycle
 * `valve_states`: Valve states in each period and cycle
 * `period_end_times`: End time of each period in each cycle in epoch time - used to calculate period timings
-* `period_durations_s`: Duration in sections of each period in each cycle (calculated from `period_end_times`)
-* `ncycles`: Number of total cycles contained in the run
+* `period_durations_s`: Duration in seconds of each period in each cycle (calculated from `period_end_times`)
+* `cycle_times`: The start and end times of each cycle
 * `filter`: A list indicating how we should filter cycles. More on that in [filters](filters.md)
-* `cycle_time`: The start and end times of each cycle
+* `is_precise_timing`: True if cycle times were set using precise hardware timestamps
 
 ## `tfile`
 

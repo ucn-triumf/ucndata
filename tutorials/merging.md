@@ -110,7 +110,7 @@ There are a few exceptions.
 The `cycle_param` dictionary is merged in the following way ([recall the definitions of its entries](./gettingstarted.md#cycle_param)):
 
 * `nperiods`: summed
-* `nsupercyc`: summed
+* `nsupercycles`: summed
 * `enable`: if any are `True` then `True`, else `False`. But you probably shouldn't merge runs with mixed sequencer states.
 * `inf_cyc_enable`: Same as `enable`
 * `cycle`: [concatenated] and [re-indexed]

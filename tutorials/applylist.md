@@ -9,23 +9,23 @@ An [applylist] is an object defined in the ucndata package. It inherits from the
 from ucndata import ucnrun
 run = ucnrun('ucn_run_00001846.root')
 
-beam_current_mean = [c[0].beam_current_uA.mean() for c in run]
-beam_current_std =  [c[0].beam_current_uA.std() for c in run]
-counts = [c[2].get_counts(detector='Li6') for c in run]
+beam_current_mean = [c[0].beam1a_current_uA.mean() for c in run]
+beam_current_std =  [c[0].beam1a_current_uA.std() for c in run]
+counts = [c[2].get_nhits('Li6') for c in run]
 ```
 
 Fetching more parameters would result in many list comprehensions. Since the slicing operation on [ucnrun] and [ucncycle] objects returns an [applylist] we can instead do the following:
 
 ```python
-beam_current_mean = run[:, 0].beam_current_uA.mean()
-beam_current_std  = run[:, 0].beam_current_uA.std()
-counts = run[:, 2].get_counts(detector='Li6')
+beam_current_mean = run[:, 0].beam1a_current_uA.mean()
+beam_current_std  = run[:, 0].beam1a_current_uA.std()
+counts = run[:, 2].get_nhits('Li6')
 ```
 
 Breaking it down:
 
 1. `run[:, 0]` returns an [applylist] of [ucnperiod]s corresponding to period 0 of each cycle.
-2. Since `beam_current_uA` is not an attribute of the [applylist] itself, the list instead fetches this attribute from each of the contained items and returns a new [applylist] with the result (a pandas [DataFrame]).
+2. Since `beam1a_current_uA` is not an attribute of the [applylist] itself, the list instead fetches this attribute from each of the contained items and returns a new [applylist] with the result (a pandas [DataFrame]).
 3. Since `mean()` is also not an attribute of the [applylist] it instead tries to call this method on each of the contained items and returns a new [applylist] with the result (a float).
 
 The [applylist] object works similarly to a [numpy array](https://numpy.org/doc/stable/reference/generated/numpy.ndarray.html) in that it enables slicing, index-wise comparison and arithmetic, transpose, and type conversions; but also has an `apply()` function borrowed from pandas [DataFrame]s which applies a function to each element.
@@ -33,7 +33,7 @@ The [applylist] object works similarly to a [numpy array](https://numpy.org/doc/
 Note that this works on nested [applylist]s. Therefore the following how to fetch the mean beam current for each period in each cycle:
 
 ```python
-run[:, :].beam_current_uA.mean()
+run[:, :].beam1a_current_uA.mean()
 ```
 
 ---

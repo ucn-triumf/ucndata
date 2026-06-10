@@ -14,7 +14,6 @@ The `ucndata` package is based around the [ucnrun] object. This object reads a r
   - [The Very Basics](#the-very-basics)
   - [Getting Counts and Values](#getting-counts-and-values)
   - [Periods and Cycles](#periods-and-cycles)
-  - [Lists of Runs (or cycles or periods)](#lists-of-runs-or-cycles-or-periods)
 
 On this page we quickly work through what will be covered in more detail later in this tutorial.
 
@@ -92,16 +91,12 @@ Since this is a common operation, this is built into the ucnrun object via the [
 run.get_hits_histogram(detector='He3').plot()
 ```
 
-You need to tell it what detector to use. Detectors are defined in the [ucnbase] file (`DET_NAMES`). We may also want to draw with proper datetimes on the x axis:
+You need to tell it what detector to use. Detectors are defined in `ucndata.DET_NAMES` (in `ucndata/__init__.py`). We may also want to draw with proper datetimes on the x axis:
 
 ```python
 run.get_hits_histogram(detector='He3', as_datetime=True).plot()
 ```
 
-
-#### Getting Hits and Counts
-
-When creating the [ucnrun] object, there is a
 
 ## Periods and Cycles
 

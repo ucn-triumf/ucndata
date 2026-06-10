@@ -920,7 +920,7 @@ class ucnrun(ucnbase):
 
         # check if any precise times
         if len(ptimes) < 2:
-            warnings.warn(f'At least two cycle start time hits needed in channel {hw_channel}. Found {len(ptimes)}', MissingDataWarning)
+            warnings.warn(f'At least two cycle start time hits needed in channel {hw_channel}. Found {len(ptimes)}; cannot set precise timing.', MissingDataWarning)
             return
               
         # average crude cycle duration

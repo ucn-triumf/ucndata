@@ -27,8 +27,9 @@ runs = ucnrun(2687)
 
 Using a custom path
 ```python
+import ucndata
 from ucndata import ucnrun
-ucnrun.datadir = 'mypath'
+ucndata.DATADIR = 'mypath'
 runs = ucnrun(2687)
 ```
 
@@ -80,14 +81,14 @@ plt.legend(fontsize='xx-small')
 
 ## Getting number of hits in each cycle or period
 
-Using the get_counts function for either [cycles](../docs/ucncycle.md#ucncycleget_counts) or [periods](../docs/ucnperiod.md#ucnperiodget_counts)
+Using the get_nhits function for either [cycles](../docs/ucncycle.md#ucncycleget_nhits) or [periods](../docs/ucnperiod.md#ucnperiodget_nhits)
 
 ```python
 from ucndata import ucnrun
 data = ucnrun(2087)
 
 # counts in each cycle, overall
-# note this returns an array that looks like [(x, dx), (x, dx), ...] so useful to transpose
+# returns an applylist of ints, one per cycle
 counts = data[:].get_nhits('He3')
 
 # counts in period 2 of each cycle
