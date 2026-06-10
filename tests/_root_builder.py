@@ -1,7 +1,7 @@
 """Synthetic ROOT file builder for ucndata unit tests.
 
 Builds small, fully deterministic ROOT files that exercise all code paths
-in ucnrun/__init__, _get_cycle_param, set_cycle_times, etc.
+in ucnrun/__init__, _get_cycle_param, set_cycle_times_crude, etc.
 
 Schema:
     - 3 cycles, each 100 s starting at T0 = 1717243200
@@ -67,30 +67,43 @@ def _write_header(f):
 
 
 def _write_cycle_param(f):
-    """Write CycleParamTree: nPeriods=3, nSuperCyc=1, enable=1."""
+    """Write CycleParamTree: one row per period, columns for each cycle's duration.
+
+    set_cycle_times_crude reads nCycles from row 0.
+    set_period_times filters for 'Duration' columns (one per cycle per supercycle),
+    renames them by extracting the embedded digit (cycle index), and builds the
+    period_durations_s DataFrame of shape (nperiods × ncycles).
+    """
     tree = ROOT.TTree("CycleParamTree", "CycleParamTree")
 
-    n_periods = ctypes.c_int(3)
+    n_periods = ctypes.c_int(len(PERIOD_DURS))
+    n_cycles  = ctypes.c_int(N_CYCLES)
     n_super   = ctypes.c_int(1)
     enable    = ctypes.c_int(1)
     inf_cyc   = ctypes.c_int(0)
 
+    # One Duration branch per cycle in the supercycle (digit = cycle index).
+    dur_vals = [ctypes.c_double(0) for _ in range(N_CYCLES)]
+
     tree.Branch("nPeriods",        n_periods, "nPeriods/I")
+    tree.Branch("nCycles",         n_cycles,  "nCycles/I")
     tree.Branch("nSuperCyc",       n_super,   "nSuperCyc/I")
     tree.Branch("enable",          enable,    "enable/I")
     tree.Branch("infCyclesEnable", inf_cyc,   "infCyclesEnable/I")
+    for ci, dv in enumerate(dur_vals):
+        tree.Branch(f"period{ci}Duration_s", dv, f"period{ci}Duration_s/D")
 
-    tree.Fill()
+    for period_dur in PERIOD_DURS:
+        for dv in dur_vals:
+            dv.value = float(period_dur)
+        tree.Fill()
+
     f.cd(); tree.Write()
 
 
-def _write_transitions(f, tree_name, he3_offset=0, li6_offset=0):
-    """Write one RunTransitions_* tree with 3 rows (one per cycle).
-
-    Args:
-        he3_offset / li6_offset: shift cycleStartTime (for mismatched variant).
-    """
-    offset = he3_offset if "He3" in tree_name else li6_offset
+def _write_transitions(f, tree_name):
+    """Write one RunTransitions_* tree with 3 rows (one per cycle)."""
+    offset = 0
     tree   = ROOT.TTree(tree_name, tree_name)
 
     cycle_idx = ctypes.c_int(0)
@@ -135,24 +148,13 @@ def _write_transitions(f, tree_name, he3_offset=0, li6_offset=0):
 def _write_sequencer(f, enabled=True):
     """Write SequencerTree at 10-s intervals.
 
-    When enabled, produces exactly one start (+1 inCycle diff) and one stop
-    (-1 inCycle diff) so that ucnrun._set_cycle_times_sequencer returns equal-
-    length start/stop arrays without hitting the pandas append bug.
+    When enabled, emits one cycleStarted=1 row at the beginning of each cycle
+    so that set_cycle_times_crude finds exactly N_CYCLES start timestamps.
+    Between cycle starts the rows have cycleStarted=0, inCycle=1.  The final
+    row at T0+total marks the end of the run (inCycle=0).
 
-    Structure:
-      t=T0:       cycleStarted=1, inCycle=0  (pulse, not yet "in" cycle)
-      t=T0+10..: cycleStarted=0, inCycle=1  (inside cycle)
-      t=T0+total: cycleStarted=0, inCycle=0 (run over)
-
-    After df.diff() starting from T0:
-      T0: NaN
-      T0+10: +1 (start detected)
-      T0+20..T0+total-10: 0
-      T0+total: -1 (stop detected)
-    → 1 start, 1 stop → equal → no ValueError.
-
-    When disabled: cycleStarted stays 0 so index[0] raises IndexError → caught
-    in ucnrun.__init__ and emits a MissingDataWarning.
+    When disabled: all cycleStarted values are 0, so the cycleStarted filter
+    returns an empty array and set_cycle_times_crude raises DataError.
     """
     tree = ROOT.TTree("SequencerTree", "SequencerTree")
 
@@ -169,20 +171,22 @@ def _write_sequencer(f, enabled=True):
     step  = 10
     total = N_CYCLES * CYCLE_DUR
 
-    # First row: signal start but not yet in-cycle
-    ts.value      = float(T0)
-    started.value = 1 if enabled else 0
-    in_cyc.value  = 0
-    tree.Fill()
+    # One cycleStarted=1 row at the start of each cycle, then in-cycle rows.
+    for ci in range(N_CYCLES):
+        cycle_start = T0 + ci * CYCLE_DUR
 
-    # Middle rows: in cycle
-    for t_rel in range(step, total, step):
-        ts.value      = float(T0 + t_rel)
-        started.value = 0
-        in_cyc.value  = 1 if enabled else 0
+        ts.value      = float(cycle_start)
+        started.value = 1 if enabled else 0
+        in_cyc.value  = 0
         tree.Fill()
 
-    # Last row: out of cycle
+        for t_rel in range(step, CYCLE_DUR, step):
+            ts.value      = float(cycle_start + t_rel)
+            started.value = 0
+            in_cyc.value  = 1 if enabled else 0
+            tree.Fill()
+
+    # Final row: run over
     ts.value      = float(T0 + total)
     started.value = 0
     in_cyc.value  = 0
@@ -292,8 +296,10 @@ def _make_he3_hits():
 def _make_li6_hits(chopper=False):
     """Build Li6 hit arrays.
 
-    Timestamps offset +2 s from He3.  If chopper=True, adds channel-15
-    frame markers at T0+N*100+[10, 30, 60] for each cycle.
+    Timestamps offset +2 s from He3.  Channel 10 carries one hardware
+    cycle-start trigger per cycle (at T0 + N*CYCLE_DUR), spaced exactly
+    CYCLE_DUR apart so set_cycle_times_precise can use them.  If
+    chopper=True, adds channel-15 frame markers at T0+N*100+[10, 30, 60].
     """
     timestamps = []
     for ci in range(N_CYCLES):
@@ -312,6 +318,15 @@ def _make_li6_hits(chopper=False):
     chargeL = np.concatenate([[100.0]*5,
                               rng.uniform(200, 1500, n - 5)]).astype(np.float64)
     psd     = np.full(n, 0.3, dtype=np.float64)
+
+    # Hardware cycle-start triggers on channel 10: one hit per cycle at T0+N*CYCLE_DUR.
+    hw_ts = np.array([float(T0 + ci * CYCLE_DUR) for ci in range(N_CYCLES)])
+    nc_hw = len(hw_ts)
+    all_ts  = np.concatenate([all_ts,  hw_ts])
+    is_ucn  = np.concatenate([is_ucn,  np.zeros(nc_hw, dtype=np.int32)])
+    channel = np.concatenate([channel, np.full(nc_hw, 10, dtype=np.int32)])
+    chargeL = np.concatenate([chargeL, np.zeros(nc_hw, dtype=np.float64)])
+    psd     = np.concatenate([psd,     np.zeros(nc_hw, dtype=np.float64)])
 
     if chopper:
         chop_ts = []
@@ -370,14 +385,13 @@ def _write_hits(f, tree_name, timestamps, is_ucn, channel, chargeL, psd):
 # ---------------------------------------------------------------------------
 
 def build_run_file(path, no_sequencer=False, no_transitions=False,
-                   mismatched=False, no_slow_trees=False, chopper=False):
+                   no_slow_trees=False, chopper=False):
     """Write a synthetic UCN run ROOT file to *path*.
 
     Args:
         path: destination path (str or Path)
         no_sequencer: set all sequencerEnabled=0 in SequencerTree
         no_transitions: omit RunTransitions_He3 and RunTransitions_Li6
-        mismatched: shift He3 cycleStartTime by +25 s so matched mode raises CycleError
         no_slow_trees: omit all slow control trees
         chopper: add channel-15 frame markers to UCNHits_Li-6
     """
@@ -388,9 +402,8 @@ def build_run_file(path, no_sequencer=False, no_transitions=False,
     _write_cycle_param(f)
 
     if not no_transitions:
-        he3_offset = 25 if mismatched else 0
-        _write_transitions(f, "RunTransitions_He3", he3_offset=he3_offset)
-        _write_transitions(f, "RunTransitions_Li6", li6_offset=0)
+        _write_transitions(f, "RunTransitions_He3")
+        _write_transitions(f, "RunTransitions_Li6")
 
     if not no_slow_trees:
         _write_sequencer(f, enabled=not no_sequencer)

@@ -9,7 +9,7 @@ import pytest
 from ucndata import ucnrun
 from ucndata.applylist import applylist
 from ucndata.exceptions import (
-    CycleError, MissingDataError, MissingDataWarning,
+    CycleError, DataError, MissingDataError, MissingDataWarning,
 )
 
 T0 = 1717243200   # run start epoch
@@ -127,74 +127,65 @@ def test_no_transitions_ncycles_1(no_transitions_file):
 
 
 # ---------------------------------------------------------------------------
-# set_cycle_times
+# set_cycle_times_crude / set_cycle_times_precise
 # ---------------------------------------------------------------------------
 
 @pytest.mark.rootfile
-def test_set_cycle_times_matched(good_run):
-    good_run.set_cycle_times(mode="matched")
+def test_set_cycle_times_crude_cycle_times_columns(good_run):
+    """cycle_times DataFrame has the expected columns after crude call."""
+    good_run.set_cycle_times_crude()
     ct = good_run.cycle_param.cycle_times
-    assert "start" in ct.columns
-    assert "stop" in ct.columns
+    for col in ("start", "stop", "duration (s)", "supercycle"):
+        assert col in ct.columns, f"missing column: {col}"
 
 
 @pytest.mark.rootfile
-def test_set_cycle_times_matched_offset_zero(good_run):
-    """He3 and Li6 are identical in good file → offset column is 0."""
-    good_run.set_cycle_times(mode="matched")
-    ct = good_run.cycle_param.cycle_times
-    if "offset (s)" in ct.columns:
-        assert all(ct["offset (s)"] == 0)
+def test_set_cycle_times_crude_ncycles_matches_rows(good_run):
+    """cycle_param.ncycles equals the number of rows in cycle_times."""
+    good_run.set_cycle_times_crude()
+    assert good_run.cycle_param.ncycles == len(good_run.cycle_param.cycle_times)
 
 
 @pytest.mark.rootfile
-def test_set_cycle_times_li6(good_run):
-    good_run.set_cycle_times(mode="li6")
-    ct = good_run.cycle_param.cycle_times
-    assert "start" in ct.columns
-    assert len(ct) == 3
+def test_set_cycle_times_crude_is_precise_timing_false(good_run):
+    """is_precise_timing is False after a crude call."""
+    good_run.set_cycle_times_crude()
+    assert good_run.cycle_param.is_precise_timing is False
 
 
 @pytest.mark.rootfile
-def test_set_cycle_times_he3(good_run):
-    good_run.set_cycle_times(mode="he3")
-    ct = good_run.cycle_param.cycle_times
-    assert "start" in ct.columns
-    assert len(ct) == 3
-
-
-@pytest.mark.rootfile
-def test_set_cycle_times_sequencer(good_run):
-    good_run.set_cycle_times(mode="sequencer")
-    ct = good_run.cycle_param.cycle_times
-    assert "start" in ct.columns
-
-
-@pytest.mark.rootfile
-def test_set_cycle_times_bad_mode_raises(good_run):
-    with pytest.raises(RuntimeError):
-        good_run.set_cycle_times(mode="invalid_xyz")
-
-
-@pytest.mark.rootfile
-def test_set_cycle_times_mismatched_raises_cycle_error(mismatched_file):
-    """He3 offset > 20 s from Li6 → CycleError in matched mode."""
+def test_set_cycle_times_crude_no_sequencer_raises(no_slow_trees_file):
+    """Missing SequencerTree raises DataError during run construction."""
     with warnings.catch_warnings(record=True):
         warnings.simplefilter("always")
-        run = ucnrun(str(mismatched_file))
-    with pytest.raises(CycleError):
-        run.set_cycle_times(mode="matched")
-
-
-@pytest.mark.rootfile
-def test_set_cycle_times_no_slow_trees_raises(no_slow_trees_file):
-    """Missing slow trees → MissingDataError during run construction."""
-    # MissingDataError is raised in __init__'s mode-loop when matched mode
-    # can't find the run end time (no BeamlineEpics/SequencerTree present).
-    with warnings.catch_warnings(record=True):
-        warnings.simplefilter("always")
-        with pytest.raises(MissingDataError):
+        with pytest.raises(DataError):
             ucnrun(str(no_slow_trees_file))
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_sets_precise_flag(good_run):
+    """is_precise_timing is True after a successful precise call."""
+    good_run.set_cycle_times_precise(hw_channel=10)
+    assert good_run.cycle_param.is_precise_timing is True
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_adds_is_measured_column(good_run):
+    """cycle_times gains an is_measured bool column after precise call."""
+    good_run.set_cycle_times_precise(hw_channel=10)
+    ct = good_run.cycle_param.cycle_times
+    assert "is_measured" in ct.columns
+    assert ct["is_measured"].dtype == bool
+
+
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_warns_when_no_channel(good_run):
+    """Missing hardware channel emits MissingDataWarning and leaves timing unchanged."""
+    with warnings.catch_warnings(record=True) as w:
+        warnings.simplefilter("always")
+        good_run.set_cycle_times_precise(hw_channel=99)
+    assert any(issubclass(warning.category, MissingDataWarning) for warning in w)
+    assert good_run.cycle_param.is_precise_timing is False
 
 
 # ---------------------------------------------------------------------------

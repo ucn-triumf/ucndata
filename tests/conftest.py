@@ -64,16 +64,8 @@ def no_transitions_file(tmp_path_factory):
 
 
 @pytest.fixture(scope="session")
-def mismatched_file(tmp_path_factory):
-    """He3 cycleStartTime +25 s from Li6 — matched mode raises CycleError."""
-    path = tmp_path_factory.mktemp("root") / "mismatched.root"
-    build_run_file(path, mismatched=True)
-    return path
-
-
-@pytest.fixture(scope="session")
 def no_slow_trees_file(tmp_path_factory):
-    """Slow control trees absent — set_cycle_times raises MissingDataError."""
+    """Slow control trees absent — ucnrun() raises DataError (no SequencerTree)."""
     path = tmp_path_factory.mktemp("root") / "no_slow.root"
     build_run_file(path, no_slow_trees=True)
     return path
