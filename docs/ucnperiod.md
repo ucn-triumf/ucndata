@@ -6,10 +6,9 @@
 
 - [ucnperiod](#ucnperiod)
   - [ucnperiod](#ucnperiod-1)
-    - [ucnperiod.__repr__](#ucnperiod__repr__)
-    - [ucnperiod.get_nhits](#ucnperiodget_nhits)
-    - [ucnperiod.is_pileup](#ucnperiodis_pileup)
-    - [ucnperiod.modify_timing](#ucnperiodmodify_timing)
+    - [ucnperiod().get_nhits](#ucnperiodget_nhits)
+    - [ucnperiod().is_pileup](#ucnperiodis_pileup)
+    - [ucnperiod().modify_timing](#ucnperiodmodify_timing)
 
 ## ucnperiod
 
@@ -33,27 +32,7 @@ class ucnperiod(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucnperiod.__repr__
-
-[Show source in ucnperiod.py:61](../ucndata/ucnperiod.py#L61)
-
-Return a human-readable string listing all public attributes in columns.
-
-The column count is derived from the current terminal width. The header
-line includes the run number, cycle index, and period index.
-
-#### Returns
-
-- `str` - formatted multi-column attribute listing, e.g.
-    ``"run 1846 (cycle 0, period 1):\n  attr1  attr2  ..."``.
-
-#### Signature
-
-```python
-def __repr__(self): ...
-```
-
-### ucnperiod.get_nhits
+### ucnperiod().get_nhits
 
 [Show source in ucnperiod.py:134](../ucndata/ucnperiod.py#L134)
 
@@ -112,7 +91,7 @@ hits = run[:, 1].get_nhits('Li6')
 def get_nhits(self, detector, bin_ms=0): ...
 ```
 
-### ucnperiod.is_pileup
+### ucnperiod().is_pileup
 
 [Show source in ucnperiod.py:99](../ucndata/ucnperiod.py#L99)
 
@@ -142,7 +121,7 @@ False
 def is_pileup(self, detector): ...
 ```
 
-### ucnperiod.modify_timing
+### ucnperiod().modify_timing
 
 [Show source in ucnperiod.py:181](../ucndata/ucnperiod.py#L181)
 

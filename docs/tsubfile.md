@@ -29,7 +29,7 @@ the internal _items dict to avoid redundant filtering on repeated access.
 ```python
 >>> # Wrap an open run's tfile to the time window of one cycle
 >>> sub = tsubfile(run.tfile, cycle_start, cycle_stop)
->>> sub['He3'].head.  # only rows within [cycle_start, cycle_stop]
+>>> sub['He3'].head()   # only rows within [cycle_start, cycle_stop]
 ```
 
 #### Signature

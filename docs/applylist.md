@@ -6,10 +6,10 @@
 
 - [applylist](#applylist)
   - [applylist](#applylist-1)
-    - [applylist.apply](#applylistapply)
-    - [applylist.astype](#applylistastype)
-    - [applylist.copy](#applylistcopy)
-    - [applylist.transpose](#applylisttranspose)
+    - [applylist().apply](#applylistapply)
+    - [applylist().astype](#applylistastype)
+    - [applylist().copy](#applylistcopy)
+    - [applylist().transpose](#applylisttranspose)
 
 ## applylist
 
@@ -36,7 +36,7 @@ A list object with the following enhancements:
 >>> x = applylist([ucnrun(1846), ucnrun(1847)])
 >>> print(x.run_number)
 [1846, 1847]
->>> print(x.beam_current_uA.mean.
+>>> print(x.beam_current_uA.mean())
 [np.float64(0.16612837637441483), np.float64(0.18927602913972205)]
 ```
 
@@ -55,7 +55,7 @@ A list object with the following enhancements:
 class applylist(list): ...
 ```
 
-### applylist.apply
+### applylist().apply
 
 [Show source in applylist.py:132](../ucndata/applylist.py#L132)
 
@@ -96,7 +96,7 @@ fn (function handle): function to apply to each element
 def apply(self, fn, inplace=False): ...
 ```
 
-### applylist.astype
+### applylist().astype
 
 [Show source in applylist.py:111](../ucndata/applylist.py#L111)
 
@@ -127,7 +127,7 @@ Convert all elements in-place to the given type.
 def astype(self, typecast): ...
 ```
 
-### applylist.copy
+### applylist().copy
 
 [Show source in applylist.py:173](../ucndata/applylist.py#L173)
 
@@ -155,7 +155,7 @@ Return a shallow copy of this applylist.
 def copy(self): ...
 ```
 
-### applylist.transpose
+### applylist().transpose
 
 [Show source in applylist.py:191](../ucndata/applylist.py#L191)
 
@@ -171,7 +171,7 @@ Transpose a 2D applylist by converting to np.array and back.
 >>> x = applylist([[1,2,3], [4,5,6]])
 >>> print(x)
 [[1, 2, 3], [4, 5, 6]]
->>> print(x.transpose.
+>>> print(x.transpose())
 [array([1, 4]), array([2, 5]), array([3, 6])]
 ```
 

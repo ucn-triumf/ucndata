@@ -6,15 +6,11 @@
 
 - [ucncycle](#ucncycle)
   - [ucncycle](#ucncycle-1)
-    - [ucncycle.__getitem__](#ucncycle__getitem__)
-    - [ucncycle.__len__](#ucncycle__len__)
-    - [ucncycle.__next__](#ucncycle__next__)
-    - [ucncycle.__repr__](#ucncycle__repr__)
-    - [ucncycle.check_data](#ucncyclecheck_data)
-    - [ucncycle.draw_cycle_times](#ucncycledraw_cycle_times)
-    - [ucncycle.get_nhits](#ucncycleget_nhits)
-    - [ucncycle.get_period](#ucncycleget_period)
-    - [ucncycle.shift_timing](#ucncycleshift_timing)
+    - [ucncycle().check_data](#ucncyclecheck_data)
+    - [ucncycle().draw_cycle_times](#ucncycledraw_cycle_times)
+    - [ucncycle().get_nhits](#ucncycleget_nhits)
+    - [ucncycle().get_period](#ucncycleget_period)
+    - [ucncycle().shift_timing](#ucncycleshift_timing)
 
 ## ucncycle
 
@@ -43,103 +39,7 @@ class ucncycle(ucnbase):
 
 - [ucnbase](./ucnbase.md#ucnbase)
 
-### ucncycle.__getitem__
-
-[Show source in ucncycle.py:147](../ucndata/ucncycle.py#L147)
-
-Index into the cycle to retrieve one or more periods.
-
-#### Arguments
-
-key (int | slice): period index or slice. Negative integers are
-    supported and wrap around from the last period.
-
-#### Returns
-
-ucnperiod | applylist: a single [ucnperiod](./ucnperiod.md#ucnperiod) for an integer key,
-    or an [applylist](./applylist.md#applylist) of [ucnperiod](./ucnperiod.md#ucnperiod) objects for a slice.
-
-#### Raises
-
-- `IndexError` - if ``key`` is an integer larger than the number of
-    periods, or if ``key`` is not an int or slice.
-
-#### Examples
-
-```python
->>> cycle = run[0]
->>> period0 = cycle[0]        # first period
->>> last = cycle[-1]          # last period
->>> first_two = cycle[0:2]    # applylist of two periods
-```
-
-#### Signature
-
-```python
-def __getitem__(self, key): ...
-```
-
-### ucncycle.__len__
-
-[Show source in ucncycle.py:76](../ucndata/ucncycle.py#L76)
-
-Return the number of periods in this cycle.
-
-#### Returns
-
-- `int` - number of periods defined in ``cycle_param.nperiods``.
-
-#### Signature
-
-```python
-def __len__(self): ...
-```
-
-### ucncycle.__next__
-
-[Show source in ucncycle.py:84](../ucndata/ucncycle.py#L84)
-
-Advance the iterator and return the next period.
-
-Enables ``for period in cycle`` iteration. Internally increments
-``_iter_current`` and delegates to ``__getitem__``.
-
-#### Returns
-
-- [ucnperiod](./ucnperiod.md#ucnperiod) - the next period object.
-
-#### Raises
-
-- `StopIteration` - when all periods have been yielded.
-
-#### Signature
-
-```python
-def __next__(self): ...
-```
-
-### ucncycle.__repr__
-
-[Show source in ucncycle.py:108](../ucndata/ucncycle.py#L108)
-
-Return a human-readable string listing all public attributes in columns.
-
-The column count is derived from the current terminal width so the
-output fills the screen without wrapping. Includes the run number and
-cycle index in the header line.
-
-#### Returns
-
-- `str` - formatted multi-column attribute listing, e.g.
-    ``"run 1846 (cycle 0):\n  attr1  attr2  ..."``.
-
-#### Signature
-
-```python
-def __repr__(self): ...
-```
-
-### ucncycle.check_data
+### ucncycle().check_data
 
 [Show source in ucncycle.py:257](../ucndata/ucncycle.py#L257)
 
@@ -183,7 +83,7 @@ False
 def check_data(self, raise_error=False, quiet=False): ...
 ```
 
-### ucncycle.draw_cycle_times
+### ucncycle().draw_cycle_times
 
 [Show source in ucncycle.py:338](../ucndata/ucncycle.py#L338)
 
@@ -194,7 +94,7 @@ is excluded by ``cycle_param.filter``, the label is struck through in red.
 
 #### Arguments
 
-- `ax` *plt.Axes* - axes to draw into. Uses ``plt.gca.` when None.
+- `ax` *plt.Axes* - axes to draw into. Uses ``plt.gca()`` when None.
 - `xmode` *str* - x-axis time representation. One of:
 
 * ``'datetime'`` — absolute wall-clock timestamps
@@ -230,7 +130,7 @@ array([0, 1, 2])
 def draw_cycle_times(self, ax=None, xmode="datetime"): ...
 ```
 
-### ucncycle.get_nhits
+### ucncycle().get_nhits
 
 [Show source in ucncycle.py:438](../ucndata/ucncycle.py#L438)
 
@@ -289,7 +189,7 @@ hits = run[:, 1].get_nhits('Li6')
 def get_nhits(self, detector, bin_ms=0): ...
 ```
 
-### ucncycle.get_period
+### ucncycle().get_period
 
 [Show source in ucncycle.py:484](../ucndata/ucncycle.py#L484)
 
@@ -326,7 +226,7 @@ run 1846 (cycle 0, period 0):
   cycle              experiment_number  period_stop        start_time         year
   cycle_param        month              run_number         stop_time
   cycle_start        period             run_title          supercycle
->>> all_periods = cycle.get_period.  # applylist of all periods
+>>> all_periods = cycle.get_period()   # applylist of all periods
 >>> len(all_periods)
 3
 ```
@@ -337,7 +237,7 @@ run 1846 (cycle 0, period 0):
 def get_period(self, period=None): ...
 ```
 
-### ucncycle.shift_timing
+### ucncycle().shift_timing
 
 [Show source in ucncycle.py:528](../ucndata/ucncycle.py#L528)
 

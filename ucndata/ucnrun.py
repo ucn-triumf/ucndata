@@ -767,8 +767,6 @@ class ucnrun(ucnbase):
     def get_cycle(self, cycle=None):
         """Return a copy of this object, but trees are trimmed to only one cycle.
 
-        Note that this process converts all objects to dataframes
-
         Args:
             cycle (int): cycle number, if None, get all cycles
 
@@ -830,18 +828,18 @@ class ucnrun(ucnbase):
             None: sets self.cycle_param.filter
 
         Notes:
-            Filter is ONLY applied when fetching cycles as a slice or as an iterator. ucnrun.get_cycle() always returns unfiltered cycles.
+            * Filter is ONLY applied when fetching cycles as a slice or as an iterator. ucnrun.`get_cycle()` always returns unfiltered cycles.
 
-            Examples where the filter is applied:
-                * run[:]
-                * run[3:10]
-                * run[:3]
-                * for c in run: print(c)
+            * Examples where the filter is applied:
+                * `run[:]`
+                * `run[3:10]`
+                * `run[:3]`
+                * `for c in run: print(c)`
 
-            Examples where the filter is not applied:
-                * run[2]
-                * run.get_cycle()
-                * run.get_cycle(2)
+            * Examples where the filter is not applied:
+                * `run[2]`
+                * `run.get_cycle()`
+                * `run.get_cycle(2)`
 
         Example:
             >>> run = ucnrun(2684)
@@ -871,13 +869,13 @@ class ucnrun(ucnbase):
 
     def set_cycle_times_crude(self):
         """Get start and end times of each cycle from the sequencer and save
-        into self.cycle_param.cycle_times.
+        into `self.cycle_param.cycle_times`.
 
-        Reads cycleStarted timestamps from SequencerTree. Call this to reset
-        cycle timing after set_cycle_times_precise() or to re-derive from scratch.
+        Reads `cycleStarted` timestamps from `SequencerTree`. Call this to reset
+        cycle timing after `set_cycle_times_precise()` or to re-derive from scratch.
 
         Raises:
-            DataError: if SequencerTree is absent from the ROOT file.
+            DataError: if `SequencerTree` is absent from the ROOT file.
 
         Notes:
             - Cycle stop times are derived from the start of the next cycle;

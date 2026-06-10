@@ -6,17 +6,16 @@
 
 - [ucnbase](#ucnbase)
   - [ucnbase](#ucnbase-1)
-    - [ucnbase.__iter__](#ucnbase__iter__)
-    - [ucnbase.apply](#ucnbaseapply)
-    - [ucnbase.beam1a_current_uA](#ucnbasebeam1a_current_ua)
-    - [ucnbase.beam1u_current_uA](#ucnbasebeam1u_current_ua)
-    - [ucnbase.beam_off_s](#ucnbasebeam_off_s)
-    - [ucnbase.beam_on_s](#ucnbasebeam_on_s)
-    - [ucnbase.get_hits_array](#ucnbaseget_hits_array)
-    - [ucnbase.get_hits_histogram](#ucnbaseget_hits_histogram)
-    - [ucnbase.inspect](#ucnbaseinspect)
-    - [ucnbase.plot_psd](#ucnbaseplot_psd)
-    - [ucnbase.trigger_edge](#ucnbasetrigger_edge)
+    - [ucnbase().apply](#ucnbaseapply)
+    - [ucnbase().beam1a_current_uA](#ucnbasebeam1a_current_ua)
+    - [ucnbase().beam1u_current_uA](#ucnbasebeam1u_current_ua)
+    - [ucnbase().beam_off_s](#ucnbasebeam_off_s)
+    - [ucnbase().beam_on_s](#ucnbasebeam_on_s)
+    - [ucnbase().get_hits_array](#ucnbaseget_hits_array)
+    - [ucnbase().get_hits_histogram](#ucnbaseget_hits_histogram)
+    - [ucnbase().inspect](#ucnbaseinspect)
+    - [ucnbase().plot_psd](#ucnbaseplot_psd)
+    - [ucnbase().trigger_edge](#ucnbasetrigger_edge)
 
 ## ucnbase
 
@@ -62,23 +61,7 @@ Not instantiated directly — use ucnrun, ucncycle, or ucnperiod instead.
 class ucnbase(object): ...
 ```
 
-### ucnbase.__iter__
-
-[Show source in ucnbase.py:53](../ucndata/ucnbase.py#L53)
-
-Initialize iteration over cycles (ucnrun) or periods (ucncycle).
-
-#### Returns
-
-- [ucnbase](#ucnbase) - self, with internal iteration counter reset to zero.
-
-#### Signature
-
-```python
-def __iter__(self): ...
-```
-
-### ucnbase.apply
+### ucnbase().apply
 
 [Show source in ucnbase.py:102](../ucndata/ucnbase.py#L102)
 
@@ -105,7 +88,7 @@ fn_handle (function handle): function to be applied to each cycle
 def apply(self, fn_handle): ...
 ```
 
-### ucnbase.beam1a_current_uA
+### ucnbase().beam1a_current_uA
 
 [Show source in ucnbase.py:492](../ucndata/ucnbase.py#L492)
 
@@ -136,7 +119,7 @@ dtype: float64
 def beam1a_current_uA(self): ...
 ```
 
-### ucnbase.beam1u_current_uA
+### ucnbase().beam1u_current_uA
 
 [Show source in ucnbase.py:517](../ucndata/ucnbase.py#L517)
 
@@ -176,7 +159,7 @@ Length: 1093, dtype: float64
 def beam1u_current_uA(self): ...
 ```
 
-### ucnbase.beam_off_s
+### ucnbase().beam_off_s
 
 [Show source in ucnbase.py:596](../ucndata/ucnbase.py#L596)
 
@@ -218,7 +201,7 @@ dtype: float64
 def beam_off_s(self): ...
 ```
 
-### ucnbase.beam_on_s
+### ucnbase().beam_on_s
 
 [Show source in ucnbase.py:561](../ucndata/ucnbase.py#L561)
 
@@ -260,7 +243,7 @@ dtype: float64
 def beam_on_s(self): ...
 ```
 
-### ucnbase.get_hits_array
+### ucnbase().get_hits_array
 
 [Show source in ucnbase.py:119](../ucndata/ucnbase.py#L119)
 
@@ -288,7 +271,7 @@ array([1.75016403e+09, 1.75016405e+09, 1.75016405e+09, ...,
 def get_hits_array(self, detector): ...
 ```
 
-### ucnbase.get_hits_histogram
+### ucnbase().get_hits_histogram
 
 [Show source in ucnbase.py:145](../ucndata/ucnbase.py#L145)
 
@@ -337,7 +320,7 @@ TH1D: "HisttUnixTimePrecise", 557053 entries, sum = 557053.0
 def get_hits_histogram(self, detector, bin_ms=10, as_datetime=False): ...
 ```
 
-### ucnbase.inspect
+### ucnbase().inspect
 
 [Show source in ucnbase.py:226](../ucndata/ucnbase.py#L226)
 
@@ -383,7 +366,7 @@ vertical lines; period boundaries are marked with dashed coloured lines.
 def inspect(self, detector="Li6", bin_ms=100, xmode="duration", slow=None): ...
 ```
 
-### ucnbase.plot_psd
+### ucnbase().plot_psd
 
 [Show source in ucnbase.py:362](../ucndata/ucnbase.py#L362)
 
@@ -419,7 +402,7 @@ charge QLong, and the y-axis is the pulse-shape discriminant
 def plot_psd(self, detector="Li6", cut=None, cmap="RdBu"): ...
 ```
 
-### ucnbase.trigger_edge
+### ucnbase().trigger_edge
 
 [Show source in ucnbase.py:450](../ucndata/ucnbase.py#L450)
 

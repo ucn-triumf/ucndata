@@ -6,21 +6,20 @@
 
 - [ttreeslow](#ttreeslow)
   - [ttreeslow](#ttreeslow-1)
-    - [ttreeslow.__getitem__](#ttreeslow__getitem__)
-    - [ttreeslow.columns](#ttreeslowcolumns)
-    - [ttreeslow.filters](#ttreeslowfilters)
-    - [ttreeslow.hist1d](#ttreeslowhist1d)
-    - [ttreeslow.index](#ttreeslowindex)
-    - [ttreeslow.index_name](#ttreeslowindex_name)
-    - [ttreeslow.max](#ttreeslowmax)
-    - [ttreeslow.mean](#ttreeslowmean)
-    - [ttreeslow.min](#ttreeslowmin)
-    - [ttreeslow.reset](#ttreeslowreset)
-    - [ttreeslow.rms](#ttreeslowrms)
-    - [ttreeslow.set_filter](#ttreeslowset_filter)
-    - [ttreeslow.set_index](#ttreeslowset_index)
-    - [ttreeslow.std](#ttreeslowstd)
-    - [ttreeslow.treenames](#ttreeslowtreenames)
+    - [ttreeslow().columns](#ttreeslowcolumns)
+    - [ttreeslow().filters](#ttreeslowfilters)
+    - [ttreeslow().hist1d](#ttreeslowhist1d)
+    - [ttreeslow().index](#ttreeslowindex)
+    - [ttreeslow().index_name](#ttreeslowindex_name)
+    - [ttreeslow().max](#ttreeslowmax)
+    - [ttreeslow().mean](#ttreeslowmean)
+    - [ttreeslow().min](#ttreeslowmin)
+    - [ttreeslow().reset](#ttreeslowreset)
+    - [ttreeslow().rms](#ttreeslowrms)
+    - [ttreeslow().set_filter](#ttreeslowset_filter)
+    - [ttreeslow().set_index](#ttreeslowset_index)
+    - [ttreeslow().std](#ttreeslowstd)
+    - [ttreeslow().treenames](#ttreeslowtreenames)
 
 ## ttreeslow
 
@@ -44,7 +43,7 @@ std, rms) concatenate results across all trees into a single pd.Series.
 ```python
 >>> # Access any EPICS column without specifying the source tree
 >>> run.epics.UCN_UGD_ISOCP_RDVOL.mean()
->>> run.epics.mean.  # aggregate mean across all EPICS trees
+>>> run.epics.mean()   # aggregate mean across all EPICS trees
 ```
 
 #### Signature
@@ -54,27 +53,7 @@ class ttreeslow(ttree):
     def __init__(self, ttree_list, parent=None): ...
 ```
 
-### ttreeslow.__getitem__
-
-[Show source in ttreeslow.py:78](../ucndata/ttreeslow.py#L78)
-
-Return the data series for a single column from its source tree.
-
-#### Arguments
-
-- `key` *str* - column name to retrieve
-
-#### Returns
-
-- `pd.Series` - time-indexed series for the requested column
-
-#### Signature
-
-```python
-def __getitem__(self, key): ...
-```
-
-### ttreeslow.columns
+### ttreeslow().columns
 
 [Show source in ttreeslow.py:178](../ucndata/ttreeslow.py#L178)
 
@@ -87,7 +66,7 @@ list[str]: all column names available across all underlying trees.
 def columns(self): ...
 ```
 
-### ttreeslow.filters
+### ttreeslow().filters
 
 [Show source in ttreeslow.py:188](../ucndata/ttreeslow.py#L188)
 
@@ -100,7 +79,7 @@ dict: mapping of tree name to its current filter expression.
 def filters(self): ...
 ```
 
-### ttreeslow.hist1d
+### ttreeslow().hist1d
 
 [Show source in ttreeslow.py:89](../ucndata/ttreeslow.py#L89)
 
@@ -138,7 +117,7 @@ Return a 1D histogram of a column's data.
 def hist1d(self, column=None, nbins=None, step=None, edges=None): ...
 ```
 
-### ttreeslow.index
+### ttreeslow().index
 
 [Show source in ttreeslow.py:193](../ucndata/ttreeslow.py#L193)
 
@@ -151,7 +130,7 @@ dict: mapping of tree name to its current index (pd.Index).
 def index(self): ...
 ```
 
-### ttreeslow.index_name
+### ttreeslow().index_name
 
 [Show source in ttreeslow.py:198](../ucndata/ttreeslow.py#L198)
 
@@ -164,7 +143,7 @@ dict: mapping of tree name to its index column name string.
 def index_name(self): ...
 ```
 
-### ttreeslow.max
+### ttreeslow().max
 
 [Show source in ttreeslow.py:227](../ucndata/ttreeslow.py#L227)
 
@@ -186,7 +165,7 @@ Return the column-wise maximum across all underlying trees.
 def max(self): ...
 ```
 
-### ttreeslow.mean
+### ttreeslow().mean
 
 [Show source in ttreeslow.py:203](../ucndata/ttreeslow.py#L203)
 
@@ -208,7 +187,7 @@ Return the column-wise mean across all underlying trees.
 def mean(self): ...
 ```
 
-### ttreeslow.min
+### ttreeslow().min
 
 [Show source in ttreeslow.py:215](../ucndata/ttreeslow.py#L215)
 
@@ -230,13 +209,13 @@ Return the column-wise minimum across all underlying trees.
 def min(self): ...
 ```
 
-### ttreeslow.reset
+### ttreeslow().reset
 
 [Show source in ttreeslow.py:126](../ucndata/ttreeslow.py#L126)
 
 Reset all underlying trees and return a fresh ttreeslow copy.
 
-Calls reset.on each source tree (clearing any cached data or filters)
+Calls reset() on each source tree (clearing any cached data or filters)
 and then constructs a new ttreeslow with the same column mapping.
 
 #### Returns
@@ -247,7 +226,7 @@ and then constructs a new ttreeslow with the same column mapping.
 
 ```python
 >>> run.epics.set_filter('timestamp > 1000')
->>> clean = run.epics.reset. # filters cleared
+>>> clean = run.epics.reset()  # filters cleared
 ```
 
 #### Signature
@@ -256,7 +235,7 @@ and then constructs a new ttreeslow with the same column mapping.
 def reset(self): ...
 ```
 
-### ttreeslow.rms
+### ttreeslow().rms
 
 [Show source in ttreeslow.py:239](../ucndata/ttreeslow.py#L239)
 
@@ -278,7 +257,7 @@ Return the column-wise root-mean-square across all underlying trees.
 def rms(self): ...
 ```
 
-### ttreeslow.set_filter
+### ttreeslow().set_filter
 
 [Show source in ttreeslow.py:153](../ucndata/ttreeslow.py#L153)
 
@@ -307,7 +286,7 @@ Apply a row-selection filter to all underlying trees.
 def set_filter(self, expression, inplace=True): ...
 ```
 
-### ttreeslow.set_index
+### ttreeslow().set_index
 
 [Show source in ttreeslow.py:144](../ucndata/ttreeslow.py#L144)
 
@@ -323,7 +302,7 @@ Set the index column on all underlying trees.
 def set_index(self, column): ...
 ```
 
-### ttreeslow.std
+### ttreeslow().std
 
 [Show source in ttreeslow.py:251](../ucndata/ttreeslow.py#L251)
 
@@ -345,7 +324,7 @@ Return the column-wise standard deviation across all underlying trees.
 def std(self): ...
 ```
 
-### ttreeslow.treenames
+### ttreeslow().treenames
 
 [Show source in ttreeslow.py:183](../ucndata/ttreeslow.py#L183)
 
