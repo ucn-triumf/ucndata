@@ -544,21 +544,25 @@ class ucnrun(ucnbase):
         dur = dur.rename(columns={col:int(re.sub(r'\D', '', col)) for col in dur.columns})
         dur = dur.reindex(sorted(dur.columns), axis=1)
         
-        # drop all-zero columns
-        dur = dur.loc[:, dur.sum(axis=0)>0]    
-        ncycles_per_supercycle = len(dur.columns)  
+        # drop all columns after nCycles
+        ncycles_per_supercycle = self.tfile.CycleParamTree.nCycles.values[0] 
+        dur = dur[[col for col in dur.columns if col < ncycles_per_supercycle]]  
+
+        # drop all rows after nPeriods
+        nperiods = self.tfile.CycleParamTree.nPeriods.values[0] 
+        dur = dur.loc[dur.index < nperiods]  
 
         # expand for all cycles
-        dur = pd.concat([dur]*max((2, ncycles_per_supercycle // len(dur.columns))),
+        cycleids = self.cycle_param.cycle_times.index.values
+        ncycles = len(cycleids)
+        dur = pd.concat([dur]*int(np.ceil(ncycles / len(dur.columns))),
                        axis='columns')
         dur.columns = np.arange(len(dur.columns))
         
         # trim missing cycles
         dur = dur[self.cycle_param.cycle_times.index]
-    
         dur.index.name = 'period'
         dur.columns.name = 'cycle'
-
         self.cycle_param['period_durations_s'] = dur
 
         # get period end times ----------------------------------------------
@@ -574,13 +578,12 @@ class ucnrun(ucnbase):
         # update cycle_param
         self.cycle_param['period_end_times'] = ends
         self.cycle_param['nperiods'] = len(ends.index)
-        
-        cycleids = self.cycle_param.cycle_times.index.values
         self.cycle_param.cycle_times['supercycle'] = cycleids // ncycles_per_supercycle
         
         self.cycle_param['cycle'] = cycleids % ncycles_per_supercycle
         self.cycle_param['supercycle'] = self.cycle_param.cycle_times['supercycle']
         self.cycle_param['ncycles'] = len(cycleids)
+        self.cycle_param['nperiods'] = nperiods
         self.cycle_param['nsupercycles'] = len(self.cycle_param.cycle_times.supercycle.unique())
 
     def check_data(self, raise_error=False):
@@ -924,11 +927,10 @@ class ucnrun(ucnbase):
             ptimes = np.sort(ptimes)
 
         # check if any precise times
-        if len(ptimes) == 0:
-            warnings.warn(f'No cycle start time hits detected in channel {hw_channel}',
-                          MissingDataWarning)
+        if len(ptimes) < 2:
+            warnings.warn(f'At least two cycle start time hits needed in channel {hw_channel}. Found {len(ptimes)}', MissingDataWarning)
             return
-        
+              
         # average crude cycle duration
         cdur = np.mean(np.diff(ctimes))
 
