@@ -811,35 +811,22 @@ class ucnrun(ucnbase):
 
     def set_cycle_times_crude(self):
         """Get start and end times of each cycle from the sequencer and save
-        into self.cycle_param.cycle_times
+        into self.cycle_param.cycle_times.
 
-        Run this if you want to change how cycle start times are calculated
+        Reads cycleStarted timestamps from SequencerTree. Call this to reset
+        cycle timing after set_cycle_times_precise() or to re-derive from scratch.
 
-        Args:
-            mode (str): default|matched|sequencer|he3|li6
-                if matched: look for identical timestamps in RunTransitions from detectors
-                if sequencer: look for inCycle timestamps in SequencerTree
-                if he3: use He3 detector cycle start times
-                if li6: use Li6 detector cycle start times
-
-        Returns:
-            pd.DataFrame: with columns "start", "stop", "offset" and "duration (s)". Values are in epoch time. Indexed by cycle id. Offset is the difference in detector start times: he3_start-li6_start
-
+        Raises:
+            DataError: if SequencerTree is absent from the ROOT file.
 
         Notes:
-            - If run ends before sequencer stop is called, a stop is set to final timestamp.
-            - If the sequencer is disabled mid-run, a stop is set when disable ocurrs.
-            - If sequencer is not enabled, then make the entire run one cycle
-            - For matched mode,
-                - set run stops as start of next transition
-                - set offset as start_He3 - start_Li6
-                - set start/stop/duration based on start_He3
-            - If the object reflects a single cycle, return from cycle_start, cycle_stop
+            - Cycle stop times are derived from the start of the next cycle;
+              the last cycle stops at the final SequencerTree timestamp.
+            - Sets cycle_param.is_precise_timing to False.
 
         Example:
             ```python
-            # this calculates new cycle start and end times based on the selected method
-            >>> run.set_cycle_times_crude('li6')
+            >>> run.set_cycle_times_crude()
             ```
         """
 
