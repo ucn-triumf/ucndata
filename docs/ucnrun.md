@@ -140,7 +140,7 @@ class ucnrun(ucnbase):
 
 ### ucnrun._set_period_times
 
-[Show source in ucnrun.py:533](../ucndata/ucnrun.py#L533)
+[Show source in ucnrun.py:537](../ucndata/ucnrun.py#L537)
 
 Set period durations and end times based on cycle start times
 
@@ -152,7 +152,7 @@ def _set_period_times(self): ...
 
 ### ucnrun.check_data
 
-[Show source in ucnrun.py:576](../ucndata/ucnrun.py#L576)
+[Show source in ucnrun.py:594](../ucndata/ucnrun.py#L594)
 
 Run some checks to determine if the data is ok.
 
@@ -184,7 +184,7 @@ def check_data(self, raise_error=False): ...
 
 ### ucnrun.gen_cycle_filter
 
-[Show source in ucnrun.py:639](../ucndata/ucnrun.py#L639)
+[Show source in ucnrun.py:657](../ucndata/ucnrun.py#L657)
 
 Generate filter array for cycles. Use with self.set_cycle_filter to filter cycles.
 
@@ -220,7 +220,7 @@ def gen_cycle_filter(self, quiet=False): ...
 
 ### ucnrun.get_cycle
 
-[Show source in ucnrun.py:670](../ucndata/ucnrun.py#L670)
+[Show source in ucnrun.py:688](../ucndata/ucnrun.py#L688)
 
 Return a copy of this object, but trees are trimmed to only one cycle.
 
@@ -259,7 +259,7 @@ def get_cycle(self, cycle=None): ...
 
 ### ucnrun.keyfilter
 
-[Show source in ucnrun.py:707](../ucndata/ucnrun.py#L707)
+[Show source in ucnrun.py:725](../ucndata/ucnrun.py#L725)
 
 Don't load all the data in each file, only that which is needed
 
@@ -271,7 +271,7 @@ def keyfilter(self, name): ...
 
 ### ucnrun.set_cycle_filter
 
-[Show source in ucnrun.py:721](../ucndata/ucnrun.py#L721)
+[Show source in ucnrun.py:739](../ucndata/ucnrun.py#L739)
 
 Set filter for which cycles to fetch when slicing or iterating
 
@@ -342,7 +342,7 @@ def set_cycle_filter(self, cfilter=None): ...
 
 ### ucnrun.set_cycle_times_crude
 
-[Show source in ucnrun.py:794](../ucndata/ucnrun.py#L794)
+[Show source in ucnrun.py:812](../ucndata/ucnrun.py#L812)
 
 Get start and end times of each cycle from the sequencer and save
 into self.cycle_param.cycle_times
@@ -387,7 +387,7 @@ def set_cycle_times_crude(self): ...
 
 ### ucnrun.set_cycle_times_precise
 
-[Show source in ucnrun.py:868](../ucndata/ucnrun.py#L868)
+[Show source in ucnrun.py:876](../ucndata/ucnrun.py#L876)
 
 Replace crude cycle start times with hardware-timestamped precise times.
 
