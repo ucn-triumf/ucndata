@@ -10,6 +10,7 @@ from .applylist import applylist
 from .ucnbase import ucnbase
 from .ttreeslow import ttreeslow
 from .ucncycle import ucncycle
+import ucndata
 import warnings, os, re
 
 import numpy as np
@@ -27,7 +28,7 @@ class ucnrun(ucnbase):
     """UCN run data. Cleans data and performs analysis
 
     Args:
-        run (int|str): if int, generate filename with self.datadir
+        run (int|str): if int, generate filename with DATADIR
             elif str then run is the path to the file
         ucn_only (bool): if true set filter tIsUCN==1 on all hit trees
         use_precise_cycles (bool): if true attempt to use precise cycle times. 
@@ -75,10 +76,11 @@ class ucnrun(ucnbase):
         Loading runs
         ```python
         from ucndata import ucnrun, settings
+        import ucndata
         # load from filename
         ucnrun('/path/to/file/ucn_run_00002684.root')
         # load from run number
-        ucnrun.datadir = '/path/to/file/'
+        ucndata.DATADIR = '/path/to/file/'
         ucnrun(2684)
         ```
 
@@ -123,7 +125,7 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, ucn_only=True, use_precise_cycles=True):
+    def __init__(self, run, ucn_only=True):
 
         # check if copying
         if run is None:
@@ -131,7 +133,7 @@ class ucnrun(ucnbase):
 
         # make filename from defaults
         elif isinstance(run, (int, float, np.float64, np.int64)):
-            filename = os.path.join(self.datadir, f'ucn_run_{int(run):0>8d}.root')
+            filename = os.path.join(ucndata.DATADIR, f'ucn_run_{int(run):0>8d}.root')
 
         # fetch from specified path
         elif isinstance(run, str):
@@ -170,14 +172,12 @@ class ucnrun(ucnbase):
         # set cycle parameters
         self.cycle_param = attrdict({'filter': None})
         self._set_valve_states()
-        
-        # get crude cycle times
         self.set_cycle_times_crude()
 
         # setup tree filters
-        for detector in self.DET_NAMES.keys():
+        for detector in ucndata.DET_NAMES.keys():
             try:
-                tree = self.tfile[self.DET_NAMES[detector]['hits']]
+                tree = self.tfile[ucndata.DET_NAMES[detector]['hits']]
             except KeyError:
                 continue
 
@@ -189,7 +189,7 @@ class ucnrun(ucnbase):
                 tree.set_filter('tIsUCN>0', inplace=True)
         
         # make slow control tree
-        self.epics = ttreeslow((self.tfile[name] for name in self.EPICS_TREES 
+        self.epics = ttreeslow((self.tfile[name] for name in ucndata.EPICS_TREES 
                                 if name in self.tfile.keys()), parent=self)
         
         # store fetched cycles
@@ -321,7 +321,7 @@ class ucnrun(ucnbase):
         #     Both ucncycle and ucnperiod classes call this function to get the counts
 
         # get hits tree
-        tree = self.tfile[self.DET_NAMES[detector]['hits']]
+        tree = self.tfile[ucndata.DET_NAMES[detector]['hits']]
 
         # get hits for run
         if cycle is None and period is None:
@@ -373,7 +373,7 @@ class ucnrun(ucnbase):
 
                 # generate the hits histogram from binned data
                 else:
-                    tree = self.tfile[self.DET_NAMES[detector]['hits']]
+                    tree = self.tfile[ucndata.DET_NAMES[detector]['hits']]
                     hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
                     self._hits_hist[detector] = (bin_ms, hist)
 
@@ -580,7 +580,7 @@ class ucnrun(ucnbase):
             bool: true if check passes, else false.
 
         Notes:
-            * Do the self.SLOW_TREES exist and have entries?
+            * Do the ucndata.SLOW_TREES exist and have entries?
             * Are there nonzero counts in UCNHits?
 
         Example:
@@ -591,7 +591,7 @@ class ucnrun(ucnbase):
         """
 
         # check some necessary data trees
-        for tree in self.SLOW_TREES:
+        for tree in ucndata.SLOW_TREES:
 
             msg = None
 
@@ -611,7 +611,7 @@ class ucnrun(ucnbase):
                     print(msg)
                     return False
 
-        for name, det in self.DET_NAMES.items():
+        for name, det in ucndata.DET_NAMES.items():
 
             # check for nonzero counts
             if not self.tfile[det['hits']].tIsUCN.any():

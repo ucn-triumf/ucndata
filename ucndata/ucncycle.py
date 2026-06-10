@@ -1,6 +1,8 @@
 # Open and analyze UCN data for a one cycle
 # Derek Fujimoto
 # Oct 2024
+
+import ucndata
 from .exceptions import *
 from .applylist import applylist
 from .ucnbase import ucnbase
@@ -10,7 +12,6 @@ from .ttreeslow import ttreeslow
 from tqdm import tqdm
 import pandas as pd
 import matplotlib.pyplot as plt
-
 
 import numpy as np
 import os
@@ -267,16 +268,16 @@ class ucncycle(ucnbase):
             return warn(DataError, f'{msg} cycle duration ({actual_duration:.1f} s) shorter than sum of periods ({expected_duration:.1f} s)')
 
         # drop cycles where the 1A beam drops to zero during any time in the cycle
-        if any(self.beam1a_current_uA < self.DATA_CHECK_THRESH['beam_min_current']):
-            return warn(BeamError, f'{msg} 1A current dropped below {self.DATA_CHECK_THRESH["beam_min_current"]} uA')
+        if any(self.beam1a_current_uA < ucndata.DATA_CHECK_THRESH['beam_min_current']):
+            return warn(BeamError, f'{msg} 1A current dropped below {ucndata.DATA_CHECK_THRESH["beam_min_current"]} uA')
 
         # drop cycles where the 1A beam drops to zero within 5 s of the cycle starting
         if self.cycle > 0:
             cyc_last = self._run[self.cycle-1]
             current = cyc_last.beam1a_current_uA
             idx = current.index > self.cycle_start-20
-            if any(current.loc[idx] < self.DATA_CHECK_THRESH["beam_min_current"]):
-                return warn(BeamError, f'{msg} 1A current dropped below {self.DATA_CHECK_THRESH["beam_min_current"]} uA within 20 seconds of the cycle starting')
+            if any(current.loc[idx] < ucndata.DATA_CHECK_THRESH["beam_min_current"]):
+                return warn(BeamError, f'{msg} 1A current dropped below {ucndata.DATA_CHECK_THRESH["beam_min_current"]} uA within 20 seconds of the cycle starting')
 
         return True
 

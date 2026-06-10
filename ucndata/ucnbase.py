@@ -2,6 +2,7 @@
 # Derek Fujimoto
 # Oct 2024
 
+import ucndata
 from rootloader import ttree
 from .exceptions import *
 from .datetime import to_datetime
@@ -19,7 +20,7 @@ class ucnbase(object):
     """UCN run data. Cleans data and performs analysis
 
     Args:
-        run (int|str): if int, generate filename with self.datadir
+        run (int|str): if int, generate filename with ucndata.DATADIR
             elif str then run is the path to the file
         header_only (bool): if true, read only the header
 
@@ -44,52 +45,6 @@ class ucnbase(object):
         behaviour
         Object is indexed as [cycle, period] for easy access to sub time frames
     """
-
-    # path to the directory which contains the root files
-    datadir = "/data3/ucn/root_files"
-
-    # timezone for datetime conversion
-    timezone = 'America/Vancouver'
-
-    # filter what trees and branches to load in each file. If unspecified then load the whole tree
-    # treename: (filter, columns). See [rootloader documentation](https://github.com/ucn-triumf/rootloader/blob/main/docs/rootloader/ttree.md#ttree-1) for details
-    tree_filter = {}
-
-    # detector tree names
-    DET_NAMES = {'He3':{'hits':         'UCNHits_He3',
-                        'hits_orig':    'UCNHits_He3', # as saved in the root file
-                        'charge':       'He3_Charge',
-                        'rate':         'He3_Rate',
-                        'transitions':  'RunTransitions_He3',
-                        'hitsseq':      'hitsinsequence_he3',
-                        'hitsseqcumul': 'hitsinsequencecumul_he3',
-                        },
-                 'Li6':{'hits':         'UCNHits_Li6',
-                        'hits_orig':    'UCNHits_Li-6', # as saved in the root file
-                        'charge':       'Li6_Charge',
-                        'rate':         'Li6_Rate',
-                        'transitions':  'RunTransitions_Li6',
-                        'hitsseq':      'hitsinsequence_li6',
-                        'hitsseqcumul': 'hitsinsequencecumul_li6',
-                        },
-                }
-    
-    # needed slow control trees: for checking data quality
-    SLOW_TREES = ('BeamlineEpics', 'SequencerTree')
-
-    # EPICS trees to group into a single slow control tree
-    EPICS_TREES = [ 'BeamlineEpics',        'UCN2EpPha5Last',   'UCN2EpicsPhase2B',
-                    'UCN2EpPha5Oth',        'UCN2EpicsPhase3',  'UCN2EpPha5Pre',
-                    'UCN2EpicsPressures',   'UCN2EpPha5Tmp',    'UCN2EpicsTemperature',
-                    'UCN2Epics',            'UCN2Pur',          'UCN2EpicsOthers',
-                    'UCN2EpLD2'
-                  ]
-
-    # data thresholds for checking data
-    DATA_CHECK_THRESH = {'beam_min_current': 0.1, # uA
-                         'pileup_cnt_per_ms': 10, # if larger than this, then pileup and delete
-                         'pileup_within_first_s': 1, # time frame for pileup in each period
-                        }
 
     def __iter__(self):
         # setup iteration
@@ -156,7 +111,7 @@ class ucnbase(object):
         """Get times of ucn hits as a numpy array
 
         Args:
-            detector (str): one of the keys to `self.DET_NAMES`
+            detector (str): one of the keys to `ucndata.DET_NAMES`
 
         Returns:
             np.array: array of timestamps corresponding to an UCN hit. Note that this returns all events in the case where ucn_only=False
@@ -170,11 +125,11 @@ class ucnbase(object):
         """
 
         # check input
-        if detector not in self.DET_NAMES.keys():
-            raise KeyError(f'Detector input "{detector}" not one of {tuple(self.DET_NAMES.keys())}')
+        if detector not in ucndata.DET_NAMES.keys():
+            raise KeyError(f'Detector input "{detector}" not one of {tuple(ucndata.DET_NAMES.keys())}')
 
         # get the tree
-        tree = self.tfile[self.DET_NAMES[detector]['hits']]
+        tree = self.tfile[ucndata.DET_NAMES[detector]['hits']]
 
         return tree.tUnixTimePrecise.to_dataframe().index.values
 
@@ -217,11 +172,11 @@ class ucnbase(object):
         """
 
         # check input
-        if detector not in self.DET_NAMES.keys():
-            raise KeyError(f'Detector input "{detector}" not one of {tuple(self.DET_NAMES.keys())}')
+        if detector not in ucndata.DET_NAMES.keys():
+            raise KeyError(f'Detector input "{detector}" not one of {tuple(ucndata.DET_NAMES.keys())}')
 
         # get data
-        tree = self._run.tfile[self.DET_NAMES[detector]['hits']]
+        tree = self._run.tfile[ucndata.DET_NAMES[detector]['hits']]
 
         # histogram
         hist = tree.hist1d('tUnixTimePrecise', step=bin_ms/1000)
@@ -381,7 +336,7 @@ class ucnbase(object):
         """
 
         # get the data from the tree
-        tree = self.tfile[self.DET_NAMES[detector]['hits']].reset()
+        tree = self.tfile[ucndata.DET_NAMES[detector]['hits']].reset()
         tree.set_filter("tUnixTimePrecise > 15e8", inplace=True)
 
         # calculate new psd

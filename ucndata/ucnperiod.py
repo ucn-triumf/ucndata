@@ -2,6 +2,7 @@
 # Derek Fujimoto
 # Oct 2024
 
+import ucndata
 from .exceptions import *
 from .ucnbase import ucnbase
 from .tsubfile import tsubfile
@@ -81,7 +82,7 @@ class ucnperiod(ucnbase):
         Histograms the first `pileup_within_first_s` seconds of data in 1 ms bins and checks if any of those bins are greater than the `pileup_cnt_per_ms` threshold.
 
         Args:
-            detector (str): one of the keys to self.DET_NAMES
+            detector (str): one of the keys to ucndata.DET_NAMES
 
         Returns:
             bool: true if pileup detected
@@ -100,8 +101,8 @@ class ucnperiod(ucnbase):
         ## filter pileup for period data
 
         # get thresholds
-        dt = self.DATA_CHECK_THRESH['pileup_within_first_s']
-        count_thresh = self.DATA_CHECK_THRESH['pileup_cnt_per_ms']
+        dt = ucndata.DATA_CHECK_THRESH['pileup_within_first_s']
+        count_thresh = ucndata.DATA_CHECK_THRESH['pileup_cnt_per_ms']
 
         # make histogram
         counts, _ = np.histogram(t, bins=int(1/0.001*dt),
