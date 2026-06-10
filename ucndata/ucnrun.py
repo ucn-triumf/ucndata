@@ -30,6 +30,10 @@ class ucnrun(ucnbase):
         run (int|str): if int, generate filename with self.datadir
             elif str then run is the path to the file
         ucn_only (bool): if true set filter tIsUCN==1 on all hit trees
+        use_precise_cycles (bool): if true attempt to use precise cycle times. 
+            First, check if the RunTransition_Li6 tree has precise times in it (precise times found from midas2root). 
+            If not, then check if there are any hits in hardware cycle start channel on the digitizer.
+            If not, raise a warning
 
     Attributes:
         comment (str): comment input by users
@@ -119,7 +123,7 @@ class ucnrun(ucnbase):
         ```
     """
 
-    def __init__(self, run, ucn_only=True):
+    def __init__(self, run, ucn_only=True, use_precise_cycles=True):
 
         # check if copying
         if run is None:
@@ -165,7 +169,7 @@ class ucnrun(ucnbase):
 
         # set cycle parameters
         self.cycle_param = attrdict({'filter': None})
-        self.set_valve_states()
+        self._set_valve_states()
         
         # get crude cycle times
         self.set_cycle_times_crude()
@@ -301,87 +305,6 @@ class ucnrun(ucnbase):
 
     def __len__(self):
         return self.cycle_param.ncycles
-
-    def _get_cycle_param(self):
-        # set self.cycle_param dict
-
-        # cycle filter
-        self.cycle_param['filter'] = None
-
-        # setup cycle paramtree array outputs from transition trees
-        treelist = []
-        for detector in self.DET_NAMES.values():
-            if detector['transitions'] in self.tfile.keys():
-                treelist.append(self.tfile[detector['transitions']])
-
-        # check if trees exist
-        if not treelist:
-            warnings.warn(f'Run {self.run_number}: no detector transition tree, cannot fully set up cycle_param', MissingDataWarning)
-
-            # number of cycles, periods
-            self.cycle_param['ncycles'] = 1
-            self.cycle_param['nperiods'] = 1
-
-            # cycle and supercycle indices
-            self.cycle_param['cycle'] = pd.Series([0], index=[0])
-            self.cycle_param['supercycle'] = pd.Series([0], index=[0])
-
-            self.cycle_param['cycle'].name = 'cycleIndex'
-            self.cycle_param['supercycle'].name = 'superCycleIndex'
-
-            return
-
-        # get longest
-        treelen = [len(t) for t in treelist]
-        tree = treelist[np.argmax(treelen)]
-
-        # cycle and supercycle indices
-        self.cycle_param['cycle'] = tree['cycleIndex'].astype(int)
-        self.cycle_param['supercycle'] = tree['superCycleIndex'].astype(int)
-
-        # convert the array in each cell into a dataframe
-        def item_to_df(x):
-            s = pd.DataFrame(np.array(x).copy(), index=np.arange(len(x))+1)
-            return s
-
-        # valve states -------------------------------------------------------
-        df = tree[[col for col in tree.columns if 'valveState' in col]]
-        col_map = {col:int(col.replace("valveStatePeriod", "")) for col in df.columns}
-        df = df.rename(columns=col_map)
-        df.columns.name = 'period'
-        df.reset_index(inplace=True, drop=True)
-        df.index.name = 'cycle_idx'
-
-        # valve states should not change across cycles
-        df2 = df.loc[0]
-        df2 = pd.concat([item_to_df(df2[period]) for period in df2.index], axis='columns')
-
-        # rename columns and index
-        df2.columns = np.arange(len(df2.columns))
-        df2.columns.name = 'period'
-        df2.index.name = 'valve'
-        self.cycle_param['valve_states'] = df2.transpose()
-
-        # period end times ---------------------------------------------------
-        df = tree[[col for col in tree.columns if 'cyclePeriod' in col]]
-        col_map = {col:int(col.replace("cyclePeriod", "").replace("EndTime", "")) for col in df.columns}
-
-        # rename columns and index
-        df = df.rename(columns=col_map)
-        df.columns.name = 'period'
-        df.index.name = 'cycle'
-        self.cycle_param['period_end_times'] = df.transpose()
-
-        # period durations ---------------------------------------------------
-        cycle_start = tree.cycleStartTime
-        df_diff = df.diff(axis='columns')
-        df_diff[0] = df[0] - cycle_start
-        self.cycle_param['period_durations_s'] = df_diff.transpose()
-
-        # number of cycles
-        self.cycle_param['ncycles'] = len(df.index)
-        self.cycle_param['nperiods'] = len(df.columns)
-        self.cycle_param['nsupercycle'] = len(set(self.cycle_param['supercycle']))
 
     def _get_nhits(self, detector, cycle=None, period=None, bin_ms=0):
         # Get number ucn hits
@@ -584,6 +507,68 @@ class ucnrun(ucnbase):
 
         # reset histogram for number of hits
         self._nhits = {}
+
+    def _set_valve_states(self):
+        """"""
+        # get tree as dataframe
+        df = self.tfile.CycleParamTree
+        df = df[[col for col in df.columns if 'Valve' in col]]
+        
+        if isinstance(df, ttree):
+            df = df.to_dataframe()
+
+        # valve states -------------------------------------------------------
+        df = df[[col for col in df.columns if 'Valve' in col]]
+        col_map = {col:int(re.sub(r'\D', '', col)) for col in df.columns}
+        df = df.rename(columns=col_map)
+        df.reset_index(inplace=True, drop=True)
+        df.columns.name = 'valve'
+        df.index.name = 'period'
+
+        self.cycle_param['valve_states'] = df
+
+    def _set_period_times(self):
+        """Set period durations and end times based on cycle start times"""
+
+        # get tree as dataframe
+        dur = self.tfile.CycleParamTree
+        dur = dur[[col for col in dur.columns if 'Duration' in col]]
+        
+        if isinstance(dur, ttree):
+            dur = dur.to_dataframe()
+
+        # get period durations ----------------------------------------------
+        dur = dur.rename(columns={col:int(re.sub(r'\D', '', col)) for col in dur.columns})
+        dur = dur.reindex(sorted(dur.columns), axis=1)
+        
+        # drop all-zero columns
+        dur = dur.loc[:, dur.sum(axis=0)>0]
+
+        # expand for all cycles
+        dur = pd.concat([dur]*max((1, self.cycle_param.ncycles//len(dur.columns))),
+                       axis='columns')
+        dur.columns = np.arange(len(dur.columns))
+        
+        # trim missing cycles
+        dur = dur[self.cycle_param.cycle_times.index]
+    
+        dur.index.name = 'period'
+        dur.columns.name = 'cycle'
+
+        self.cycle_param['period_durations_s'] = dur
+
+        # get period end times ----------------------------------------------
+        
+        # get cycle start times
+        start = self.cycle_param.cycle_times.start.values
+
+        # sum
+        ends = dur.cumsum()
+        for i, st in enumerate(start):
+            ends.loc[:, i] += st
+
+        self.cycle_param['period_end_times'] = ends
+        self.cycle_param['nperiods'] = len(ends.index)
 
     def check_data(self, raise_error=False):
         """Run some checks to determine if the data is ok.
@@ -803,68 +788,6 @@ class ucnrun(ucnbase):
         for key, cyc in self._cycledict.items():
             cyc.cycle_param.filter = self.cycle_param.filter[key]
 
-    def set_valve_states(self):
-        """"""
-        # get tree as dataframe
-        df = self.tfile.CycleParamTree
-        df = df[[col for col in df.columns if 'Valve' in col]]
-        
-        if isinstance(df, ttree):
-            df = df.to_dataframe()
-
-        # valve states -------------------------------------------------------
-        df = df[[col for col in df.columns if 'Valve' in col]]
-        col_map = {col:int(re.sub(r'\D', '', col)) for col in df.columns}
-        df = df.rename(columns=col_map)
-        df.reset_index(inplace=True, drop=True)
-        df.columns.name = 'valve'
-        df.index.name = 'period'
-
-        self.cycle_param['valve_states'] = df
-
-    def set_period_times(self):
-        """Set period durations and end times based on cycle start times"""
-
-        # get tree as dataframe
-        dur = self.tfile.CycleParamTree
-        dur = dur[[col for col in dur.columns if 'Duration' in col]]
-        
-        if isinstance(dur, ttree):
-            dur = dur.to_dataframe()
-
-        # get period durations ----------------------------------------------
-        dur = dur.rename(columns={col:int(re.sub(r'\D', '', col)) for col in dur.columns})
-        dur = dur.reindex(sorted(dur.columns), axis=1)
-        
-        # drop all-zero columns
-        dur = dur.loc[:, dur.sum(axis=0)>0]
-
-        # expand for all cycles
-        dur = pd.concat([dur]*max((1, self.cycle_param.ncycles//len(dur.columns))),
-                       axis='columns')
-        dur.columns = np.arange(len(dur.columns))
-        
-        # trim missing cycles
-        dur = dur[self.cycle_param.cycle_times.index]
-    
-        dur.index.name = 'period'
-        dur.columns.name = 'cycle'
-
-        self.cycle_param['period_durations_s'] = dur
-
-        # get period end times ----------------------------------------------
-        
-        # get cycle start times
-        start = self.cycle_param.cycle_times.start.values
-
-        # sum
-        ends = dur.cumsum()
-        for i, st in enumerate(start):
-            ends.loc[:, i] += st
-
-        self.cycle_param['period_end_times'] = ends
-        self.cycle_param['nperiods'] = len(ends.index)
-
     def set_cycle_times_crude(self):
         """Get start and end times of each cycle from the sequencer and save
         into self.cycle_param.cycle_times
@@ -934,19 +857,18 @@ class ucnrun(ucnbase):
         self.cycle_param['is_precise_timing'] = False
 
         # update period times
-        self.set_period_times()
+        self._set_period_times()
 
         # reset cycle dict
         self._cycledict = {}
 
-    def set_cycle_times_precise(self, hw_channel=10):
+    def set_cycle_times_precise(self, hw_channel=10, detector='Li6'):
         """Replace crude cycle start times with hardware-timestamped precise times.
 
-        Reads hardware-trigger hit timestamps from the Li6 detector on the
-        specified TV1725 input hw_channel. These timestamps have sub-millisecond
-        precision compared to the sequencer-derived crude cycle times. The
-        function aligns the precise timestamps against the existing crude cycle
-        grid, back-extrapolates if the first trigger was missed, and linearly
+        Reads hardware-trigger hit timestamps on the specified TV1725 input hw_channel. 
+        These timestamps have sub-millisecond precision compared to the sequencer-derived 
+        crude cycle times. The function aligns the precise timestamps against the existing 
+        crude cycle grid, back-extrapolates if the first trigger was missed, and linearly
         interpolates over any gaps where the hardware signal was not recorded.
 
         After a successful call, ``cycle_param`` is updated as follows:
@@ -968,6 +890,7 @@ class ucnrun(ucnbase):
         Args:
             hw_channel (int): TV1725 input channel carrying the hardware
                 cycle-start signal. Default is 10.
+            detector (str): Li6 | He3, select between RunTransition_* trees
 
         Note:
             The average precise cycle duration is estimated from inter-hit
@@ -975,11 +898,27 @@ class ucnrun(ucnbase):
             so the crude timing must already be a reasonable first approximation.
         """
 
-        # get precise cycle start hit times
-        tree = self.tfile.UCNHits_Li6.reset()
-        tree.set_filter(f'tChannel == {hw_channel}', inplace=True)
-        ptimes = tree.tUnixTimePrecise.to_array()
-        ptimes = np.sort(ptimes)
+        # check if already precise times
+        if self.cycle_param.is_precise_timing:
+            warnings.warn(f'Run {self.run_number} is already precise timing')
+            return
+
+        # crude cycle times
+        ctimes = self.cycle_param.cycle_times.start.values
+
+        # get the detector transition tree times, hopefully they are precise times (will check later)
+        if f'RunTransitions_{detector}' not in self.tfile.keys():
+            raise KeyError(f'RunTransitions_{detector} not found in tfile')
+
+        tree = self.tfile[f'RunTransitions_{detector}']
+        ptimes = np.sort(tree.cycleStartTime.to_array())
+
+        # run transitions are crude times: find the times from the hit tree
+        if len(ptimes) == len(ctimes) and all(ptimes == ctimes):
+            tree = self.tfile.UCNHits_Li6.reset()
+            tree.set_filter(f'tChannel == {hw_channel}', inplace=True)
+            ptimes = tree.tUnixTimePrecise.to_array()
+            ptimes = np.sort(ptimes)
 
         # check if any precise times
         if len(ptimes) == 0:
@@ -987,9 +926,6 @@ class ucnrun(ucnbase):
                           MissingDataWarning)
             return
         
-        # crude cycle times
-        ctimes = self.cycle_param.cycle_times.start.values
-
         # average crude cycle duration
         cdur = np.mean(np.diff(ctimes))
 
@@ -1055,7 +991,7 @@ class ucnrun(ucnbase):
         self.cycle_param['is_precise_timing'] = True
 
         # update period timings
-        self.set_period_times()
+        self._set_period_times()
         
         # reset cycle dict
         self._cycledict = {}
