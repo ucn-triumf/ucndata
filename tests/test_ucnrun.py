@@ -297,6 +297,28 @@ def test_set_cycle_times_precise_raises_missing_transitions(good_run):
         good_run.set_cycle_times_precise(detector='BadDetector')
 
 
+@pytest.mark.rootfile
+def test_set_cycle_times_precise_two_non_consecutive_hits(missing_middle_hw_file):
+    """Two non-consecutive hardware hits (cycles 0 and 2) still set precise timing.
+
+    The lone inter-hit diff spans two cycles, so the per-cycle duration must be
+    recovered by dividing by the spanned cycle count rather than matching the
+    crude duration directly. The missed middle cycle is interpolated.
+    """
+    run = ucnrun(str(missing_middle_hw_file))
+    run.set_cycle_times_crude()
+    run.set_cycle_times_precise(hw_channel=10)
+
+    assert run.cycle_param.is_precise_timing is True
+    ct = run.cycle_param.cycle_times
+    assert len(ct) == 3
+    # cycles 0 and 2 came from real hits; cycle 1 was interpolated
+    assert list(ct["is_measured"].values) == [True, False, True]
+    np.testing.assert_allclose(
+        ct["start"].values, [T0, T0 + 100, T0 + 200], atol=1e-3
+    )
+
+
 # ---------------------------------------------------------------------------
 # __getitem__ / slicing / iteration
 # ---------------------------------------------------------------------------

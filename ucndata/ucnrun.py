@@ -949,9 +949,12 @@ class ucnrun(ucnbase):
             detector (str): `Li6` | `He3`, select between `RunTransition_*` trees
 
         Note:
-            The average precise cycle duration is estimated from inter-hit
-            differences that agree with the crude average to within 5 seconds,
-            so the crude timing must already be a reasonable first approximation.
+            The average precise cycle duration is estimated by dividing each
+            inter-hit difference by the integer number of cycles it spans and
+            keeping the per-cycle estimates that agree with the crude average to
+            within 5 seconds, so the crude timing must already be a reasonable
+            first approximation. This tolerates gaps where intermediate hardware
+            triggers were missed, including the case of only two non-consecutive hits.
 
         Example:
             >>> run = ucnrun(2684)
@@ -992,13 +995,20 @@ class ucnrun(ucnbase):
         # average crude cycle duration
         cdur = np.mean(np.diff(ctimes))
 
-        # get average precise cycle duration for one cycle
+        # get average precise cycle duration for one cycle.
+        # Each inter-hit diff spans an integer number of cycles (round(diff/cdur));
+        # dividing by that count recovers a single-cycle estimate. This handles gaps
+        # where intermediate hardware triggers were missed, including the degenerate
+        # case of only two non-consecutive hits (a single multi-cycle diff).
         diff = np.diff(ptimes)
-        filtered_diff = diff[abs(diff - cdur) < 5]  # cycle durations should be within 5 seconds
-        if len(filtered_diff) == 0:
-            warnings.warn(f'Run {self.run_number}: no precise cycle diffs within 5 s of crude duration; cannot set precise timing.', MissingDataWarning)
+        nspan = np.round(diff / cdur)                      # cycles spanned by each diff
+        valid = nspan >= 1                                 # drop spurious sub-cycle (double) hits
+        per_cycle = diff[valid] / nspan[valid]             # single-cycle duration estimates
+        per_cycle = per_cycle[abs(per_cycle - cdur) < 5]   # keep only those consistent with crude
+        if len(per_cycle) == 0:
+            warnings.warn(f'Run {self.run_number}: no precise cycle diffs consistent with crude duration; cannot set precise timing.', MissingDataWarning)
             return
-        pdur = np.mean(filtered_diff)
+        pdur = np.mean(per_cycle)
 
         # setup new values
         new_times = []

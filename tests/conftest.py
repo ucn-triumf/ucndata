@@ -79,6 +79,15 @@ def chopper_file(tmp_path_factory):
     return path
 
 
+@pytest.fixture(scope="session")
+def missing_middle_hw_file(tmp_path_factory):
+    """Only cycles 0 and 2 carry a channel-10 trigger (cycle 1 missed) —
+    two non-consecutive precise hits for set_cycle_times_precise."""
+    path = tmp_path_factory.mktemp("root") / "missing_middle_hw.root"
+    build_run_file(path, hw_cycles=(0, 2))
+    return path
+
+
 # ---------------------------------------------------------------------------
 # ucnrun / crun fixtures
 # ---------------------------------------------------------------------------

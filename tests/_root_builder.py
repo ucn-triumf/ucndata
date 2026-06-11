@@ -298,14 +298,22 @@ def _make_he3_hits():
     return all_ts, is_ucn, channel, chargeL, psd
 
 
-def _make_li6_hits(chopper=False):
+def _make_li6_hits(chopper=False, hw_cycles=None):
     """Build Li6 hit arrays.
 
     Timestamps offset +2 s from He3.  Channel 10 carries one hardware
     cycle-start trigger per cycle (at T0 + N*CYCLE_DUR), spaced exactly
     CYCLE_DUR apart so set_cycle_times_precise can use them.  If
     chopper=True, adds channel-15 frame markers at T0+N*100+[10, 30, 60].
+
+    Args:
+        chopper: add channel-15 frame markers.
+        hw_cycles: iterable of cycle indices that carry a channel-10 hardware
+            trigger. Defaults to all cycles. Use e.g. (0, 2) to simulate a
+            missed trigger on cycle 1 (two non-consecutive precise hits).
     """
+    if hw_cycles is None:
+        hw_cycles = range(N_CYCLES)
     timestamps = []
     for ci in range(N_CYCLES):
         base = T0 + ci * CYCLE_DUR
@@ -324,8 +332,8 @@ def _make_li6_hits(chopper=False):
                               rng.uniform(200, 1500, n - 5)]).astype(np.float64)
     psd     = np.full(n, 0.3, dtype=np.float64)
 
-    # Hardware cycle-start triggers on channel 10: one hit per cycle at T0+N*CYCLE_DUR.
-    hw_ts = np.array([float(T0 + ci * CYCLE_DUR) for ci in range(N_CYCLES)])
+    # Hardware cycle-start triggers on channel 10: one hit per requested cycle at T0+N*CYCLE_DUR.
+    hw_ts = np.array([float(T0 + ci * CYCLE_DUR) for ci in hw_cycles])
     nc_hw = len(hw_ts)
     all_ts  = np.concatenate([all_ts,  hw_ts])
     is_ucn  = np.concatenate([is_ucn,  np.zeros(nc_hw, dtype=np.int32)])
@@ -390,7 +398,7 @@ def _write_hits(f, tree_name, timestamps, is_ucn, channel, chargeL, psd):
 # ---------------------------------------------------------------------------
 
 def build_run_file(path, no_sequencer=False, no_transitions=False,
-                   no_slow_trees=False, chopper=False):
+                   no_slow_trees=False, chopper=False, hw_cycles=None):
     """Write a synthetic UCN run ROOT file to *path*.
 
     Args:
@@ -399,6 +407,8 @@ def build_run_file(path, no_sequencer=False, no_transitions=False,
         no_transitions: omit RunTransitions_He3 and RunTransitions_Li6
         no_slow_trees: omit all slow control trees
         chopper: add channel-15 frame markers to UCNHits_Li-6
+        hw_cycles: iterable of cycle indices that carry a channel-10 hardware
+            trigger (defaults to all cycles); see _make_li6_hits.
     """
     path = str(path)
     f    = ROOT.TFile(path, "RECREATE")
@@ -419,7 +429,7 @@ def build_run_file(path, no_sequencer=False, no_transitions=False,
     he3_ts, he3_ucn, he3_ch, he3_cl, he3_psd = _make_he3_hits()
     _write_hits(f, "UCNHits_He3", he3_ts, he3_ucn, he3_ch, he3_cl, he3_psd)
 
-    li6_ts, li6_ucn, li6_ch, li6_cl, li6_psd = _make_li6_hits(chopper=chopper)
+    li6_ts, li6_ucn, li6_ch, li6_cl, li6_psd = _make_li6_hits(chopper=chopper, hw_cycles=hw_cycles)
     _write_hits(f, "UCNHits_Li-6", li6_ts, li6_ucn, li6_ch, li6_cl, li6_psd)
 
     f.Write()
