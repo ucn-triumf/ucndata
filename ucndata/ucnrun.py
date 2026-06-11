@@ -979,7 +979,7 @@ class ucnrun(ucnbase):
 
         # run transitions are crude times: find the times from the hit tree
         if len(ptimes) == len(ctimes) and all(ptimes == ctimes):
-            tree = self.tfile.UCNHits_Li6.reset()
+            tree = self.tfile[ucndata.DET_NAMES[detector]['hits']].reset()
             tree.set_filter(f'tChannel == {hw_channel}', inplace=True)
             ptimes = tree.tUnixTimePrecise.to_array()
             ptimes = np.sort(ptimes)
@@ -1004,10 +1004,13 @@ class ucnrun(ucnbase):
         new_times = []
         is_measured = []
 
-        # check that the first precise timestamp was recorded, if not back-extrapolate
+        # check that the first precise timestamp was recorded, if not back-extrapolate.
+        # Only prepend if ptimes[0] is AFTER ctimes[0] (missed leading trigger); if
+        # ptimes[0] is before ctimes[0] by more than pdur/2, the grid is misaligned and
+        # prepending backwards-extrapolated cycles would shift everything the wrong way.
         npre_cycles = 0
-        if abs(ctimes[0] - ptimes[0]) > pdur/2:
-            npre_cycles = abs(int(np.round((ctimes[0] - ptimes[0])/pdur)))
+        if ptimes[0] > ctimes[0] + pdur/2:
+            npre_cycles = int(np.round((ptimes[0] - ctimes[0])/pdur))
             is_measured = [False] * npre_cycles
             new_times = [ptimes[0] - pdur * i for i in range(npre_cycles, 0, -1)]
 
@@ -1031,12 +1034,16 @@ class ucnrun(ucnbase):
             new_times.append(ptimes[i+1])
             is_measured.append(True)
 
-        # forward-extrapolate for any cycles after the last hardware trigger
+        # forward-extrapolate for any cycles after the last hardware trigger,
+        # or trim if the reconstruction overshot (e.g. due to spurious double hits).
+        n_target = len(ctimes)
         t = new_times[-1]
-        for _ in range(len(ctimes) - len(new_times)):
+        while len(new_times) < n_target:
             t += pdur
             new_times.append(t)
             is_measured.append(False)
+        new_times = new_times[:n_target]
+        is_measured = is_measured[:n_target]
 
         # add run stop time
         run_stop = self.tfile.SequencerTree.timestamp.max()
