@@ -634,8 +634,8 @@ class ucnrun(ucnbase):
         dur = dur[[col for col in dur.columns if col < ncycles_per_supercycle]]  
 
         # drop all rows after nPeriods
-        nperiods = self.tfile.CycleParamTree.nPeriods.values[0] 
-        dur = dur.loc[dur.index <= nperiods]  
+        # nperiods = self.tfile.CycleParamTree.nPeriods.values[0] 
+        # dur = dur.loc[dur.index <= nperiods]  
 
         # expand for all cycles
         cycleids = self.cycle_param.cycle_times.index.values
@@ -669,7 +669,7 @@ class ucnrun(ucnbase):
         self.cycle_param['supercycle'] = self.cycle_param.cycle_times['supercycle']
         self.cycle_param['ncycles_per_supercycle'] = ncycles_per_supercycle
         self.cycle_param['ncycles'] = len(cycleids)
-        self.cycle_param['nperiods'] = nperiods
+        # self.cycle_param['nperiods'] = nperiods
         self.cycle_param['nsupercycles'] = len(self.cycle_param.cycle_times.supercycle.unique())
 
     def check_data(self, raise_error=False):
