@@ -635,7 +635,7 @@ class ucnrun(ucnbase):
 
         # drop all rows after nPeriods
         nperiods = self.tfile.CycleParamTree.nPeriods.values[0] 
-        dur = dur.loc[dur.index < nperiods]  
+        dur = dur.loc[dur.index <= nperiods]  
 
         # expand for all cycles
         cycleids = self.cycle_param.cycle_times.index.values
